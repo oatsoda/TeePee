@@ -12,13 +12,13 @@ variables:
   NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
-- task: Cache@2
-  displayName: Cache NuGet packages
-  inputs:
-    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
-    restoreKeys: |
-       nuget | "$(Agent.OS)"
-    path: $(NUGET_PACKAGES)
+#- task: Cache@2
+#  displayName: Cache NuGet packages
+#  inputs:
+#    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+#    restoreKeys: |
+#       nuget | "$(Agent.OS)"
+#    path: $(NUGET_PACKAGES)
 
 - task: DotNetCoreCLI@2
   displayName: 'Build All'

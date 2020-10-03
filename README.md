@@ -2,9 +2,9 @@
 
 A fluent API to configure HttpClients for unit testing.
 
-CI: [![Build Status](https://oatsoda.visualstudio.com/TeePee/_apis/build/status/oatsoda.TeePee?branchName=master)](https://oatsoda.visualstudio.com/TeePee/_build/latest?definitionId=2&branchName=master)
+CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI?branchName=master)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=4&branchName=master)
 
-Full: [![Build Status](https://oatsoda.visualstudio.com/TeePee/_apis/build/status/oatsoda.TeePee?branchName=master)](https://oatsoda.visualstudio.com/TeePee/_build/latest?definitionId=3&branchName=master)
+Full: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Full?branchName=master)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=5&branchName=master)
 
 
 # TODO
