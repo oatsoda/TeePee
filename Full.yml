@@ -1,0 +1,56 @@
+name: 1.0$(rev:.r)
+
+trigger: none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildConfiguration: 'Release'
+  versionSuffix: '-alpha'
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
+steps:
+- task: Cache@2
+  displayName: Cache NuGet packages
+  inputs:
+    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+    restoreKeys: |
+       nuget | "$(Agent.OS)"
+    path: $(NUGET_PACKAGES)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build All'
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)$(versionSuffix)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Unit Tests'
+  inputs:
+    command: 'test'
+    projects: '**/*[Tt]ests/*.csproj'
+    arguments: '-c $(buildConfiguration) --no-build'
+
+#- task: DotNetCoreCLI@2
+#  displayName: 'Package NuGet'
+#  inputs:
+#    command: 'pack'
+#    packagesToPack: 'HttpTesting/HttpTesting.csproj'
+#    nobuild: true
+#    versioningScheme: 'byBuildNumber' #can't set suffix with any of these
+#    verbosityPack: 'Minimal'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet pack HttpTesting/HttpTesting.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'HttpTesting.Package'
+    publishLocation: 'Container'
