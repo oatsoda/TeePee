@@ -52,5 +52,5 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'HttpTesting.Package'
+    ArtifactName: 'TeePee.Package'
     publishLocation: 'Container'
