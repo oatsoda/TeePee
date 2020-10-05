@@ -7,6 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeePee", "TeePee\TeePee.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeePee.Tests", "TeePee.Tests\TeePee.Tests.csproj", "{B1BDEF1C-0F5F-48BA-A1F2-99520C6355A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeePee.Examples.WebApp", "Examples\TeePee.Examples.WebApp\TeePee.Examples.WebApp.csproj", "{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{349D018E-0CB9-4F9F-94BD-0E6FEE5A68C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeePee.Examples.WebApp.Tests", "Examples\TeePee.Examples.WebApp.Tests\TeePee.Examples.WebApp.Tests.csproj", "{9A1AC2ED-E56C-489A-B36E-8BADD5010566}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,9 +27,21 @@ Global
 		{B1BDEF1C-0F5F-48BA-A1F2-99520C6355A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1BDEF1C-0F5F-48BA-A1F2-99520C6355A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1BDEF1C-0F5F-48BA-A1F2-99520C6355A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BC1BA01F-6C37-43F1-922D-D5B9C96EAE25} = {349D018E-0CB9-4F9F-94BD-0E6FEE5A68C7}
+		{9A1AC2ED-E56C-489A-B36E-8BADD5010566} = {349D018E-0CB9-4F9F-94BD-0E6FEE5A68C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D25696DA-A0F4-4D4B-BA48-1DBE46CE7860}
