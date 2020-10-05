@@ -8,5 +8,4 @@ Full: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/F
 
 # Documentation
 
-TODO!
-        
+TODO! [https://github.com/oatsoda/TeePee/issues/5](https://github.com/oatsoda/TeePee/issues/5)
