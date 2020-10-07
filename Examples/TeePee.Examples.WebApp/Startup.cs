@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using TeePee.Examples.WebApp.Controllers;
 
 namespace TeePee.Examples.WebApp
 {
@@ -26,8 +21,9 @@ namespace TeePee.Examples.WebApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddDependencies(Configuration);
         }
-
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -46,6 +42,17 @@ namespace TeePee.Examples.WebApp
             {
                 endpoints.MapControllers();
             });
+        }
+    }
+
+    public static class StartupDependencyExtensions
+    {
+        // Separate out startup registrations so that your unit tests can setup the same dependencies
+        public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHttpClient<ExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
+            
+            return services;
         }
     }
 }

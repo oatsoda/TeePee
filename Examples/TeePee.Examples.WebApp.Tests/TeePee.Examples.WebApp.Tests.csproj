@@ -18,4 +18,10 @@
     <ProjectReference Include="..\TeePee.Examples.WebApp\TeePee.Examples.WebApp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.unittests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
