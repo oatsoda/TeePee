@@ -8,12 +8,19 @@ namespace TeePee
 {
     public class TeePeeBuilder
     {
+        private readonly string m_HttpClientNamedInstance;
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound; // TODO: A way to turn off default responses? Like Moq Strict.
         private string m_DefaultResponseBody;
 
         private bool m_IsBuilt;
+
+        public TeePeeBuilder(string httpClientNamedInstance = null)
+        {
+            m_HttpClientNamedInstance = httpClientNamedInstance;
+        }
+
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string responseBody = null)
         {
@@ -45,7 +52,7 @@ namespace TeePee
         {
             m_IsBuilt = true;
             var requestMatches = m_Requests.Select(b => b.ToRequestMatch()).ToList();
-            return new TeePee(requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            return new TeePee(m_HttpClientNamedInstance, requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody);
         }
 
         internal bool HasMatchUrlWithQuery()

@@ -13,7 +13,7 @@ namespace TeePee.Examples.WebApp.Tests
 {
     public class HttpClientFactoryNamedUsageControllerTests
     {
-        private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder();
+        private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder(_NAMED_HTTP_CLIENT);
         private const string _NAMED_HTTP_CLIENT = "ThirdPartyApi";
 
         #region Manual Injection
@@ -37,7 +37,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndAct();
@@ -60,7 +60,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndForget();
@@ -95,7 +95,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
             
-            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder.Build());
+            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -118,7 +118,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
             
-            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder.Build());
+            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();
@@ -132,43 +132,20 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
         
-        private static T Resolve<T>(TeePee teePee, Action<IServiceCollection> setup = null) where T : class
+        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> setup = null) where T : class
         {
             var serviceCollection = new ServiceCollection();
 
-            var teePeeMessageHandler = teePee.HttpHandler;
+            var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
 
             // Unfortunately the Basic usage Resolve method will allow ANY named instances to work - therefore a limitation in 
 
             serviceCollection.AddHttpClient(_NAMED_HTTP_CLIENT)
                              .AddHttpMessageHandler(_ => teePeeMessageHandler);
             
-            //serviceCollection.AddTransient<HttpMessageHandlerBuilder>(_ => new NamedUsageHttpMessageHandlerBuilder(teePeeMessageHandler, ""));
-            
             serviceCollection.AddTransient<T>();
 
             return serviceCollection.BuildServiceProvider().GetService<T>();
         }
-
-        //internal class NamedUsageHttpMessageHandlerBuilder : HttpMessageHandlerBuilder
-        //{
-        //    private readonly TeePeeMessageHandler m_MessageHandler;
-
-        //    public override string Name { get; set; }
-        //    public override HttpMessageHandler PrimaryHandler { get; set; }
-        //    public override IList<DelegatingHandler> AdditionalHandlers { get; } = new List<DelegatingHandler>();
-
-        //    public NamedUsageHttpMessageHandlerBuilder(TeePeeMessageHandler messageHandler, string namedClient)
-        //    {
-        //        Name = namedClient;
-        //        m_MessageHandler = messageHandler;
-        //    }
-
-        //    public override HttpMessageHandler Build()
-        //    {
-        //        return m_MessageHandler;
-        //    }
-
-        //}
     }
 }

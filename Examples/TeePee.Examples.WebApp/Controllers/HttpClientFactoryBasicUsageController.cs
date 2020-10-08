@@ -29,7 +29,7 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task<IActionResult> FireAndAct()
         {
             var httpClient = m_HttpClientFactory.CreateClient();
-            var httpResponseMessage = await httpClient.GetAsync("https://some.api/path/resource?filter=those");
+            var httpResponseMessage = await httpClient.GetAsync("https://some.api/path/resource?filter=those"); // TODO: !! BASE URL EXTRACTION !!
             var result = await httpResponseMessage.DeserialiseTo<ThirdPartyResponseModel>();
             
             return Ok(result.Things.Single().Value);

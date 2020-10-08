@@ -1,11 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
 
@@ -95,7 +93,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder.Build());
+            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -118,7 +116,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
             
-            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder.Build());
+            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();
@@ -132,11 +130,11 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
 
-        private static T Resolve<T>(TeePee teePee, Action<IServiceCollection> setup = null) where T : class
+        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> setup = null) where T : class
         {
             var serviceCollection = new ServiceCollection();
 
-            var teePeeMessageHandler = teePee.HttpHandler;
+            var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
 
             serviceCollection.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName)
                              .AddHttpMessageHandler(_ => teePeeMessageHandler);
@@ -146,25 +144,4 @@ namespace TeePee.Examples.WebApp.Tests
             return serviceCollection.BuildServiceProvider().GetService<T>();
         }
     }
-
-    //serviceCollection.AddTransient<HttpMessageHandlerBuilder>(_ => new BasicUsageHttpMessageHandlerBuilder(teePeeMessageHandler));
-    //internal class BasicUsageHttpMessageHandlerBuilder : HttpMessageHandlerBuilder
-    //{
-    //    private readonly TeePeeMessageHandler m_MessageHandler;
-
-    //    public override string Name { get; set; }
-    //    public override HttpMessageHandler PrimaryHandler { get; set; }
-    //    public override IList<DelegatingHandler> AdditionalHandlers { get; } = new List<DelegatingHandler>();
-
-    //    public BasicUsageHttpMessageHandlerBuilder(TeePeeMessageHandler messageHandler)
-    //    {
-    //        m_MessageHandler = messageHandler;
-    //    }
-
-    //    public override HttpMessageHandler Build()
-    //    {
-    //        return m_MessageHandler;
-    //    }
-
-    //}
 }

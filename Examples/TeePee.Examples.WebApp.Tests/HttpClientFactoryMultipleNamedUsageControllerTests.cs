@@ -1,0 +1,199 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using TeePee.Examples.WebApp.Controllers;
+using Xunit;
+
+namespace TeePee.Examples.WebApp.Tests
+{
+    public class HttpClientFactoryMultipleNamedUsageControllerTests
+    {
+        private const string _NAMED_HTTP_CLIENT_ONE = "OneApi";
+        private const string _NAMED_HTTP_CLIENT_TWO = "TwoApi";
+        private readonly TeePeeBuilder m_TeePeeBuilderOne = new TeePeeBuilder(_NAMED_HTTP_CLIENT_ONE);
+        private readonly TeePeeBuilder m_TeePeeBuilderTwo = new TeePeeBuilder(_NAMED_HTTP_CLIENT_TWO);
+
+        #region Manual Injection
+
+        [Fact]
+        public async Task RecommendedPassiveMocking()
+        {
+            // Given
+            m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Get)
+                              .ContainingQueryParam("filter", "those")
+                              .Responds()
+                              .WithStatus(HttpStatusCode.OK)
+                              .WithBody(new
+                                        {
+                                            Things = new[]
+                                                     {
+                                                         new
+                                                         {
+                                                             Value = 10
+                                                         }
+                                                     }
+                                        });
+            
+            m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
+                              .ContainingQueryParam("filter", "those")
+                              .Responds()
+                              .WithStatus(HttpStatusCode.OK)
+                              .WithBody(new
+                                        {
+                                            Things = new[]
+                                                     {
+                                                         new
+                                                         {
+                                                             Value = 30
+                                                         }
+                                                     }
+                                        });
+
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne, m_TeePeeBuilderTwo }.ToHttpClientFactory());
+
+            // When
+            var result = await controller.FireAndAct();
+
+            // Then
+            Assert.NotNull(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(40, resultValue);
+        }
+        
+        [Fact]
+        public async Task MockAndVerify()
+        {
+            // Given
+            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
+                                                .ContainingQueryParam("filter", "other")
+                                                .WithBody(new { Caller = "ThisCaller" })
+                                                .Responds()
+                                                .WithStatus(HttpStatusCode.Created)
+                                                .TrackRequest();    
+            
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
+                                                      .ContainingQueryParam("filter", "other")
+                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .Responds()
+                                                      .WithStatus(HttpStatusCode.Created)
+                                                      .TrackRequest();
+
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne, m_TeePeeBuilderTwo }.ToHttpClientFactory());
+
+            // When
+            var result = await controller.FireAndForget();
+
+            // Then
+            Assert.NotNull(result);
+            Assert.IsType<OkResult>(result);
+
+            requestTrackerOne.WasCalled(1);
+            requestTrackerTwo.WasCalled(1);
+        }
+
+        #endregion
+
+        #region Auto Injection
+        
+        
+        [Fact]
+        public async Task AutoInjection_RecommendedPassiveMocking()
+        {
+            // Given
+            m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Get)
+                              .ContainingQueryParam("filter", "those")
+                              .Responds()
+                              .WithStatus(HttpStatusCode.OK)
+                              .WithBody(new
+                                        {
+                                            Things = new[]
+                                                     {
+                                                         new
+                                                         {
+                                                             Value = 10
+                                                         }
+                                                     }
+                                        });
+            
+            m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
+                              .ContainingQueryParam("filter", "those")
+                              .Responds()
+                              .WithStatus(HttpStatusCode.OK)
+                              .WithBody(new
+                                        {
+                                            Things = new[]
+                                                     {
+                                                         new
+                                                         {
+                                                             Value = 30
+                                                         }
+                                                     }
+                                        });
+            
+            var controller = Resolve<HttpClientFactoryMultipleNamedUsageController>(_ => { }, m_TeePeeBuilderOne, m_TeePeeBuilderTwo);
+
+            // When
+            var result = await controller.FireAndAct();
+
+            // Then
+            Assert.NotNull(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(40, resultValue);
+        }
+        
+        [Fact]
+        public async Task AutoInjection_MockAndVerify()
+        {
+            // Given
+            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
+                                                .ContainingQueryParam("filter", "other")
+                                                .WithBody(new { Caller = "ThisCaller" })
+                                                .Responds()
+                                                .WithStatus(HttpStatusCode.Created)
+                                                .TrackRequest();    
+            
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
+                                                      .ContainingQueryParam("filter", "other")
+                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .Responds()
+                                                      .WithStatus(HttpStatusCode.Created)
+                                                      .TrackRequest();
+
+            var controller = Resolve<HttpClientFactoryMultipleNamedUsageController>(_ => { }, m_TeePeeBuilderOne, m_TeePeeBuilderTwo);
+
+            // When
+            var result = await controller.FireAndForget();
+
+            // Then
+            Assert.NotNull(result);
+            Assert.IsType<OkResult>(result);
+
+            requestTrackerOne.WasCalled(1);
+            requestTrackerTwo.WasCalled(1);
+        }
+
+        #endregion
+        
+        private static T Resolve<T>(Action<IServiceCollection> setup = null, params TeePeeBuilder[] teePeeBuilders) where T : class
+        {
+            var serviceCollection = new ServiceCollection();
+
+            foreach (var teePeeBuilder in teePeeBuilders)
+            {
+                var teePee = teePeeBuilder.Build();
+                serviceCollection.AddHttpClient(teePee.HttpClientNamedInstance)
+                                 .AddHttpMessageHandler(_ => teePee.HttpHandler);
+            }
+
+            serviceCollection.AddTransient<T>();
+
+            return serviceCollection.BuildServiceProvider().GetService<T>();
+        }
+
+    }
+}
