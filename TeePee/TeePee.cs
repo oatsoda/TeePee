@@ -26,13 +26,14 @@ namespace TeePee
                                                                                  ? null 
                                                                                  : new StringContent(unmatchedBody)
                                                                });
-
-            // TODO: Build clients here rather than methods
         }
         
+        /*
+         * The CreateClient / Create HttpClientFactory only needed for Manual Injection
+         */
+
         public HttpClient CreateClient() => new HttpClient(HttpHandler);
-        public IHttpClientFactory CreateHttpClientFactory() => //s_HttpClientFactory.Add(namedInstance, CreateClient());
-                new WrappedHttpClientFactory(CreateClient(), HttpClientNamedInstance); // <!-- change named instant to be para to TeePee builder?
+        public IHttpClientFactory CreateHttpClientFactory() => new WrappedHttpClientFactory(CreateClient(), HttpClientNamedInstance);
 
         private class WrappedHttpClientFactory : IHttpClientFactory
         {
@@ -55,25 +56,10 @@ namespace TeePee
 
         }
     }
-
-    internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
-    {
-        private readonly Dictionary<string, HttpClient> m_NamedClients = new Dictionary<string, HttpClient>();
-
-        internal void Add(string namedInstance, HttpClient httpClient)
-        {
-            namedInstance ??= Microsoft.Extensions.Options.Options.DefaultName;
-            m_NamedClients.Add(namedInstance, httpClient);
-        }
-
-        public HttpClient CreateClient(string name)
-        {
-            // Force callers to specify correct named instance
-            return m_NamedClients.ContainsKey(name)
-                       ? m_NamedClients[name]
-                       : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
-        }
-    }
+    
+    /*
+     * This stuff only needed for Manual Injection
+     */
 
     public static class TeePeeBuilderExtensions
     {
@@ -87,6 +73,25 @@ namespace TeePee
             }
 
             return factory;
+        }
+        
+        internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
+        {
+            private readonly Dictionary<string, HttpClient> m_NamedClients = new Dictionary<string, HttpClient>();
+
+            internal void Add(string namedInstance, HttpClient httpClient)
+            {
+                namedInstance ??= Microsoft.Extensions.Options.Options.DefaultName;
+                m_NamedClients.Add(namedInstance, httpClient);
+            }
+
+            public HttpClient CreateClient(string name)
+            {
+                // Force callers to specify correct named instance
+                return m_NamedClients.ContainsKey(name)
+                           ? m_NamedClients[name]
+                           : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
+            }
         }
     }
 }

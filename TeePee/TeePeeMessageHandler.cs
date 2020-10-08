@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using TeePee.Extensions;
 using TeePee.Internal;
 
 namespace TeePee
@@ -40,6 +41,12 @@ namespace TeePee
             return Task.FromResult(httpRecord.HttpResponseMessage);
         }
 
+        public override string ToString()
+        {
+            var calls = string.Join("\r\n", HttpRecords.Select(r => $"\t{r}"));
+            return $"Calls made:\r\n\r\n{calls}";
+        }
+
         // Do we need this? Maybe for verifying etc. or user debugging
         internal class HttpRecord
         {
@@ -62,6 +69,12 @@ namespace TeePee
                 HttpResponseMessage = match.ToHttpResponseMessage();
                 HttpResponseMessage.RequestMessage = httpRequestMessage;
                 Match.AddCallInstance(this);
+            }
+
+            public override string ToString()
+            {
+                var body = HttpRequestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+                return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.Select(h => h.Key).Flat()}] [B: {body?.Trunc()}] [Matched: {Match != null}";
             }
         }
     }

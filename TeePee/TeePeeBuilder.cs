@@ -70,4 +70,9 @@ namespace TeePee
             return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
         }
     }
+
+    public class TeePeeBuilder<TClient> : TeePeeBuilder
+    {
+
+    }
 }

@@ -19,7 +19,7 @@ namespace TeePee.Examples.WebApp.Tests
         #region Manual Injection
 
         [Fact]
-        public async Task RecommendedPassiveMocking()
+        public async Task ManualInjection_RecommendedPassiveMocking()
         {
             // Given
             m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Get)
@@ -65,7 +65,7 @@ namespace TeePee.Examples.WebApp.Tests
         }
         
         [Fact]
-        public async Task MockAndVerify()
+        public async Task ManualInjection_MockAndVerify()
         {
             // Given
             var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)

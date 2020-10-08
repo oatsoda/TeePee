@@ -21,6 +21,9 @@ namespace TeePee
 
         public void WasCalled(int? times = null)
         {
+            if (m_RequestMatch == null)
+                throw new InvalidOperationException($"Tracker was not attached to a Request Match. Ensure that you Built the {nameof(TeePeeBuilder)} instance.");
+
             var asExpected = times == null
                                  ? m_Calls.Any()
                                  : m_Calls.Count == times.Value;

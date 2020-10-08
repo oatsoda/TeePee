@@ -51,6 +51,7 @@ namespace TeePee.Examples.WebApp
         public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient<ExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
+            services.AddHttpClient<AnotherExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
             
             return services;
         }

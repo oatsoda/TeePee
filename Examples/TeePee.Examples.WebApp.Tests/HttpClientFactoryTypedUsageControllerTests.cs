@@ -178,6 +178,11 @@ namespace TeePee.Examples.WebApp.Tests
         /// </summary>
         internal static IServiceCollection AddTrackingForTypedClient<T>(this IServiceCollection serviceCollection, TeePeeMessageHandler teePeeMessageHandler)
         {
+            return serviceCollection.AddTrackingForTypedClient(typeof(T), teePeeMessageHandler);
+        }
+
+        internal static IServiceCollection AddTrackingForTypedClient(this IServiceCollection serviceCollection, Type typedClientType, TeePeeMessageHandler teePeeMessageHandler)
+        {
             // Note that you cannot nest/chain Delegating Handlers with HttpClientFactory pattern as it must not have any state as it re-uses instances etc.
 
             // Reflection: Get the registered HttpClientFactory Name
@@ -186,7 +191,7 @@ namespace TeePee.Examples.WebApp.Tests
 #pragma warning restore 219
             var type = Type.GetType("Microsoft.Extensions.Internal.TypeNameHelper, Microsoft.Extensions.Http");
             var method = type.GetMethod("GetTypeDisplayName", BindingFlags.Static | BindingFlags.Public, null, CallingConventions.Any, new [] { typeof(Type), typeof(bool), typeof(bool), typeof(bool), typeof(char) }, null);
-            var httpClientFactoryName = (string)method.Invoke(null, new [] { (object)typeof(T), false, false, true, '+' });
+            var httpClientFactoryName = (string)method.Invoke(null, new [] { (object)typedClientType, false, false, true, '+' });
 
             // Reflection: Create an HttpClientBuilder using the same ServiceCollection and HttpClientFactoryName used within the Startup
             var builder = (IHttpClientBuilder)Activator.CreateInstance(Type.GetType("Microsoft.Extensions.DependencyInjection.DefaultHttpClientBuilder, Microsoft.Extensions.Http"), serviceCollection, httpClientFactoryName);
