@@ -19,3 +19,5 @@ var subjectUnderTest = Resolve.WithTypedClient<UserController, GitHubApiClient>(
                           },
                           teePeeBuilder);
 ```
+
+[Documentation](https://github.com/oatsoda/TeePee/blob/master/README.md#documentation) | [Examples](https://github.com/oatsoda/TeePee/tree/master/Examples)
