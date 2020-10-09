@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -18,7 +19,7 @@ namespace TeePee.Tests
         private HttpMethod m_HttpMethod = HttpMethod.Get;
 
         // Instance of Tracking Builder for each test
-        private readonly TeePeeBuilder m_TrackingBuilder = new TeePeeBuilder();
+        private TeePeeBuilder m_TrackingBuilder = new TeePeeBuilder();
 
         // Shortcut methods
         private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
@@ -202,6 +203,21 @@ namespace TeePee.Tests
         #endregion
 
         #region Responds With
+
+        [Fact]
+        public async Task ThrowsIfNoMatchInStrictMode()
+        {
+            // Given
+            m_TrackingBuilder = new TeePeeBuilder(mode: TeePeeMode.Strict);
+
+            // When
+            var ex = await Record.ExceptionAsync(async () => await SendRequest());
+
+            // Then
+            Assert.NotNull(ex);
+            var nex = Assert.IsType<NotSupportedException>(ex);
+            Assert.Contains("request was made which did not match any of the TeePee rules.", ex.Message);
+        }
 
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]

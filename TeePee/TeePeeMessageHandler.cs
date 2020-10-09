@@ -11,13 +11,15 @@ namespace TeePee
 {
     public class TeePeeMessageHandler : DelegatingHandler
     {
+        private readonly TeePeeMode m_Mode;
         private readonly List<RequestMatch> m_Matches;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
 
         internal List<HttpRecord> HttpRecords = new List<HttpRecord>();
 
-        internal TeePeeMessageHandler(List<RequestMatch> matches, Func<HttpResponseMessage> defaultResponse)
+        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatch> matches, Func<HttpResponseMessage> defaultResponse)
         {
+            m_Mode = mode;
             m_Matches = matches;
             m_DefaultResponse = defaultResponse;
         }
@@ -25,6 +27,9 @@ namespace TeePee
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var match = m_Matches.FirstOrDefault(m => m.IsMatchingRequest(request));
+
+            if (match == null && m_Mode == TeePeeMode.Strict)
+                throw new NotSupportedException($"An HTTP request was made which did not match any of the TeePee rules. [{request.Method} {request.RequestUri}]");
 
             HttpRecord httpRecord;
             if (match == null)

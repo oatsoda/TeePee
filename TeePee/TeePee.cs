@@ -11,13 +11,12 @@ namespace TeePee
     public class TeePee
     {
         internal string HttpClientNamedInstance { get; }
-
         internal TeePeeMessageHandler HttpHandler { get; }
         
-        internal TeePee(string httpClientNamedInstance, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody)
+        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
-            HttpHandler = new TeePeeMessageHandler(matches, 
+            HttpHandler = new TeePeeMessageHandler(mode, matches, 
                                                          () => new HttpResponseMessage(unmatchedStatusCode)
                                                                {
                                                                    Content = unmatchedBody == null 
