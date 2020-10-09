@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TeePee.Examples.WebApp.ExternalApi;
@@ -33,11 +32,11 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task<IActionResult> FireAndAct()
         {
             var httpClientOne = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_ONE);
-            var httpResponseMessageOne = await httpClientOne.GetAsync("https://first.api/pathone/resourceone?filter=those");
+            var httpResponseMessageOne = await httpClientOne.GetAsync("/pathone/resourceone?filter=those");
             var resultOne = await httpResponseMessageOne.DeserialiseTo<ThirdPartyResponseModel>();
             
             var httpClientTwo = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_TWO);
-            var httpResponseMessageTwo = await httpClientTwo.GetAsync("https://second.api/pathtwo/resourcetwo?filter=those");
+            var httpResponseMessageTwo = await httpClientTwo.GetAsync("/pathtwo/resourcetwo?filter=those");
             var resultTwo = await httpResponseMessageTwo.DeserialiseTo<ThirdPartyResponseModel>();
 
             return Ok(resultOne.Things.Single().Value + resultTwo.Things.Single().Value);
@@ -52,11 +51,11 @@ namespace TeePee.Examples.WebApp.Controllers
         {
             var httpClientOne = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_ONE);
             var requestBodyOne = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await httpClientOne.PutAsync("https://first.api/pathone/resourceone?filter=other", requestBodyOne);
+            await httpClientOne.PutAsync("/pathone/resourceone?filter=other", requestBodyOne);
             
             var httpClientTwo = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_TWO);
             var requestBodyTwo = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await httpClientTwo.PutAsync("https://second.api/pathtwo/resourcetwo?filter=other", requestBodyTwo);
+            await httpClientTwo.PutAsync("/pathtwo/resourcetwo?filter=other", requestBodyTwo);
 
             return Ok();
         }

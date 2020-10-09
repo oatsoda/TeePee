@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using System;
+using System.Linq;
+using System.Reflection;
 
 namespace TeePee.Examples.WebApp.Tests
 {
@@ -17,7 +16,7 @@ namespace TeePee.Examples.WebApp.Tests
 
             var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
 
-            serviceCollection.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName)
+            serviceCollection.AddHttpClient(Options.DefaultName)
                              .AddHttpMessageHandler(_ => teePeeMessageHandler);
             
             serviceCollection.AddTransient<T>();
@@ -86,21 +85,21 @@ namespace TeePee.Examples.WebApp.Tests
                                                                                                                                                                                                 where TClient2 : class
         {
             var serviceCollection = new ServiceCollection();
+            
+            var teePeeMessageHandler1 = teePeeBuilder1.Build().HttpHandler;
+            var teePeeMessageHandler2 = teePeeBuilder2.Build().HttpHandler;
 
             if (setup != null)
             {
                 // Use your own Typed Client setup here
                 setup(serviceCollection);
-                serviceCollection.AddTrackingForTypedClient(typeof(TClient1), teePeeBuilder1.Build().HttpHandler);
-                serviceCollection.AddTrackingForTypedClient(typeof(TClient2), teePeeBuilder2.Build().HttpHandler);
+                serviceCollection.AddTrackingForTypedClient<TClient1>(teePeeMessageHandler1);
+                serviceCollection.AddTrackingForTypedClient<TClient2>(teePeeMessageHandler2);
             }
             else
             {
-                var teePeeMessageHandler1 = teePeeBuilder1.Build().HttpHandler;
                 serviceCollection.AddHttpClient<TClient1>(_ => { })
                                  .AddHttpMessageHandler(_ => teePeeMessageHandler1);
-                
-                var teePeeMessageHandler2 = teePeeBuilder2.Build().HttpHandler;
                 serviceCollection.AddHttpClient<TClient2>(_ => { })
                                  .AddHttpMessageHandler(_ => teePeeMessageHandler2);
             }
@@ -128,7 +127,7 @@ namespace TeePee.Examples.WebApp.Tests
 
             // Reflection: Get the registered HttpClientFactory Name
 #pragma warning disable 219 //Force assembly reference to Microsoft.Extensions.Http
-            var a = nameof(Microsoft.Extensions.Http.HttpClientFactoryOptions);
+            var a = nameof(HttpClientFactoryOptions);
 #pragma warning restore 219
             var type = Type.GetType("Microsoft.Extensions.Internal.TypeNameHelper, Microsoft.Extensions.Http");
             var method = type.GetMethod("GetTypeDisplayName", BindingFlags.Static | BindingFlags.Public, null, CallingConventions.Any, new[] { typeof(Type), typeof(bool), typeof(bool), typeof(bool), typeof(char) }, null);

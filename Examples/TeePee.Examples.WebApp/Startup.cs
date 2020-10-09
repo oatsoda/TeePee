@@ -49,17 +49,16 @@ namespace TeePee.Examples.WebApp
         
         public static IServiceCollection AddNamedHttpClients(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddHttpClient(HttpClientFactoryNamedUsageController.HTTP_CLIENT_NAME, c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
-            services.AddHttpClient(HttpClientFactoryMultipleNamedUsageController.HTTP_CLIENT_NAME_ONE, c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
-            services.AddHttpClient(HttpClientFactoryMultipleNamedUsageController.HTTP_CLIENT_NAME_TWO, c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
+            services.AddHttpClient(HttpClientFactoryNamedUsageController.HTTP_CLIENT_NAME, c => c.BaseAddress = new Uri(configuration.GetSection("ExampleNamedClient").GetValue<string>("BaseUrl")));
+            services.AddHttpClient(HttpClientFactoryMultipleNamedUsageController.HTTP_CLIENT_NAME_ONE, c => c.BaseAddress = new Uri(configuration.GetSection("MultipleNamedClientOne").GetValue<string>("BaseUrl")));
+            services.AddHttpClient(HttpClientFactoryMultipleNamedUsageController.HTTP_CLIENT_NAME_TWO, c => c.BaseAddress = new Uri(configuration.GetSection("MultipleNamedClientTwo").GetValue<string>("BaseUrl")));
             return services;
         }
 
         public static IServiceCollection AddTypedHttpClients(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddHttpClient<ExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
-            services.AddHttpClient<AnotherExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetValue<string>("ExampleBaseUrl")));
-            
+            services.AddHttpClient<ExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetSection("ExampleTypedHttpClient").GetValue<string>("BaseUrl")));
+            services.AddHttpClient<AnotherExampleTypedHttpClient>(c => c.BaseAddress = new Uri(configuration.GetSection("AnotherExampleTypedHttpClient").GetValue<string>("BaseUrl")));
             return services;
         }
     }

@@ -32,28 +32,52 @@ namespace TeePee
          * The CreateClient / Create HttpClientFactory only needed for Manual Injection
          */
 
-        public HttpClient CreateClient() => new HttpClient(HttpHandler);
-        public IHttpClientFactory CreateHttpClientFactory() => new WrappedHttpClientFactory(CreateClient(), HttpClientNamedInstance);
-
-        private class WrappedHttpClientFactory : IHttpClientFactory
+        public ManualTeePee Manual(string baseAddressForHttpClient = null)
         {
-            private readonly HttpClient m_HttpClient;
-            private readonly string m_NamedInstance;
+            return new ManualTeePee(this, baseAddressForHttpClient);
+        }
 
-            internal WrappedHttpClientFactory(HttpClient httpClient, string namedInstance)
+        public class ManualTeePee
+        {
+            private readonly Uri m_BaseAddressForHttpClient;
+
+            public TeePee TeePee { get; }
+
+            internal ManualTeePee(TeePee teePee, string baseAddressForHttpClient)
             {
-                m_HttpClient = httpClient;
-                m_NamedInstance = namedInstance ?? Microsoft.Extensions.Options.Options.DefaultName; // Default value used by actual HttpClientFactoryExtensions.CreateClient();
+                m_BaseAddressForHttpClient = baseAddressForHttpClient == null ? null : new Uri(baseAddressForHttpClient);
+                TeePee = teePee;
             }
 
-            public HttpClient CreateClient(string name)
+            public HttpClient CreateClient()
             {
-                // Force callers to specify correct named instance
-                return m_NamedInstance == name 
-                           ? m_HttpClient
-                           : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
+                return m_BaseAddressForHttpClient == null 
+                           ? new HttpClient(TeePee.HttpHandler) 
+                           : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
             }
 
+            public IHttpClientFactory CreateHttpClientFactory() => new WrappedHttpClientFactory(CreateClient(), TeePee.HttpClientNamedInstance);
+
+            private class WrappedHttpClientFactory : IHttpClientFactory
+            {
+                private readonly HttpClient m_HttpClient;
+                private readonly string m_NamedInstance;
+
+                internal WrappedHttpClientFactory(HttpClient httpClient, string namedInstance)
+                {
+                    m_HttpClient = httpClient;
+                    m_NamedInstance = namedInstance ?? Microsoft.Extensions.Options.Options.DefaultName; // Default value used by actual HttpClientFactoryExtensions.CreateClient();
+                }
+
+                public HttpClient CreateClient(string name)
+                {
+                    // Force callers to specify correct named instance
+                    return m_NamedInstance == name 
+                               ? m_HttpClient
+                               : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
+                }
+
+            }
         }
     }
     
@@ -61,16 +85,13 @@ namespace TeePee
      * This stuff only needed for Manual Injection
      */
 
-    public static class TeePeeBuilderExtensions
+    public static class ManualTeePeeBuilderExtensions
     {
-        public static IHttpClientFactory ToHttpClientFactory(this IEnumerable<TeePeeBuilder> builders)
+        public static IHttpClientFactory ToHttpClientFactory(this IEnumerable<TeePee.ManualTeePee> teePees)
         {
             var factory = new TeePeeNamedClientsHttpClientFactory();
-            foreach (var teePeeBuilder in builders)
-            {
-                var teePee = teePeeBuilder.Build();
-                factory.Add(teePee.HttpClientNamedInstance, teePee.CreateClient());
-            }
+            foreach (var teePee in teePees)
+                factory.Add(teePee.TeePee.HttpClientNamedInstance, teePee.CreateClient());
 
             return factory;
         }

@@ -60,7 +60,7 @@ namespace TeePee.Examples.WebApp.Controllers
 
         public async Task<int> GetSingleValue()
         {
-            var httpResponseMessage = await HttpClient.GetAsync("https://other.api/path/otherresource?filter=those");
+            var httpResponseMessage = await HttpClient.GetAsync("/path/otherresource?filter=those");
             var result = await httpResponseMessage.DeserialiseTo<ThirdPartyResponseModel>();
             return result.Things.Single().Value;
         }
@@ -68,7 +68,7 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task Put()
         {
             var requestBody = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await HttpClient.PutAsync("https://other.api/path/otherresource?filter=other", requestBody);
+            await HttpClient.PutAsync("/path/otherresource?filter=other", requestBody);
         }
     }
 }

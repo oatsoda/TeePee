@@ -73,6 +73,6 @@ namespace TeePee
 
     public class TeePeeBuilder<TClient> : TeePeeBuilder
     {
-
+        public Type TypedClientType => typeof(TClient);
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
 
@@ -51,7 +50,8 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne, m_TeePeeBuilderTwo }.ToHttpClientFactory());
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne.Build().Manual("https://first.api"), m_TeePeeBuilderTwo.Build().Manual("https://second.api") }
+                                                                                  .ToHttpClientFactory());
 
             // When
             var result = await controller.FireAndAct();
@@ -80,8 +80,9 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
-
-            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne, m_TeePeeBuilderTwo }.ToHttpClientFactory());
+            
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne.Build().Manual("https://first.api"), m_TeePeeBuilderTwo.Build().Manual("https://second.api") }
+                                                                                  .ToHttpClientFactory());
 
             // When
             var result = await controller.FireAndForget();
@@ -102,7 +103,7 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Get)
+            m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/pathone/resourceone", HttpMethod.Get)
                               .ContainingQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -117,7 +118,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
+            m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/pathtwo/resourcetwo", HttpMethod.Get)
                               .ContainingQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -134,10 +135,7 @@ namespace TeePee.Examples.WebApp.Tests
 
             var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
                                                                                                      {
-                                                                                                         /* Example of using prod Setup code */
-                                                                                                         var configuration = new ConfigurationBuilder()
-                                                                                                                            .AddJsonFile("appsettings.unittests.json")
-                                                                                                                            .Build();
+                                                                                                         var configuration = UnitTestConfig.LoadUnitTestConfig();
 
                                                                                                          // Call your production code, which sets up the Typed Client, here
                                                                                                          sc.AddNamedHttpClients(configuration);
@@ -159,14 +157,14 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task AutoInjection_MockAndVerify()
         {
             // Given
-            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
+            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/pathone/resourceone", HttpMethod.Put)
                                                       .ContainingQueryParam("filter", "other")
                                                       .WithBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/pathtwo/resourcetwo", HttpMethod.Put)
                                                       .ContainingQueryParam("filter", "other")
                                                       .WithBody(new { Caller = "ThisCaller" })
                                                       .Responds()
@@ -175,10 +173,7 @@ namespace TeePee.Examples.WebApp.Tests
 
             var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
                                                                                                      {
-                                                                                                         /* Example of using prod Setup code */
-                                                                                                         var configuration = new ConfigurationBuilder()
-                                                                                                                            .AddJsonFile("appsettings.unittests.json")
-                                                                                                                            .Build();
+                                                                                                         var configuration = UnitTestConfig.LoadUnitTestConfig();
 
                                                                                                          // Call your production code, which sets up the Typed Client, here
                                                                                                          sc.AddNamedHttpClients(configuration);

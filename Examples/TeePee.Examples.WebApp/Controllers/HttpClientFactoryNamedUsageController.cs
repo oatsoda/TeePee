@@ -31,7 +31,7 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task<IActionResult> FireAndAct()
         {
             var httpClient = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME);
-            var httpResponseMessage = await httpClient.GetAsync("https://some.api/path/resource?filter=those");
+            var httpResponseMessage = await httpClient.GetAsync("/path/resource?filter=those");
             var result = await httpResponseMessage.DeserialiseTo<ThirdPartyResponseModel>();
             
             return Ok(result.Things.Single().Value);
@@ -46,7 +46,7 @@ namespace TeePee.Examples.WebApp.Controllers
         {
             var httpClient = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME);
             var requestBody = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await httpClient.PutAsync("https://some.api/path/resource?filter=other", requestBody);
+            await httpClient.PutAsync("/path/resource?filter=other", requestBody);
             return Ok();
         }
 
