@@ -2,6 +2,9 @@ name: 1.0$(rev:.r)
 
 trigger: none
 
+# no PR triggers
+pr: none
+
 pool:
   vmImage: 'windows-latest'
 
