@@ -72,7 +72,6 @@ namespace TeePee.Examples.WebApp.Tests
         #endregion
 
         #region Auto Injection 
-
         
         [Fact]
         public async Task AutoInjection_RecommendedPassiveMocking()
@@ -130,9 +129,10 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
 
-        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> setup = null) where T : class
+        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> additionalConfiguration = null) where T : class
         {
             var serviceCollection = new ServiceCollection();
+            additionalConfiguration?.Invoke(serviceCollection);
 
             var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
 

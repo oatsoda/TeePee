@@ -146,16 +146,16 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
 
-        private static T ResolveWithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> setup = null) where T : class where TClient : class
+        private static T ResolveWithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> configureServices = null) where T : class where TClient : class
         {
             var serviceCollection = new ServiceCollection();
 
             var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
 
-            if (setup != null)
+            if (configureServices != null)
             {
                 // Use your own Typed Client setup here
-                setup(serviceCollection); 
+                configureServices(serviceCollection); 
                 serviceCollection.AddTrackingForTypedClient<TClient>(teePeeMessageHandler);
             }
             else

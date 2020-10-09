@@ -179,9 +179,10 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
         
-        private static T Resolve<T>(Action<IServiceCollection> setup = null, params TeePeeBuilder[] teePeeBuilders) where T : class
+        private static T Resolve<T>(Action<IServiceCollection> additionalConfiguration = null, params TeePeeBuilder[] teePeeBuilders) where T : class
         {
             var serviceCollection = new ServiceCollection();
+            additionalConfiguration?.Invoke(serviceCollection);
 
             foreach (var teePeeBuilder in teePeeBuilders)
             {
