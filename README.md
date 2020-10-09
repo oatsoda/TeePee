@@ -71,6 +71,8 @@ If there is no match for a request, the default is to response with a Status Cod
 
 ## Unit Testing 
 
+It's worth [making sure you fully understand](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-3.1#consumption-patterns) the various `HttpClientFactory` mechanisms for registering and resolving `HttpClient`s before reading this.
+
 
 ### Classicist/Detroit/Black Box vs Mockist/London/White Box
 TeePee is focused on the Classicist/Detroit/Black Box approach to unit testing.  It can be used for Mockist/London/White Box approaches, but be aware that due to the way `HttpClientFactory` is implemented, you may find there are limitations if you are planning to mock and inject your dependencies into your test subject manually.
@@ -93,15 +95,19 @@ var requestTracker = teePeeBuilder.ForRequest("https://some.api/path/resource", 
 reququestTracker.WasCalled(1);                                  
 ```
 
+
 ### Injection during Unit Tests
 
 As stated above, TeePee is more focused on the Classicist/Detroit/Black Box of testing approach and this allows unit test coverage of DI registrations for `HttpClientFactory`.  You can of course still manually inject should you wish to.
+
 
 ### Manual Injection
 
 Once you have finished setting up one or more requests in you `TeePeeBuilder` then depending on your `HttpClientFactory` approach, you can create the relevant objects to inject:
 
 #### Basic HttpClient
+
+Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
 
 ```
 var httpClientFactory = teePeeBuilder.Build().Manual().CreateHttpClientFactory();
@@ -149,9 +155,56 @@ var typedHttpClient = new MyTypedHttpClient(teePeeBuilder.Build().Manual("https:
 var subjectUnderTest = new UserController(typedHttpClient);
 ```
 
-## Auto Injection
 
+### Auto Injection
 
+Injecting automatically allows you to cover the startup DI registrations as part of your unit tests.  This is mostly done using the `Resolve` static class.
+
+#### Basic HttpClient
+
+Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
+
+```
+var subjectUnderTest = Resolve.WithDefaultClient<UserController>(teePeeBuilder);
+```
+
+#### Named HttpClient
+
+For Named HttpClient instances, you need to specify the expected Name of the instance when creating the `TeePeeBuilder`:
+
+```
+var teePeeBuilder = new TeePeeBuilder("GitHub");
+
+// Setup requests
+
+var subjectUnderTest = Resolve.WithNamedClients<UserController>(
+                          services => 
+                          {
+                             // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
+                             // Expect any intermediate dependencies to also be registered
+                             services.AddHttpClient("GitHub, c => c.BaseAddress = "https://external.api");                             
+                          },
+                          teePeeBuilder);
+```
+
+#### Typed HttpClient
+
+For Typed HttpClients, your unit tests unfortunately will need to know which Type is the HttpClient (therefore exposing a bit of internal implementation detail into your tests):
+
+```
+var teePeeBuilder = new TeePeeBuilder();
+
+// Setup requests
+
+var subjectUnderTest = Resolve.WithTypedClient<UserController, MyTypedHttpClient>(
+                          services => 
+                          {
+                             // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
+                             // Expect any intermediate dependencies to also be registered
+                             services.AddHttpClient<MyTypedHttpClient>(c => c.BaseAddress = "https://external.api");                             
+                          },
+                          teePeeBuilder);
+```
 
 
 ## Multiple HttpClient dependencies
