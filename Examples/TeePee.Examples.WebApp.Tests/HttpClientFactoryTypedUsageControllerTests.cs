@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
@@ -16,7 +13,7 @@ namespace TeePee.Examples.WebApp.Tests
         private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder();
 
         #region Manual Injection
-        
+
         [Fact]
         public async Task ManualInjection_RecommendedPassiveMocking()
         {
@@ -26,15 +23,15 @@ namespace TeePee.Examples.WebApp.Tests
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
-                           {
-                               Things = new[]
+                                     {
+                                         Things = new[]
                                                   {
                                                       new
                                                       {
                                                           Value = 10
                                                       }
                                                   }
-                           });
+                                     });
 
             var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient(m_TeePeeBuilder.Build().CreateClient()));
 
@@ -82,7 +79,7 @@ namespace TeePee.Examples.WebApp.Tests
          */
 
         [Fact]
-        public async Task RecommendedPassiveMocking()
+        public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
             m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
@@ -100,16 +97,17 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = ResolveWithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder, sc =>
-                                                                                                                                            {
-                                                                                                                                                /* Example of using prod Setup code */
-                                                                                                                                                var configuration = new ConfigurationBuilder()
-                                                                                                                                                                   .AddJsonFile("appsettings.unittests.json")
-                                                                                                                                                                   .Build();
-                                                                                                                                                
-                                                                                                                                                // Call your production code, which sets up the Typed Client, here
-                                                                                                                                                sc.AddDependencies(configuration);
-                                                                                                                                            });
+            var controller = Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
+                                                                                                                   sc =>
+                                                                                                                   {
+                                                                                                                       /* Example of using prod Setup code */
+                                                                                                                       var configuration = new ConfigurationBuilder()
+                                                                                                                                          .AddJsonFile("appsettings.unittests.json")
+                                                                                                                                          .Build();
+
+                                                                                                                       // Call your production code, which sets up the Typed Client, here
+                                                                                                                       sc.AddTypedHttpClients(configuration);
+                                                                                                                   });
 
             // When
             var result = await controller.FireAndAct();
@@ -120,9 +118,9 @@ namespace TeePee.Examples.WebApp.Tests
             var resultValue = Assert.IsType<int>(okResult.Value);
             Assert.Equal(10, resultValue);
         }
-        
+
         [Fact]
-        public async Task MockAndVerify()
+        public async Task AutoInjection_MockAndVerify()
         {
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
@@ -132,7 +130,17 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = ResolveWithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder);
+            var controller = Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
+                                                                                                                    sc =>
+                                                                                                                    {
+                                                                                                                        /* Example of using prod Setup code */
+                                                                                                                        var configuration = new ConfigurationBuilder()
+                                                                                                                                           .AddJsonFile("appsettings.unittests.json")
+                                                                                                                                           .Build();
+
+                                                                                                                        // Call your production code, which sets up the Typed Client, here
+                                                                                                                        sc.AddTypedHttpClients(configuration);
+                                                                                                                    });
 
             // When
             var result = await controller.FireAndForget();
@@ -146,61 +154,5 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
 
-        private static T ResolveWithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> configureServices = null) where T : class where TClient : class
-        {
-            var serviceCollection = new ServiceCollection();
-
-            var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
-
-            if (configureServices != null)
-            {
-                // Use your own Typed Client setup here
-                configureServices(serviceCollection); 
-                serviceCollection.AddTrackingForTypedClient<TClient>(teePeeMessageHandler);
-            }
-            else
-            {
-                serviceCollection.AddHttpClient<TClient>(_ => { })
-                                 .AddHttpMessageHandler(_ => teePeeMessageHandler);;
-            }
-
-            serviceCollection.AddTransient<T>();
-
-            return serviceCollection.BuildServiceProvider().GetService<T>();
-        }
-    }
-
-    internal static class ServiceCollectionExtensions
-    {
-        /// <summary>
-        /// Unfortunately you have to know the Type of the Typed Http Client in order to be able to track it.  Therefore this means exposing internal implementation details
-        /// into your tests.
-        /// </summary>
-        internal static IServiceCollection AddTrackingForTypedClient<T>(this IServiceCollection serviceCollection, TeePeeMessageHandler teePeeMessageHandler)
-        {
-            return serviceCollection.AddTrackingForTypedClient(typeof(T), teePeeMessageHandler);
-        }
-
-        internal static IServiceCollection AddTrackingForTypedClient(this IServiceCollection serviceCollection, Type typedClientType, TeePeeMessageHandler teePeeMessageHandler)
-        {
-            // Note that you cannot nest/chain Delegating Handlers with HttpClientFactory pattern as it must not have any state as it re-uses instances etc.
-
-            // Reflection: Get the registered HttpClientFactory Name
-#pragma warning disable 219 //Force assembly reference to Microsoft.Extensions.Http
-            var a = nameof(Microsoft.Extensions.Http.HttpClientFactoryOptions);
-#pragma warning restore 219
-            var type = Type.GetType("Microsoft.Extensions.Internal.TypeNameHelper, Microsoft.Extensions.Http");
-            var method = type.GetMethod("GetTypeDisplayName", BindingFlags.Static | BindingFlags.Public, null, CallingConventions.Any, new [] { typeof(Type), typeof(bool), typeof(bool), typeof(bool), typeof(char) }, null);
-            var httpClientFactoryName = (string)method.Invoke(null, new [] { (object)typedClientType, false, false, true, '+' });
-
-            // Reflection: Create an HttpClientBuilder using the same ServiceCollection and HttpClientFactoryName used within the Startup
-            var builder = (IHttpClientBuilder)Activator.CreateInstance(Type.GetType("Microsoft.Extensions.DependencyInjection.DefaultHttpClientBuilder, Microsoft.Extensions.Http"), serviceCollection, httpClientFactoryName);
-
-            // Add the Tracking DelegateHandler to the service collection via the HttpClientBuilder (but ensure registered in DI first)
-            serviceCollection.AddTransient(_ => teePeeMessageHandler);
-            builder.AddHttpMessageHandler(_ => teePeeMessageHandler);
-
-            return serviceCollection;
-        }
     }
 }

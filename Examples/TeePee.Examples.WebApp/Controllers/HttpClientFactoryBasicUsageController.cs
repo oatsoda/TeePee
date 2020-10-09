@@ -9,6 +9,8 @@ namespace TeePee.Examples.WebApp.Controllers
 {
     /// <summary>
     /// Examples of using Basic IHttpClientFactory usage.
+    ///
+    /// Basic usage of HttpClientFactory (i.e. non-named or type clients is only really meant as a refactoring step)
     /// </summary>
     [ApiController]
     [Route("[controller]")]

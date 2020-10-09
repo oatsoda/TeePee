@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,6 +7,7 @@ using Xunit;
 
 namespace TeePee.Examples.WebApp.Tests
 {
+    // Basic usage of HttpClientFactory (i.e. non-named or type clients is only really meant as a refactoring step)
     public class HttpClientFactoryBasicUsageControllerTests
     {
         private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder();
@@ -92,7 +91,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -115,7 +114,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
             
-            var controller = Resolve<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();
@@ -128,20 +127,5 @@ namespace TeePee.Examples.WebApp.Tests
         }
 
         #endregion
-
-        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> additionalConfiguration = null) where T : class
-        {
-            var serviceCollection = new ServiceCollection();
-            additionalConfiguration?.Invoke(serviceCollection);
-
-            var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
-
-            serviceCollection.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName)
-                             .AddHttpMessageHandler(_ => teePeeMessageHandler);
-            
-            serviceCollection.AddTransient<T>();
-
-            return serviceCollection.BuildServiceProvider().GetService<T>();
-        }
     }
 }

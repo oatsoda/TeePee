@@ -14,7 +14,7 @@ namespace TeePee.Examples.WebApp.Controllers
     [Route("[controller]")]
     public class HttpClientFactoryNamedUsageController : ControllerBase
     {
-        private const string _HTTP_CLIENT_NAME = "ThirdPartyApi";
+        public const string HTTP_CLIENT_NAME = "ThirdPartyApi";
 
         private readonly IHttpClientFactory m_HttpClientFactory;
 
@@ -30,7 +30,7 @@ namespace TeePee.Examples.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> FireAndAct()
         {
-            var httpClient = m_HttpClientFactory.CreateClient(_HTTP_CLIENT_NAME);
+            var httpClient = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME);
             var httpResponseMessage = await httpClient.GetAsync("https://some.api/path/resource?filter=those");
             var result = await httpResponseMessage.DeserialiseTo<ThirdPartyResponseModel>();
             
@@ -44,7 +44,7 @@ namespace TeePee.Examples.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> FireAndForget()
         {
-            var httpClient = m_HttpClientFactory.CreateClient(_HTTP_CLIENT_NAME);
+            var httpClient = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME);
             var requestBody = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
             await httpClient.PutAsync("https://some.api/path/resource?filter=other", requestBody);
             return Ok();

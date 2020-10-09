@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -139,16 +137,16 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            var controller = ResolveWithTypedClient<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
-                                                                                                                                                                                          {
-                                                                                                                                                                                              /* Example of using prod Setup code */
-                                                                                                                                                                                              var configuration = new ConfigurationBuilder()
-                                                                                                                                                                                                                 .AddJsonFile("appsettings.unittests.json")
-                                                                                                                                                                                                                 .Build();
+            var controller = Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
+                                                                                                                                                                                                    {
+                                                                                                                                                                                                        /* Example of using prod Setup code */
+                                                                                                                                                                                                        var configuration = new ConfigurationBuilder()
+                                                                                                                                                                                                                           .AddJsonFile("appsettings.unittests.json")
+                                                                                                                                                                                                                           .Build();
 
-                                                                                                                                                                                              // Call your production code, which sets up the Typed Client, here
-                                                                                                                                                                                              sc.AddDependencies(configuration);
-                                                                                                                                                                                          });
+                                                                                                                                                                                                        // Call your production code, which sets up the Typed Client, here
+                                                                                                                                                                                                        sc.AddTypedHttpClients(configuration);
+                                                                                                                                                                                                    });
 
             // When
             var result = await controller.FireAndAct();
@@ -178,7 +176,16 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var controller = ResolveWithTypedClient<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo);
+            var controller = Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
+                                                                                                                                                                                                    {
+                                                                                                                                                                                                        /* Example of using prod Setup code */
+                                                                                                                                                                                                        var configuration = new ConfigurationBuilder()
+                                                                                                                                                                                                                           .AddJsonFile("appsettings.unittests.json")
+                                                                                                                                                                                                                           .Build();
+
+                                                                                                                                                                                                        // Call your production code, which sets up the Typed Client, here
+                                                                                                                                                                                                        sc.AddTypedHttpClients(configuration);
+                                                                                                                                                                                                    });
 
             // When
             var result = await controller.FireAndForget();
@@ -192,34 +199,5 @@ namespace TeePee.Examples.WebApp.Tests
         }
 
         #endregion
-
-        private static T ResolveWithTypedClient<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection> setup = null) where T : class 
-                                                                                                                                                                                                where TClient1 : class
-                                                                                                                                                                                                where TClient2 : class
-        {
-            var serviceCollection = new ServiceCollection();
-
-            if (setup != null)
-            {
-                // Use your own Typed Client setup here
-                setup(serviceCollection);
-                serviceCollection.AddTrackingForTypedClient(typeof(TClient1), teePeeBuilder1.Build().HttpHandler);
-                serviceCollection.AddTrackingForTypedClient(typeof(TClient2), teePeeBuilder2.Build().HttpHandler);
-            }
-            else
-            {
-                var teePeeMessageHandler1 = teePeeBuilder1.Build().HttpHandler;
-                serviceCollection.AddHttpClient<TClient1>(_ => { })
-                                 .AddHttpMessageHandler(_ => teePeeMessageHandler1);
-                
-                var teePeeMessageHandler2 = teePeeBuilder2.Build().HttpHandler;
-                serviceCollection.AddHttpClient<TClient2>(_ => { })
-                                 .AddHttpMessageHandler(_ => teePeeMessageHandler2);
-            }
-
-            serviceCollection.AddTransient<T>();
-
-            return serviceCollection.BuildServiceProvider().GetService<T>();
-        }
     }
 }

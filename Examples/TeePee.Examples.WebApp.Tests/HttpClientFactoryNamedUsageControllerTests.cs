@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
 
@@ -48,7 +45,7 @@ namespace TeePee.Examples.WebApp.Tests
             var resultValue = Assert.IsType<int>(okResult.Value);
             Assert.Equal(10, resultValue);
         }
-        
+
         [Fact]
         public async Task ManualInjection_MockAndVerify()
         {
@@ -75,7 +72,7 @@ namespace TeePee.Examples.WebApp.Tests
         #endregion
 
         #region Auto Injection
-        
+
         [Fact]
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
@@ -94,8 +91,18 @@ namespace TeePee.Examples.WebApp.Tests
                                                       }
                                                   }
                                      });
-            
-            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder);
+
+            var controller = Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
+                                                                                             {
+                                                                                                 /* Example of using prod Setup code */
+                                                                                                 var configuration = new ConfigurationBuilder()
+                                                                                                                    .AddJsonFile("appsettings.unittests.json")
+                                                                                                                    .Build();
+
+                                                                                                 // Call your production code, which sets up the Typed Client, here
+                                                                                                 sc.AddNamedHttpClients(configuration);
+                                                                                             },
+                                                                                             m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -106,7 +113,7 @@ namespace TeePee.Examples.WebApp.Tests
             var resultValue = Assert.IsType<int>(okResult.Value);
             Assert.Equal(10, resultValue);
         }
-        
+
         [Fact]
         public async Task AutoInjection_MockAndVerify()
         {
@@ -117,8 +124,18 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
-            
-            var controller = Resolve<HttpClientFactoryNamedUsageController>(m_TeePeeBuilder);
+
+            var controller = Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
+                                                                                             {
+                                                                                                 /* Example of using prod Setup code */
+                                                                                                 var configuration = new ConfigurationBuilder()
+                                                                                                                    .AddJsonFile("appsettings.unittests.json")
+                                                                                                                    .Build();
+
+                                                                                                 // Call your production code, which sets up the Typed Client, here
+                                                                                                 sc.AddNamedHttpClients(configuration);
+                                                                                             },
+                                                                                             m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();
@@ -131,22 +148,5 @@ namespace TeePee.Examples.WebApp.Tests
         }
 
         #endregion
-        
-        private static T Resolve<T>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> additionalConfiguration = null) where T : class
-        {
-            var serviceCollection = new ServiceCollection();
-            additionalConfiguration?.Invoke(serviceCollection);
-
-            var teePeeMessageHandler = teePeeBuilder.Build().HttpHandler;
-
-            // Unfortunately the Basic usage Resolve method will allow ANY named instances to work - therefore a limitation in 
-
-            serviceCollection.AddHttpClient(_NAMED_HTTP_CLIENT)
-                             .AddHttpMessageHandler(_ => teePeeMessageHandler);
-            
-            serviceCollection.AddTransient<T>();
-
-            return serviceCollection.BuildServiceProvider().GetService<T>();
-        }
     }
 }

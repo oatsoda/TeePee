@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
 
@@ -36,7 +35,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                          }
                                                      }
                                         });
-            
+
             m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
                               .ContainingQueryParam("filter", "those")
                               .Responds()
@@ -63,18 +62,18 @@ namespace TeePee.Examples.WebApp.Tests
             var resultValue = Assert.IsType<int>(okResult.Value);
             Assert.Equal(40, resultValue);
         }
-        
+
         [Fact]
         public async Task ManualInjection_MockAndVerify()
         {
             // Given
             var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
-                                                .ContainingQueryParam("filter", "other")
-                                                .WithBody(new { Caller = "ThisCaller" })
-                                                .Responds()
-                                                .WithStatus(HttpStatusCode.Created)
-                                                .TrackRequest();    
-            
+                                                      .ContainingQueryParam("filter", "other")
+                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .Responds()
+                                                      .WithStatus(HttpStatusCode.Created)
+                                                      .TrackRequest();
+
             var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
                                                       .ContainingQueryParam("filter", "other")
                                                       .WithBody(new { Caller = "ThisCaller" })
@@ -98,8 +97,7 @@ namespace TeePee.Examples.WebApp.Tests
         #endregion
 
         #region Auto Injection
-        
-        
+
         [Fact]
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
@@ -118,7 +116,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                          }
                                                      }
                                         });
-            
+
             m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
                               .ContainingQueryParam("filter", "those")
                               .Responds()
@@ -133,8 +131,19 @@ namespace TeePee.Examples.WebApp.Tests
                                                          }
                                                      }
                                         });
-            
-            var controller = Resolve<HttpClientFactoryMultipleNamedUsageController>(_ => { }, m_TeePeeBuilderOne, m_TeePeeBuilderTwo);
+
+            var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
+                                                                                                     {
+                                                                                                         /* Example of using prod Setup code */
+                                                                                                         var configuration = new ConfigurationBuilder()
+                                                                                                                            .AddJsonFile("appsettings.unittests.json")
+                                                                                                                            .Build();
+
+                                                                                                         // Call your production code, which sets up the Typed Client, here
+                                                                                                         sc.AddNamedHttpClients(configuration);
+                                                                                                     },
+                                                                                                     m_TeePeeBuilderOne,
+                                                                                                     m_TeePeeBuilderTwo);
 
             // When
             var result = await controller.FireAndAct();
@@ -145,18 +154,18 @@ namespace TeePee.Examples.WebApp.Tests
             var resultValue = Assert.IsType<int>(okResult.Value);
             Assert.Equal(40, resultValue);
         }
-        
+
         [Fact]
         public async Task AutoInjection_MockAndVerify()
         {
             // Given
             var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
-                                                .ContainingQueryParam("filter", "other")
-                                                .WithBody(new { Caller = "ThisCaller" })
-                                                .Responds()
-                                                .WithStatus(HttpStatusCode.Created)
-                                                .TrackRequest();    
-            
+                                                      .ContainingQueryParam("filter", "other")
+                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .Responds()
+                                                      .WithStatus(HttpStatusCode.Created)
+                                                      .TrackRequest();
+
             var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
                                                       .ContainingQueryParam("filter", "other")
                                                       .WithBody(new { Caller = "ThisCaller" })
@@ -164,7 +173,18 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var controller = Resolve<HttpClientFactoryMultipleNamedUsageController>(_ => { }, m_TeePeeBuilderOne, m_TeePeeBuilderTwo);
+            var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
+                                                                                                     {
+                                                                                                         /* Example of using prod Setup code */
+                                                                                                         var configuration = new ConfigurationBuilder()
+                                                                                                                            .AddJsonFile("appsettings.unittests.json")
+                                                                                                                            .Build();
+
+                                                                                                         // Call your production code, which sets up the Typed Client, here
+                                                                                                         sc.AddNamedHttpClients(configuration);
+                                                                                                     },
+                                                                                                     m_TeePeeBuilderOne,
+                                                                                                     m_TeePeeBuilderTwo);
 
             // When
             var result = await controller.FireAndForget();
@@ -178,23 +198,5 @@ namespace TeePee.Examples.WebApp.Tests
         }
 
         #endregion
-        
-        private static T Resolve<T>(Action<IServiceCollection> additionalConfiguration = null, params TeePeeBuilder[] teePeeBuilders) where T : class
-        {
-            var serviceCollection = new ServiceCollection();
-            additionalConfiguration?.Invoke(serviceCollection);
-
-            foreach (var teePeeBuilder in teePeeBuilders)
-            {
-                var teePee = teePeeBuilder.Build();
-                serviceCollection.AddHttpClient(teePee.HttpClientNamedInstance)
-                                 .AddHttpMessageHandler(_ => teePee.HttpHandler);
-            }
-
-            serviceCollection.AddTransient<T>();
-
-            return serviceCollection.BuildServiceProvider().GetService<T>();
-        }
-
     }
 }
