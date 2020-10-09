@@ -216,7 +216,7 @@ namespace TeePee.Tests
             // Then
             Assert.NotNull(ex);
             var nex = Assert.IsType<NotSupportedException>(ex);
-            Assert.Contains("request was made which did not match any of the TeePee rules.", ex.Message);
+            Assert.Contains("request was made which did not match any of the TeePee rules.", nex.Message);
         }
 
         [Theory]
@@ -233,6 +233,26 @@ namespace TeePee.Tests
             Assert.NotNull(response);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Null(response.Content);
+            Assert.Empty(response.Headers);
+        }
+        
+        [Theory]
+        [ClassData(typeof(CommonHttpMethodsData))]
+        public async Task RespondsWithCustomDefaultResponseIfNoMatch(HttpMethod httpMethod)
+        {
+            // Given
+            m_TrackingBuilder.WithDefaultResponse(HttpStatusCode.BadGateway, "--bad-gateway--");
+            m_HttpMethod = httpMethod;
+
+            // When
+            var response = await SendRequest();
+
+            // Then
+            Assert.NotNull(response);
+            Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+            Assert.NotNull(response.Content);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal("--bad-gateway--", body);
             Assert.Empty(response.Headers);
         }
 

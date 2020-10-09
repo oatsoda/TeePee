@@ -12,7 +12,7 @@ namespace TeePee
         private readonly TeePeeMode m_Mode;
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
-        private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound; // TODO: A way to turn off default responses? Like Moq Strict.
+        private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
         private string m_DefaultResponseBody;
 
         private bool m_IsBuilt;
