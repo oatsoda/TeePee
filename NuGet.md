@@ -1,7 +1,4 @@
-# TeePee
-
-A fluent API to configure HttpClients for unit testing.
-
+TeePee is a fluent API to configure HttpClients for unit testing.
 
 ```
 var teePeeBuilder = new TeePeeBuilder();
