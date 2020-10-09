@@ -10,11 +10,9 @@ namespace TeePee
 {
     public class TeePee
     {
-        // TODO: Public for Resolve methods in tests which need to be moved in-house
-        public string HttpClientNamedInstance { get; }
+        internal string HttpClientNamedInstance { get; }
 
-        // TODO: Only public for Refit assembly
-        public TeePeeMessageHandler HttpHandler { get; }
+        internal TeePeeMessageHandler HttpHandler { get; }
         
         internal TeePee(string httpClientNamedInstance, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody)
         {

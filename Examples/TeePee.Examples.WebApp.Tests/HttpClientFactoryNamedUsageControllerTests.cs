@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using TeePee.DependencyInjection;
 using TeePee.Examples.WebApp.Controllers;
 using Xunit;
 
