@@ -25,7 +25,7 @@ namespace TeePee.Tests
         private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
         private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new HttpRequestMessage(httpMethod, url);
         private Task<HttpResponseMessage> SendRequest() => SendRequest(RequestMessage());
-        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build().CreateClient().SendAsync(httpRequestMessage);
+        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build().Manual().CreateClient().SendAsync(httpRequestMessage);
 
         #region Matches
 
