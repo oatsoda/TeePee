@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/oatsoda/TeePee/master/TeePee/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
+
 # TeePee
 
 A fluent API to configure HttpClients for unit testing.
