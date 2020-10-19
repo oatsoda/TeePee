@@ -11,7 +11,7 @@ pool:
 variables:
   solution: '**/*.sln'
   buildConfiguration: 'Release'
-  versionSuffix: '-alpha'
+  versionSuffix: '' #prefix with hyphen, e.g. -beta
   NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
