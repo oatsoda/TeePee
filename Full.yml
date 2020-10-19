@@ -13,16 +13,8 @@ variables:
   buildConfiguration: 'Release'
   versionSuffix: '' #prefix with hyphen, e.g. -beta
   autoPublishToNuGet: false
-#  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
-#- task: Cache@2
-#  displayName: Cache NuGet packages
-#  inputs:
-#    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
-#    restoreKeys: |
-#       nuget | "$(Agent.OS)"
-#    path: $(NUGET_PACKAGES)
 
 - task: DotNetCoreCLI@2
   displayName: 'Build All'
@@ -38,16 +30,7 @@ steps:
     projects: '**/*[Tt]ests/*.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
 
-#- task: DotNetCoreCLI@2
-#  displayName: 'Package NuGet'
-#  inputs:
-#    command: 'pack'
-#    packagesToPack: 'TeePee/TeePee.csproj'
-#    nobuild: true
-#    versioningScheme: 'off' #can't set suffix with any of these
-#    verbosityPack: 'Minimal'
-#    arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
-
+# Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.
 - task: PowerShell@2
   displayName: Package NuGet
   inputs:
