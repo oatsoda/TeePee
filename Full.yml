@@ -1,4 +1,4 @@
-name: 1.0$(rev:.r)
+name: 1.0$(rev:.r)-alpha
 
 trigger: none
 
@@ -11,7 +11,7 @@ pool:
 variables:
   solution: '**/*.sln'
   buildConfiguration: 'Release'
-  versionSuffix: '-alpha' #prefix with hyphen, e.g. -beta
+#  versionSuffix: '-alpha' #prefix with hyphen, e.g. -beta
   autoPublishToNuGet: false
 #  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
@@ -29,7 +29,7 @@ steps:
   inputs:
     command: 'build'
     projects: '$(solution)'
-    arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)$(versionSuffix)'
+    arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)' #$(versionSuffix)'
 
 - task: DotNetCoreCLI@2
   displayName: 'Unit Tests'
@@ -46,7 +46,8 @@ steps:
     nobuild: true
     versioningScheme: 'off' #can't set suffix with any of these
     verbosityPack: 'Minimal'
-    arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+    arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber) 
+    #$(versionSuffix)
 
 #- task: PowerShell@2
 #  displayName: Package NuGet
