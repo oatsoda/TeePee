@@ -11,8 +11,8 @@ pool:
 variables:
   solution: '**/*.sln'
   buildConfiguration: 'Release'
-  versionSuffix: '' #prefix with hyphen, e.g. -beta
-  autoPublishToNuGet: true
+  versionSuffix: '-alpha' #prefix with hyphen, e.g. -beta
+  autoPublishToNuGet: false
 #  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
@@ -38,21 +38,22 @@ steps:
     projects: '**/*[Tt]ests/*.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
 
-#- task: DotNetCoreCLI@2
-#  displayName: 'Package NuGet'
-#  inputs:
-#    command: 'pack'
-#    packagesToPack: 'HttpTesting/HttpTesting.csproj'
-#    nobuild: true
-#    versioningScheme: 'byBuildNumber' #can't set suffix with any of these
-#    verbosityPack: 'Minimal'
-
-- task: PowerShell@2
-  displayName: Package NuGet
+- task: DotNetCoreCLI@2
+  displayName: 'Package NuGet'
   inputs:
-    targetType: 'inline'
-    script: |
-      dotnet pack TeePee/TeePee.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+    command: 'pack'
+    packagesToPack: 'TeePee/TeePee.csproj'
+    nobuild: true
+    versioningScheme: 'off' #can't set suffix with any of these
+    verbosityPack: 'Minimal'
+    arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+
+#- task: PowerShell@2
+#  displayName: Package NuGet
+#  inputs:
+#    targetType: 'inline'
+#    script: |
+#      dotnet pack TeePee/TeePee.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
 
 - task: PublishBuildArtifacts@1
   displayName: Publish NuGet Package
