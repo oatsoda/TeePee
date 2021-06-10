@@ -12,7 +12,7 @@ variables:
   solution: '**/*.sln'
   buildConfiguration: 'Release'
   versionSuffix: '' #prefix with hyphen, e.g. -beta
-  autoPublishToNuGet: false
+  autoPublishToNuGet: true
 
 steps:
 
