@@ -9,7 +9,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
+  solution: '**/TeePee.Refit.sln'
   buildConfiguration: 'Release'
   versionSuffix: '' #prefix with hyphen, e.g. -beta
   autoPublishToNuGet: true
