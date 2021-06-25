@@ -11,7 +11,7 @@ namespace TeePee
     public class TeePee
     {
         internal string HttpClientNamedInstance { get; }
-        // Temp expose...
+
         public TeePeeMessageHandler HttpHandler { get; }
         
         internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody)
