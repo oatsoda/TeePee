@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{34
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeePee.Examples.WebApp.Tests", "Examples\TeePee.Examples.WebApp.Tests\TeePee.Examples.WebApp.Tests.csproj", "{9A1AC2ED-E56C-489A-B36E-8BADD5010566}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeePee.Refit", "TeePee.Refit\TeePee.Refit.csproj", "{74830DA6-60D1-420C-BB90-FBC69DFC4168}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,10 +35,6 @@ Global
 		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A1AC2ED-E56C-489A-B36E-8BADD5010566}.Release|Any CPU.Build.0 = Release|Any CPU
-		{74830DA6-60D1-420C-BB90-FBC69DFC4168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74830DA6-60D1-420C-BB90-FBC69DFC4168}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{74830DA6-60D1-420C-BB90-FBC69DFC4168}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{74830DA6-60D1-420C-BB90-FBC69DFC4168}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
