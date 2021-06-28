@@ -10,6 +10,7 @@ namespace TeePee
     public class ResponseBuilder
     {
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
+        private readonly JsonSerializerOptions m_BodySerializeOptions;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
@@ -19,9 +20,10 @@ namespace TeePee
 
         private readonly Dictionary<string, string> m_ResponseHeaders = new Dictionary<string, string>();
         
-        internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder)
+        internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, JsonSerializerOptions bodySerializeOptions)
         {
             m_RequestMatchBuilder = requestMatchBuilder;
+            m_BodySerializeOptions = bodySerializeOptions;
         }
 
         public ResponseBuilder WithStatus(HttpStatusCode statusCode)
@@ -32,7 +34,7 @@ namespace TeePee
         
         public ResponseBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding encoding = null)
         {
-            m_ResponseBody = JsonSerializer.Serialize(body);
+            m_ResponseBody = JsonSerializer.Serialize(body, m_BodySerializeOptions);
             m_ResponseBodyMediaType = mediaType;
             m_ResponseBodyEncoding = encoding ?? Encoding.UTF8;
             return this;

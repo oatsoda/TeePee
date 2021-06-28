@@ -12,6 +12,7 @@ namespace TeePee
     public class RequestMatchBuilder
     {
         private readonly TeePeeBuilder m_ParentTrackingBuilder;
+        private readonly JsonSerializerOptions m_BodySerializeOptions;
         private ResponseBuilder m_ResponseBuilder;
         private Tracker m_Tracker;
         
@@ -30,9 +31,10 @@ namespace TeePee
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod && 
                                                                            Url.IsSameString(url);
 
-        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, string url, HttpMethod httpMethod)
+        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, JsonSerializerOptions bodySerializeOptions, string url, HttpMethod httpMethod)
         {
             m_ParentTrackingBuilder = parentTrackingBuilder;
+            m_BodySerializeOptions = bodySerializeOptions;
 
             Url = WithUrl(url);
             Method = httpMethod;
@@ -96,7 +98,7 @@ namespace TeePee
         
         public ResponseBuilder Responds()
         {
-            m_ResponseBuilder = new ResponseBuilder(this);
+            m_ResponseBuilder = new ResponseBuilder(this, m_BodySerializeOptions);
             return m_ResponseBuilder;
         }
 
