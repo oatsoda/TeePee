@@ -3,13 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TeePee
 {
     public class TeePeeBuilder
     {
+        private static readonly JsonSerializerOptions s_DefaultSerializeOptions = new JsonSerializerOptions
+                                                                                  {
+                                                                                      PropertyNamingPolicy = null,
+                                                                                      Converters =
+                                                                                      {
+                                                                                          new JsonStringEnumConverter()
+                                                                                      }
+                                                                                  };
+
         private readonly string m_HttpClientNamedInstance;
         private readonly TeePeeMode m_Mode;
+        private readonly JsonSerializerOptions m_BodySerializeOptions;
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
@@ -17,10 +29,11 @@ namespace TeePee
 
         private bool m_IsBuilt;
 
-        public TeePeeBuilder(string httpClientNamedInstance = null, TeePeeMode mode = default)
+        public TeePeeBuilder(string httpClientNamedInstance = null, TeePeeMode mode = default, JsonSerializerOptions bodySerializeOptions = default)
         {
             m_HttpClientNamedInstance = httpClientNamedInstance;
             m_Mode = mode;
+            m_BodySerializeOptions = bodySerializeOptions ?? s_DefaultSerializeOptions;
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string responseBody = null)
@@ -43,7 +56,7 @@ namespace TeePee
             if (m_IsBuilt)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been built.");
 
-            var builder = new RequestMatchBuilder(this, url, httpMethod);
+            var builder = new RequestMatchBuilder(this, m_BodySerializeOptions, url, httpMethod);
             // Note: This assumes valid before adding
             m_Requests.Add(builder);
             return builder;

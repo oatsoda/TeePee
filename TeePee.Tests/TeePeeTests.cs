@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TeePee.Tests.TestData;
 using Xunit;
@@ -20,14 +21,14 @@ namespace TeePee.Tests
 
         // Instance of Tracking Builder for each test
         private TeePeeBuilder m_TrackingBuilder = new TeePeeBuilder();
-
+        
         // Shortcut methods
         private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
         private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
         private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new HttpRequestMessage(httpMethod, url);
         private Task<HttpResponseMessage> SendRequest() => SendRequest(RequestMessage());
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build().Manual().CreateClient().SendAsync(httpRequestMessage);
-
+        
         #region Matches
 
         [Theory]
@@ -333,7 +334,7 @@ namespace TeePee.Tests
         public async Task RespondsWithCorrectBody(string mediaType, Encoding encoding)
         {
             // Given
-            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
+            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } }, EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
                                  .WithBody(bodyObject, mediaType, encoding);
 
@@ -343,7 +344,7 @@ namespace TeePee.Tests
             // Then
             Assert.NotNull(response);
             var responseBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal(JsonSerializer.Serialize(bodyObject), responseBody);
+            Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }}), responseBody);
             Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
             Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
         }
@@ -366,6 +367,31 @@ namespace TeePee.Tests
             Assert.Equal("Set-Cookie", key);
             var headerValue = Assert.Single(values);
             Assert.Equal(".aspnetcookie=123", headerValue);
+        }
+        
+        [Fact]
+        public async Task RespondsWithCorrectBodyWithCustomJsonSerializerOptions()
+        {
+            // Given
+            var jsonSerializeOptions = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            m_TrackingBuilder = new TeePeeBuilder(bodySerializeOptions: jsonSerializeOptions);
+            var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
+            RequestMatchBuilder().Responds()
+                                 .WithBody(bodyObject);
+
+            // When
+            var response = await SendRequest();
+
+            // Then
+            Assert.NotNull(response);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal("{\"case\":\"value\",\"enumVal\":3}", responseBody);
+        }
+
+        private enum ToTestJsonSettings
+        {
+            On = 2,
+            Off = 3
         }
 
         #endregion
