@@ -8,11 +8,11 @@ namespace TeePee
 {
     public class Tracker
     {
-        private readonly List<TeePeeMessageHandler.HttpRecord> m_Calls = new List<TeePeeMessageHandler.HttpRecord>();
+        private readonly List<(TeePeeMessageHandler.HttpRecord Record, string RequestBody)> m_Calls = new List<(TeePeeMessageHandler.HttpRecord, string)>();
 
         private RequestMatch m_RequestMatch;
 
-        public IEnumerable<(HttpRequestMessage Request, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.HttpRequestMessage, c.HttpResponseMessage));
+        public IEnumerable<(string RequestBody, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.RequestBody, c.Record.HttpResponseMessage));
 
         internal void SetRequestMatch(RequestMatch requestMatch)
         {
@@ -44,7 +44,8 @@ namespace TeePee
 
         internal void AddCallInstance(TeePeeMessageHandler.HttpRecord httpRecord)
         {
-            m_Calls.Add(httpRecord);
+            var requestBody = httpRecord.HttpRequestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+            m_Calls.Add((httpRecord, requestBody));
         }
     }
 }
