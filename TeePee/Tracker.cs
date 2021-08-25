@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using TeePee.Internal;
 
 namespace TeePee
@@ -10,6 +11,8 @@ namespace TeePee
         private readonly List<TeePeeMessageHandler.HttpRecord> m_Calls = new List<TeePeeMessageHandler.HttpRecord>();
 
         private RequestMatch m_RequestMatch;
+
+        public IEnumerable<(HttpRequestMessage Request, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.HttpRequestMessage, c.HttpResponseMessage));
 
         internal void SetRequestMatch(RequestMatch requestMatch)
         {
