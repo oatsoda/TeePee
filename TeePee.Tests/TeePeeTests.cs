@@ -368,7 +368,23 @@ namespace TeePee.Tests
             var headerValue = Assert.Single(values);
             Assert.Equal(".aspnetcookie=123", headerValue);
         }
-        
+        [Fact]
+        public async Task RespondsWithCorrectBodyWithDefaultJsonSerializerOptions()
+        {
+            // Given
+            var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
+            RequestMatchBuilder().Responds()
+                                 .WithBody(bodyObject);
+
+            // When
+            var response = await SendRequest();
+
+            // Then
+            Assert.NotNull(response);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal("{\"Nullable\":null,\"Case\":\"value\",\"EnumVal\":\"Off\"}", responseBody);
+        }
+
         [Fact]
         public async Task RespondsWithCorrectBodyWithCustomJsonSerializerOptions()
         {
