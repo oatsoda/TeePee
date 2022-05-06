@@ -200,6 +200,27 @@ namespace TeePee.Tests
             // Then
             verify.WasNotCalled();
         }
+        
+        [Fact]
+        public async Task MatchesMoreSpecificRequest()
+        {
+            // Given
+            var bodyObject = new { Test = 1 };
+            var verifyUrlOnly = RequestMatchBuilder()
+                                    .TrackRequest();
+            var verifyUrlAndBody = RequestMatchBuilder().WithBody(bodyObject)
+                                        .TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verifyUrlOnly.WasNotCalled();
+            verifyUrlAndBody.WasCalled();
+        }
 
         #endregion
 

@@ -20,7 +20,9 @@ namespace TeePee.Internal
         public Encoding RequestBodyEncoding { get; }
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
         public ReadOnlyDictionary<string, string> Headers { get; }
-        
+
+        internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
+
         internal RequestMatch(string url, HttpMethod method, string requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
                               IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker tracker)
         {

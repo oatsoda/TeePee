@@ -15,7 +15,7 @@ namespace TeePee
         private readonly List<RequestMatch> m_Matches;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
 
-        internal List<HttpRecord> HttpRecords = new List<HttpRecord>();
+        internal readonly List<HttpRecord> HttpRecords = new List<HttpRecord>();
 
         internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatch> matches, Func<HttpResponseMessage> defaultResponse)
         {
@@ -26,7 +26,7 @@ namespace TeePee
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var match = m_Matches.FirstOrDefault(m => m.IsMatchingRequest(request));
+            var match = m_Matches.OrderByDescending(m => m.SpecificityLevel).FirstOrDefault(m => m.IsMatchingRequest(request));
 
             if (match == null && m_Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"An HTTP request was made which did not match any of the TeePee rules. [{request.Method} {request.RequestUri}]");

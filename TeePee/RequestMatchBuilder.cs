@@ -31,7 +31,7 @@ namespace TeePee
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod && 
                                                                            Url.IsSameString(url);
 
-        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, JsonSerializerOptions bodySerializeOptions, string url, HttpMethod httpMethod)
+        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, JsonSerializerOptions bodySerializeOptions, TeePeeBuilderMode builderMode, string url, HttpMethod httpMethod)
         {
             m_ParentTrackingBuilder = parentTrackingBuilder;
             m_BodySerializeOptions = bodySerializeOptions;
@@ -39,7 +39,7 @@ namespace TeePee
             Url = WithUrl(url);
             Method = httpMethod;
 
-            if (m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
+            if (builderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
                 throw new ArgumentException($"There is already a request match for {httpMethod} '{url}'");
         }
 
