@@ -70,9 +70,6 @@ namespace TeePee
 
         public TeePee Build()
         {
-            if (m_IsBuilt)
-                throw new InvalidOperationException("This builder has already been built.");
-
             m_IsBuilt = true;
             var requestMatches = m_Requests.Select(b => b.ToRequestMatch()).ToList();
             return new TeePee(m_HttpClientNamedInstance, m_Mode, requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody);
