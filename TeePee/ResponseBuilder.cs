@@ -14,7 +14,7 @@ namespace TeePee
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
-        private string m_ResponseBody;
+        private object m_ResponseBody;
         private string m_ResponseBodyMediaType;
         private Encoding m_ResponseBodyEncoding; 
 
@@ -34,7 +34,7 @@ namespace TeePee
         
         public ResponseBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding encoding = null)
         {
-            m_ResponseBody = JsonSerializer.Serialize(body, m_BodySerializeOptions);
+            m_ResponseBody = body;
             m_ResponseBodyMediaType = mediaType;
             m_ResponseBodyEncoding = encoding ?? Encoding.UTF8;
             return this;
@@ -50,9 +50,11 @@ namespace TeePee
         {
             if (m_ResponseBody == null)
                 return null;
+
+            var serialisedResponseBody = JsonSerializer.Serialize(m_ResponseBody, m_BodySerializeOptions);
             
             // TODO: Non string? Multipart/FormUrl
-            return new StringContent(m_ResponseBody, m_ResponseBodyEncoding, m_ResponseBodyMediaType);
+            return new StringContent(serialisedResponseBody, m_ResponseBodyEncoding, m_ResponseBodyMediaType);
         }
 
         internal Response ToHttpResponse()

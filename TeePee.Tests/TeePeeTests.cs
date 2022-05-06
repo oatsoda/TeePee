@@ -394,6 +394,25 @@ namespace TeePee.Tests
             Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
             Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
         }
+        
+        [Fact]
+        public async Task RespondsWithCorrectBodyIfReferenceTypeAndAlteredAfterAssigning()
+        {
+            // Given
+            var bodyObject = new ReferenceBodyType { Test = 1 };
+            RequestMatchBuilder().Responds()
+                                 .WithBody(bodyObject);
+
+            bodyObject.Test = 23;
+
+            // When
+            var response = await SendRequest();
+
+            // Then
+            Assert.NotNull(response);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(JsonSerializer.Serialize(new { Test = 23 }, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }}), responseBody);
+        }
 
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]
