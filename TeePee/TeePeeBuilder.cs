@@ -21,6 +21,7 @@ namespace TeePee
 
         private readonly string m_HttpClientNamedInstance;
         private readonly TeePeeMode m_Mode;
+        private readonly TeePeeBuilderMode m_BuilderMode;
         private readonly JsonSerializerOptions m_BodySerializeOptions;
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
@@ -28,14 +29,19 @@ namespace TeePee
         private string m_DefaultResponseBody;
 
         private bool m_IsBuilt;
+        
+        public TeePeeBuilder() : this(default) { }
 
-        public TeePeeBuilder(string httpClientNamedInstance = null, TeePeeMode mode = default, JsonSerializerOptions bodySerializeOptions = default)
+        public TeePeeBuilder(JsonSerializerOptions bodySerializeOptions = default) : this(null, default, default, bodySerializeOptions) { }
+
+        public TeePeeBuilder(string httpClientNamedInstance = null, TeePeeMode mode = TeePeeMode.Lenient, TeePeeBuilderMode builderMode = TeePeeBuilderMode.AllowMultipleUrlRules, JsonSerializerOptions bodySerializeOptions = default)
         {
             m_HttpClientNamedInstance = httpClientNamedInstance;
             m_Mode = mode;
+            m_BuilderMode = builderMode;
             m_BodySerializeOptions = bodySerializeOptions ?? s_DefaultSerializeOptions;
         }
-
+        
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string responseBody = null)
         {
             m_DefaultResponseStatusCode = responseStatusCode;
@@ -56,7 +62,7 @@ namespace TeePee
             if (m_IsBuilt)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been built.");
 
-            var builder = new RequestMatchBuilder(this, m_BodySerializeOptions, url, httpMethod);
+            var builder = new RequestMatchBuilder(this, m_BodySerializeOptions, m_BuilderMode, url, httpMethod);
             // Note: This assumes valid before adding
             m_Requests.Add(builder);
             return builder;

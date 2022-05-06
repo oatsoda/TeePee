@@ -144,10 +144,10 @@ namespace TeePee.Tests
             yield return new object[] { "https://site.net/api.items?filter", HttpMethod.Get };
             yield return new object[] { "https://www.site.com", HttpMethod.Get };
         }
-
+        
         [Theory]
         [MemberData(nameof(UrlAndMethodData))]
-        public void ForRequestThrowsOnDuplicateUrlAndMethod(string url, HttpMethod method)
+        public void ForRequestDoesNotThrowOnDuplicateUrlAndMethod(string url, HttpMethod method)
         {
             // Given
             var builder = new TeePeeBuilder();
@@ -155,7 +155,23 @@ namespace TeePee.Tests
 
             // When 
             var ex = Record.Exception(() => builder.ForRequest(url, method));
+            
+            // Then
+            Assert.Null(ex);
+        }
 
+        [Theory]
+        [MemberData(nameof(UrlAndMethodData))]
+        public void ForRequestThrowsOnDuplicateUrlAndMethodIfUniqueUrlsRequired(string url, HttpMethod method)
+        {
+            // Given
+            var builder = new TeePeeBuilder(builderMode: TeePeeBuilderMode.RequireUniqueUrlRules);
+            builder.ForRequest(url, method);
+
+            // When 
+            var ex = Record.Exception(() => builder.ForRequest(url, method));
+            
+            // Then
             Assert.IsType<ArgumentException>(ex);
             Assert.Contains("already a request match for", ex.Message);
         }
