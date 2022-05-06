@@ -105,6 +105,31 @@ namespace TeePee.Tests
             // Then
             verify.WasNotCalled();
         }
+        
+        private class ReferenceBodyType 
+        {
+            public int Test { get; set; }
+        }
+
+        [Fact]
+        public async Task MatchesBodyIfReferenceTypeAndAlteredAfterAssigning()
+        {
+            // Given
+            var bodyObject = new ReferenceBodyType { Test = 1 };
+            var verify = RequestMatchBuilder().WithBody(bodyObject)
+                                              .TrackRequest();
+
+            bodyObject.Test = 23;
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(new { Test = 23 }), Encoding.UTF8, "application/json");
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasCalled();
+        }
 
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]

@@ -18,7 +18,7 @@ namespace TeePee
         
         private string Url { get; }
         private HttpMethod Method { get; }
-        private string RequestBody { get; set; }
+        private object RequestBody { get; set; }
         private Encoding RequestBodyEncoding { get; set; }
         private string RequestBodyMediaType { get; set; }
         
@@ -72,7 +72,7 @@ namespace TeePee
             if (RequestBody != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
-            RequestBody = JsonSerializer.Serialize(body); // TODO: JSON Serialiser options
+            RequestBody = body;
             RequestBodyEncoding = encoding ?? Encoding.UTF8;
             RequestBodyMediaType = mediaType;
             return this;
@@ -104,10 +104,11 @@ namespace TeePee
 
         internal RequestMatch ToRequestMatch()
         {
+            var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody); // TODO: JSON Serialiser options
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse()
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatch(Url, Method, RequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
+            return new RequestMatch(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
         }
 
         public Tracker TrackRequest()
