@@ -242,12 +242,45 @@ namespace TeePee.Tests
                                                                   string secondUrl, HttpMethod secondMethod)
         {
             // Given
-            var builder = new TeePeeBuilder();
+            var builder = new TeePeeBuilder(builderMode: TeePeeBuilderMode.RequireUniqueUrlRules);
             builder.ForRequest(firstUrl, firstMethod);
 
             // When 
             var ex = Record.Exception(() => builder.ForRequest(secondUrl, secondMethod));
 
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void BuildDoesNotThrowOnMultipleCalls()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            builder.ForRequest("http://test", HttpMethod.Get);
+            builder.Build();
+            
+            // When 
+            var ex = Record.Exception(() => builder.Build());
+
+            Assert.Null(ex);
+        }
+        
+        [Theory]
+        [MemberData(nameof(UrlAndMethodData))]
+        public void BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            builder.ForRequest(url, method)
+                   .TrackRequest();
+            builder.ForRequest(url, method);
+            
+            builder.Build();
+
+            // When 
+            var ex = Record.Exception(() => builder.Build());
+            
+            // Then
             Assert.Null(ex);
         }
     }

@@ -16,9 +16,6 @@ namespace TeePee
 
         internal void SetRequestMatch(RequestMatch requestMatch)
         {
-            if (m_RequestMatch != null)
-                throw new InvalidOperationException("Request match has already been set.");
-
             m_RequestMatch = requestMatch;
         }
 
