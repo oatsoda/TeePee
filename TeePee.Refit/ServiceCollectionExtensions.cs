@@ -33,7 +33,6 @@ namespace TeePee.Refit
             serviceCollection.AddTransient(_ => requestHandler);
             builder.AddHttpMessageHandler(_ => requestHandler);
 
-            // NOTE: If ServiceProvider was build previously, must rebuild it to get the new changes
             return serviceCollection;
         }
     }
