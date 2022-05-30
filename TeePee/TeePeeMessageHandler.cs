@@ -45,6 +45,9 @@ namespace TeePee
 
         private void LogRequest(HttpRecord httpRecord)
         {
+            if (m_Logger == null)
+                return;
+
             if (httpRecord.IsMatch)
                 m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode);
             else
