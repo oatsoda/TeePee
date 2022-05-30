@@ -15,7 +15,7 @@ Full: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/F
 
 Everything in TeePee starts by creating a `TeePeeBuilder`.  
 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder();
 ```
 
@@ -24,7 +24,7 @@ var teePeeBuilder = new TeePeeBuilder();
 
 Add requests that you want to support by using the fluent API to specify as little or as much you want to match one
 
-```
+```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
              .WithBody(new { Value = 12 })
              .ContainingQueryParam("filter", "those")
@@ -35,13 +35,13 @@ teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
 
 Query strings van either be included in the URL:
 
-```
+```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource?filter=those")
 ```
 
 or by matching using the `ContainsQueryParam`
 
-```
+```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
              .ContainingQueryParam("filter", "those")
 ```
@@ -53,7 +53,7 @@ You cannot combine both though. Once you specify `ContainingQueryParam` then inc
 
 The response to a matching request is set using the `Responds()` fluent method:
 
-```
+```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
              .Responds()
              .WithStatus(HttpStatusCode.OK)
@@ -90,7 +90,7 @@ This isn't always possible - for example in a Fire and Forget situation where th
 
 In this case, you can set up a tracker using `TrackRequest()` to make simple verification of the requests that you set up.
 
-```
+```csharp
 var requestTracker = teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
                                   .TrackRequets();
                                   
@@ -113,7 +113,7 @@ Once you have finished setting up one or more requests in you `TeePeeBuilder` th
 
 Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
 
-```
+```csharp
 var httpClientFactory = teePeeBuilder.Build().Manual().CreateHttpClientFactory();
 var subjectUnderTest = new UserController(httpClientFactory);
 ```
@@ -122,7 +122,7 @@ var subjectUnderTest = new UserController(httpClientFactory);
 
 For Named HttpClient instances, you need to specify the expected Name of the instance when creating the `TeePeeBuilder`:
 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 
 // Setup requests
@@ -135,7 +135,7 @@ var subjectUnderTest = new UserController(httpClientFactory);
 
 For Typed HttpClient instances, you need to create the HttpClient instead of the HttpClientFactory:
 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder();
 
 // Setup requests
@@ -149,7 +149,7 @@ var subjectUnderTest = new UserController(typedHttpClient);
 If you are wanting to specify the `BaseAddress` in your `HttpClient` and use Relative URLs in your Subject Under Test when calling the HttpClient, you can set TeePee up to ALSO configure this in your tests. (Note, this obviously means you are not covering this in your tests, it is just so that the HttpClient accepts Relative URLs.
 
 To do this, pass a dummy Base Address into the `Manual()` call. 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
              .Responds()
@@ -168,7 +168,7 @@ Injecting automatically allows you to cover the startup DI registrations as part
 
 Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
 
-```
+```csharp
 var subjectUnderTest = Resolve.WithDefaultClient<UserController>(teePeeBuilder);
 ```
 
@@ -176,7 +176,7 @@ var subjectUnderTest = Resolve.WithDefaultClient<UserController>(teePeeBuilder);
 
 For Named HttpClient instances, you need to specify the expected Name of the instance when creating the `TeePeeBuilder`:
 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 
 // Setup requests
@@ -195,7 +195,7 @@ var subjectUnderTest = Resolve.WithNamedClients<UserController>(
 
 For Typed HttpClients, your unit tests unfortunately will need to know which Type is the HttpClient (therefore exposing a bit of internal implementation detail into your tests):
 
-```
+```csharp
 var teePeeBuilder = new TeePeeBuilder();
 
 // Setup requests
