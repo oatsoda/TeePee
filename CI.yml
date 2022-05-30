@@ -1,7 +1,7 @@
 name: CI_$(date:yyyyMMdd)$(rev:.r)
 
 trigger:
-- master
+- main
 
 pool:
   vmImage: 'windows-latest'
