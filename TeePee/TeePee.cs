@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
 using TeePee.Extensions;
 using TeePee.Internal;
 
@@ -14,7 +15,7 @@ namespace TeePee
 
         public TeePeeMessageHandler HttpHandler { get; }
         
-        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody)
+        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody, ILogger logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
             HttpHandler = new TeePeeMessageHandler(mode, matches, 
@@ -23,7 +24,9 @@ namespace TeePee
                                                                    Content = unmatchedBody == null 
                                                                                  ? null 
                                                                                  : new StringContent(unmatchedBody)
-                                                               });
+                                                               },
+                                                         logger
+                                                         );
         }
         
         /*

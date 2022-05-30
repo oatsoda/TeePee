@@ -5,8 +5,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
 using TeePee.Tests.TestData;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace TeePee.Tests
 {
@@ -21,14 +24,33 @@ namespace TeePee.Tests
 
         // Instance of Tracking Builder for each test
         private TeePeeBuilder m_TrackingBuilder = new TeePeeBuilder();
+
+        // Logger
+        private readonly Mock<ILogger<TeePee>> m_MockLogger;
         
         // Shortcut methods
         private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
         private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
         private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new HttpRequestMessage(httpMethod, url);
         private Task<HttpResponseMessage> SendRequest() => SendRequest(RequestMessage());
-        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build().Manual().CreateClient().SendAsync(httpRequestMessage);
-        
+        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient().SendAsync(httpRequestMessage);
+
+        public TeePeeTests(ITestOutputHelper testOutputHelper)
+        {
+            m_MockLogger = new Mock<ILogger<TeePee>>();
+            m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()))
+                        .Callback(new InvocationAction(invocation =>
+                                                       {
+                                                           var logLevel = (LogLevel)invocation.Arguments[0];               
+                                                           var state = invocation.Arguments[2];
+                                                           var exception = (Exception)invocation.Arguments[3];
+                                                           var formatter = invocation.Arguments[4];
+                                                           var invokeMethod = formatter.GetType().GetMethod("Invoke");
+                                                           var logMessage = (string)invokeMethod?.Invoke(formatter, new[] { state, exception });
+                                                           testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
+                                                       }));
+        }
+
         #region Matches
 
         [Theory]
@@ -245,6 +267,23 @@ namespace TeePee.Tests
             // Then
             verifyUrlOnly.WasNotCalled();
             verifyUrlAndBody.WasCalled();
+        }
+        
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task LogsMessage(bool isMatch)
+        {
+            // Given
+            RequestMatchBuilder();
+            if (!isMatch)
+                m_HttpMethod = HttpMethod.Options;
+
+            // When
+            await SendRequest(RequestMessage());
+
+            // Then
+            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
 
         #endregion
