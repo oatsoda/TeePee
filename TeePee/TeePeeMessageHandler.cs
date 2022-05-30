@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TeePee.Extensions;
 using TeePee.Internal;
 
@@ -14,14 +15,16 @@ namespace TeePee
         private readonly TeePeeMode m_Mode;
         private readonly List<RequestMatch> m_Matches;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
+        private readonly ILogger m_Logger;
 
         internal readonly List<HttpRecord> HttpRecords = new List<HttpRecord>();
 
-        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatch> matches, Func<HttpResponseMessage> defaultResponse)
+        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatch> matches, Func<HttpResponseMessage> defaultResponse, ILogger logger)
         {
             m_Mode = mode;
             m_Matches = matches;
             m_DefaultResponse = defaultResponse;
+            m_Logger = logger;
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -31,19 +34,21 @@ namespace TeePee
             if (match == null && m_Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"An HTTP request was made which did not match any of the TeePee rules. [{request.Method} {request.RequestUri}]");
 
-            HttpRecord httpRecord;
-            if (match == null)
-            {
-                httpRecord = new HttpRecord(request, m_DefaultResponse);
+            var httpRecord = match == null 
+                                 ? new HttpRecord(request, m_DefaultResponse) 
+                                 : new HttpRecord(request, match);
 
-                HttpRecords.Add(httpRecord);
-                return Task.FromResult(httpRecord.HttpResponseMessage);
-            }
-            
-            httpRecord = new HttpRecord(request, match);
-            
             HttpRecords.Add(httpRecord);
+            LogRequest(httpRecord);
             return Task.FromResult(httpRecord.HttpResponseMessage);
+        }
+
+        private void LogRequest(HttpRecord httpRecord)
+        {
+            if (httpRecord.IsMatch)
+                m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode);
+            else
+                m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode);
         }
 
         public override string ToString()
@@ -58,6 +63,8 @@ namespace TeePee
             public HttpRequestMessage HttpRequestMessage { get; }
             public RequestMatch Match { get; }
             public HttpResponseMessage HttpResponseMessage { get; }
+
+            public bool IsMatch => Match != null;
 
             public HttpRecord(HttpRequestMessage httpRequestMessage, Func<HttpResponseMessage> defaultResponse)
             {
@@ -79,7 +86,7 @@ namespace TeePee
             public override string ToString()
             {
                 var body = HttpRequestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
-                return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.Select(h => h.Key).Flat()}] [B: {body?.Trunc()}] [Matched: {Match != null}";
+                return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.Select(h => h.Key).Flat()}] [B: {body?.Trunc()}] [Matched: {Match != null}]";
             }
         }
     }

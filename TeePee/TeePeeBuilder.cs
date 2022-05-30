@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace TeePee
 {
@@ -68,11 +69,11 @@ namespace TeePee
             return builder;
         }
 
-        public TeePee Build()
+        public TeePee Build(ILogger<TeePee> logger = null)
         {
             m_IsBuilt = true;
             var requestMatches = m_Requests.Select(b => b.ToRequestMatch()).ToList();
-            return new TeePee(m_HttpClientNamedInstance, m_Mode, requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            return new TeePee(m_HttpClientNamedInstance, m_Mode, requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()
