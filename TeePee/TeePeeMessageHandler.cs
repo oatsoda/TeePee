@@ -51,7 +51,7 @@ namespace TeePee
             if (httpRecord.IsMatch)
                 m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode);
             else
-                m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode);
+                m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}] [{num} rules configured]", httpRecord.ToString(), (int)httpRecord.HttpResponseMessage.StatusCode, httpRecord.HttpResponseMessage.StatusCode, m_Matches.Count);
         }
 
         public override string ToString()
@@ -89,7 +89,7 @@ namespace TeePee
             public override string ToString()
             {
                 var body = HttpRequestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
-                return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.Select(h => h.Key).Flat()}] [B: {body?.Trunc()}] [Matched: {Match != null}]";
+                return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.ToDictionary(h => h.Key, h => h.Value).Flat()}] [B: {body?.Trunc()}] [Matched: {Match != null}]";
             }
         }
     }
