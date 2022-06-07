@@ -32,10 +32,10 @@ namespace TeePee
             return this;
         }
         
-        public ResponseBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding encoding = null)
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = null, Encoding encoding = null)
         {
             m_ResponseBody = body;
-            m_ResponseBodyMediaType = mediaType;
+            m_ResponseBodyMediaType = mediaType ?? "application/json";
             m_ResponseBodyEncoding = encoding ?? Encoding.UTF8;
             return this;
         }
@@ -46,25 +46,14 @@ namespace TeePee
             return this;
         }
 
-        private HttpContent BodyAsContent()
-        {
-            if (m_ResponseBody == null)
-                return null;
-
-            var serialisedResponseBody = JsonSerializer.Serialize(m_ResponseBody, m_BodySerializeOptions);
-            
-            // TODO: Non string? Multipart/FormUrl
-            return new StringContent(serialisedResponseBody, m_ResponseBodyEncoding, m_ResponseBodyMediaType);
-        }
-
         internal Response ToHttpResponse()
         {
-            return new Response(m_ResponseStatusCode, BodyAsContent(), m_ResponseHeaders);
+            return new Response(m_ResponseStatusCode, m_BodySerializeOptions, m_ResponseBody, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
         }
 
         internal static Response DefaultResponse()
         {
-            return new Response(HttpStatusCode.Accepted, null, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, null, null, null, null, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()
