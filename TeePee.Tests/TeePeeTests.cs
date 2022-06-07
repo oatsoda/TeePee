@@ -434,6 +434,30 @@ namespace TeePee.Tests
             Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
         }
         
+        [Theory]
+        [ClassData(typeof(ContentTypesData))]
+        public async Task RespondsWithCorrectBodyIfSameClientUsedAndResponseDisposed(string mediaType, Encoding encoding)
+        {
+            // Given
+            var bodyObject = new { Test = 1 };
+            RequestMatchBuilder().Responds()
+                                 .WithBody(bodyObject, mediaType, encoding);
+            
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            var firstResponse = await client.SendAsync(RequestMessage());
+            firstResponse.Dispose();
+            
+            var secondResponse = await client.SendAsync(RequestMessage());
+
+            // When
+            var responseBody = await secondResponse.Content.ReadAsStringAsync();
+
+            // Then
+            Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }}), responseBody);
+            Assert.Equal(mediaType, secondResponse.Content.Headers.ContentType.MediaType);
+            Assert.Equal(encoding.WebName, secondResponse.Content.Headers.ContentType.CharSet);
+        }
+        
         [Fact]
         public async Task RespondsWithCorrectBodyIfReferenceTypeAndAlteredAfterAssigning()
         {
