@@ -11,6 +11,7 @@
 		<RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageIcon>teepee-icon.png</PackageIcon>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,7 +20,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
-	  <PackageReference Include="TeePee" Version="1.0.31" />
+	  <PackageReference Include="TeePee" Version="1.0.32" />
 	</ItemGroup>
 
 </Project>
