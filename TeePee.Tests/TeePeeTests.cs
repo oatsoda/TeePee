@@ -288,6 +288,25 @@ namespace TeePee.Tests
 
         #endregion
 
+        #region Not Matched
+        
+        [Fact]
+        public async Task TrackerThrowsIfMatchNotMade()
+        {
+            // Given
+            var verify = RequestMatchBuilder().TrackRequest();
+            var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
+            await SendRequest(httpRequestMessage);
+
+            // When
+            void Verify() => verify.WasCalled();
+
+            // Then
+            Assert.Throws<IncorrectExpectedRequests>(Verify);
+        }
+
+        #endregion
+
         #region Responds With
 
         [Fact]

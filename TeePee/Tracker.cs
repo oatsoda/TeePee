@@ -34,7 +34,7 @@ namespace TeePee
             var msgTimes = times == null ? "at least once" : $"exactly {times.Value} times";
             var msgNotMet = times == null ? "never called" : $"call {m_Calls.Count} times";
             var msg = $"Expected match on {m_RequestMatch} {msgTimes} but was {msgNotMet}.";
-            throw new InvalidOperationException(msg);
+            throw new IncorrectExpectedRequests(msg);
         }
 
         public void WasNotCalled() => WasCalled(0);
@@ -43,6 +43,14 @@ namespace TeePee
         {
             var requestBody = httpRecord.HttpRequestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
             m_Calls.Add((httpRecord, requestBody));
+        }
+    }
+
+    public class IncorrectExpectedRequests : Exception
+    {
+        public IncorrectExpectedRequests(string message) : base(message)
+        {
+            
         }
     }
 }
