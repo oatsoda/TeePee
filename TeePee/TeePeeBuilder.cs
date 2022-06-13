@@ -20,22 +20,22 @@ namespace TeePee
                                                                                       }
                                                                                   };
 
-        private readonly string m_HttpClientNamedInstance;
+        private readonly string? m_HttpClientNamedInstance;
         private readonly TeePeeMode m_Mode;
         private readonly TeePeeBuilderMode m_BuilderMode;
         private readonly JsonSerializerOptions m_BodySerializeOptions;
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
-        private string m_DefaultResponseBody;
+        private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
         
         public TeePeeBuilder() : this(default) { }
 
-        public TeePeeBuilder(JsonSerializerOptions bodySerializeOptions = default) : this(null, default, default, bodySerializeOptions) { }
+        public TeePeeBuilder(JsonSerializerOptions? bodySerializeOptions = default) : this(null, default, default, bodySerializeOptions) { }
 
-        public TeePeeBuilder(string httpClientNamedInstance = null, TeePeeMode mode = TeePeeMode.Lenient, TeePeeBuilderMode builderMode = TeePeeBuilderMode.AllowMultipleUrlRules, JsonSerializerOptions bodySerializeOptions = default)
+        public TeePeeBuilder(string? httpClientNamedInstance = null, TeePeeMode mode = TeePeeMode.Lenient, TeePeeBuilderMode builderMode = TeePeeBuilderMode.AllowMultipleUrlRules, JsonSerializerOptions? bodySerializeOptions = default)
         {
             m_HttpClientNamedInstance = httpClientNamedInstance;
             m_Mode = mode;
@@ -43,7 +43,7 @@ namespace TeePee
             m_BodySerializeOptions = bodySerializeOptions ?? s_DefaultSerializeOptions;
         }
         
-        public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string responseBody = null)
+        public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
         {
             m_DefaultResponseStatusCode = responseStatusCode;
             m_DefaultResponseBody = responseBody;
@@ -69,11 +69,10 @@ namespace TeePee
             return builder;
         }
 
-        public TeePee Build(ILogger<TeePee> logger = null)
+        public TeePee Build(ILogger<TeePee>? logger = null)
         {
             m_IsBuilt = true;
-            var requestMatches = m_Requests.Select(b => b.ToRequestMatch()).ToList();
-            return new TeePee(m_HttpClientNamedInstance, m_Mode, requestMatches, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            return new TeePee(m_HttpClientNamedInstance, m_Mode, m_Requests, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()

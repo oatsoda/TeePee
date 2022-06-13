@@ -13,13 +13,13 @@ namespace TeePee.Internal
         
         private readonly JsonSerializerOptions m_BodySerializeOptions;
 
-        private readonly object m_ResponseBody;
+        private readonly object? m_ResponseBody;
         private readonly string m_ResponseBodyMediaType;
         private readonly Encoding m_ResponseBodyEncoding; 
 
         private readonly ReadOnlyDictionary<string, string> m_ResponseHeaders;
 
-        public Response(HttpStatusCode responseStatusCode, JsonSerializerOptions bodySerializeOptions, object responseBody, string responseBodyMediaType, Encoding responseBodyEncoding, IDictionary<string, string> responseHeaders)
+        public Response(HttpStatusCode responseStatusCode, JsonSerializerOptions bodySerializeOptions, object? responseBody, string responseBodyMediaType, Encoding responseBodyEncoding, IDictionary<string, string> responseHeaders)
         {
             m_ResponseStatusCode = responseStatusCode;
 
@@ -44,7 +44,7 @@ namespace TeePee.Internal
             return response;
         }
         
-        private HttpContent BodyAsContent()
+        private HttpContent? BodyAsContent()
         {
             if (m_ResponseBody == null)
                 return null;

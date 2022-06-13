@@ -18,6 +18,8 @@ namespace TeePee.Tests
     /// </summary>
     public class TeePeeTests
     {
+        private readonly ITestOutputHelper m_TestOutputHelper;
+
         // URL and Method used for each test
         private string m_Url = "https://www.test.co.uk/api/items";
         private HttpMethod m_HttpMethod = HttpMethod.Get;
@@ -37,6 +39,7 @@ namespace TeePee.Tests
 
         public TeePeeTests(ITestOutputHelper testOutputHelper)
         {
+            m_TestOutputHelper = testOutputHelper;
             m_MockLogger = new Mock<ILogger<TeePee>>();
             m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()))
                         .Callback(new InvocationAction(invocation =>
@@ -284,6 +287,42 @@ namespace TeePee.Tests
 
             // Then
             m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+        }
+
+        #endregion
+
+        #region Tracker Specific
+        
+        [Fact]
+        public async Task TrackerThrowsIfMatchNotMade()
+        {
+            // Given
+            var verify = RequestMatchBuilder().TrackRequest();
+            var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
+            await SendRequest(httpRequestMessage);
+
+            // When
+            void Verify() => verify.WasCalled();
+
+            // Then
+            var ex = Assert.Throws<MismatchedTrackerExpectedCalls>(Verify);
+            m_TestOutputHelper.WriteLine(ex.Message);
+        }
+        
+        [Fact]
+        public async Task TrackerDoesNotThrowIfMatchMade()
+        {
+            // Given
+            var verify = RequestMatchBuilder().TrackRequest();
+            var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
+            await SendRequest(httpRequestMessage);
+
+            // When
+            void Verify() => verify.WasNotCalled();
+
+            // Then
+            var ex = Record.Exception(Verify);
+            Assert.Null(ex);
         }
 
         #endregion

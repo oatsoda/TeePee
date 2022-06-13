@@ -13,14 +13,15 @@ namespace TeePee
     {
         private readonly TeePeeBuilder m_ParentTrackingBuilder;
         private readonly JsonSerializerOptions m_BodySerializeOptions;
-        private ResponseBuilder m_ResponseBuilder;
-        private Tracker m_Tracker;
+
+        private ResponseBuilder? m_ResponseBuilder;
+        private Tracker? m_Tracker;
         
         private string Url { get; }
         private HttpMethod Method { get; }
-        private object RequestBody { get; set; }
-        private Encoding RequestBodyEncoding { get; set; }
-        private string RequestBodyMediaType { get; set; }
+        private object? RequestBody { get; set; }
+        private string RequestBodyMediaType { get; set; } = "application/json";
+        private Encoding RequestBodyEncoding { get; set; } = Encoding.UTF8;
         
         private Dictionary<string, string> QueryParams { get; } = new Dictionary<string, string>();
         private Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
@@ -64,7 +65,7 @@ namespace TeePee
             return url;
         }
 
-        public RequestMatchBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding encoding = null)
+        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
         {
             if (body == null)
                 throw new ArgumentNullException();
@@ -73,8 +74,10 @@ namespace TeePee
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
             RequestBody = body;
-            RequestBodyEncoding = encoding ?? Encoding.UTF8;
-            RequestBodyMediaType = mediaType;
+            if (mediaType != null)
+                RequestBodyMediaType = mediaType;
+            if (encoding != null)
+                RequestBodyEncoding = encoding;
             return this;
         }
 
@@ -102,13 +105,13 @@ namespace TeePee
             return m_ResponseBuilder;
         }
 
-        internal RequestMatch ToRequestMatch()
+        internal RequestMatchRule ToRequestMatchRule(List<TeePeeMessageHandler.RecordedHttpCall> recordedHttpCalls)
         {
             var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody); // TODO: JSON Serialiser options
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse()
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatch(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
+            return new RequestMatchRule(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker, recordedHttpCalls);
         }
 
         public Tracker TrackRequest()

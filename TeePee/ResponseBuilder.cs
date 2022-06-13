@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using TeePee.Internal;
@@ -9,14 +8,17 @@ namespace TeePee
 {
     public class ResponseBuilder
     {
+        private static readonly string s_DefaultResponseBodyMediaType = "application/json";
+        private static readonly Encoding s_DefaultResponseBodyEncoding = Encoding.UTF8; 
+        
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
         private readonly JsonSerializerOptions m_BodySerializeOptions;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
-        private object m_ResponseBody;
-        private string m_ResponseBodyMediaType;
-        private Encoding m_ResponseBodyEncoding; 
+        private object? m_ResponseBody;
+        private string m_ResponseBodyMediaType = s_DefaultResponseBodyMediaType;
+        private Encoding m_ResponseBodyEncoding = s_DefaultResponseBodyEncoding; 
 
         private readonly Dictionary<string, string> m_ResponseHeaders = new Dictionary<string, string>();
         
@@ -32,11 +34,13 @@ namespace TeePee
             return this;
         }
         
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = null, Encoding encoding = null)
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = null, Encoding? encoding = null)
         {
             m_ResponseBody = body;
-            m_ResponseBodyMediaType = mediaType ?? "application/json";
-            m_ResponseBodyEncoding = encoding ?? Encoding.UTF8;
+            if (mediaType != null)
+                m_ResponseBodyMediaType = mediaType;
+            if (encoding != null)
+                m_ResponseBodyEncoding = encoding;
             return this;
         }
         
@@ -53,7 +57,7 @@ namespace TeePee
 
         internal static Response DefaultResponse()
         {
-            return new Response(HttpStatusCode.Accepted, null, null, null, null, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, new JsonSerializerOptions(), null, s_DefaultResponseBodyMediaType, s_DefaultResponseBodyEncoding, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()
