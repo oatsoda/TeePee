@@ -3,12 +3,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using TeePee.Extensions;
 
 namespace TeePee.Internal
 {
-    internal class RequestMatch
+    internal class RequestMatchRule
     {
         private readonly Response m_Response;
         private readonly Tracker m_Tracker;
@@ -23,7 +24,7 @@ namespace TeePee.Internal
 
         internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatch(string url, HttpMethod method, string requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
+        internal RequestMatchRule(string url, HttpMethod method, string requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
                               IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker tracker)
         {
             Url = url;
@@ -36,7 +37,7 @@ namespace TeePee.Internal
 
             m_Response = response;
             m_Tracker = tracker;
-            m_Tracker?.SetRequestMatch(this);
+            m_Tracker?.SetRequestMatchRule(this);
         }
 
         internal bool IsMatchingRequest(HttpRequestMessage httpRequestMessage)
@@ -70,7 +71,8 @@ namespace TeePee.Internal
             if (httpRequestMessage.Content == null)
                 return false;
 
-            var requestBody = httpRequestMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            // TODO: Make async (or move read of Body earlier)
+            var requestBody = httpRequestMessage.ReadContentAsync().GetAwaiter().GetResult();
 
             if (!RequestBody.IsSameString(requestBody))
                 return false;
@@ -105,9 +107,12 @@ namespace TeePee.Internal
         
         internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();
 
-        internal void AddCallInstance(TeePeeMessageHandler.HttpRecord httpRecord)
+        internal async Task AddCallInstance(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
         {
-            m_Tracker?.AddCallInstance(httpRecord);
+            if (m_Tracker == null)
+                return;
+
+            await m_Tracker.AddCallInstance(recordedHttpCall);
         }
     }
 }

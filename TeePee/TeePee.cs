@@ -15,7 +15,7 @@ namespace TeePee
 
         public TeePeeMessageHandler HttpHandler { get; }
         
-        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatch> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody, ILogger logger)
+        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatchRule> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody, ILogger logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
             HttpHandler = new TeePeeMessageHandler(mode, matches, 

@@ -102,13 +102,13 @@ namespace TeePee
             return m_ResponseBuilder;
         }
 
-        internal RequestMatch ToRequestMatch()
+        internal RequestMatchRule ToRequestMatch()
         {
             var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody); // TODO: JSON Serialiser options
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse()
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatch(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
+            return new RequestMatchRule(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
         }
 
         public Tracker TrackRequest()
