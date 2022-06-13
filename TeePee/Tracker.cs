@@ -2,23 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
-using TeePee.Extensions;
 using TeePee.Internal;
 
 namespace TeePee
 {
     public class Tracker
     {
-        private readonly List<(TeePeeMessageHandler.RecordedHttpCall Record, string? RequestBody)> m_Calls = new List<(TeePeeMessageHandler.RecordedHttpCall, string?)>();
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_MatchedCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
 
+        private List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
         private RequestMatchRule? m_RequestMatchRule;
 
-        public IEnumerable<(string? RequestBody, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.RequestBody, c.Record.HttpResponseMessage));
+        public IReadOnlyList<(string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> MatchedCalls 
+            => m_MatchedCalls.Select(c => (c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList();
 
-        internal void SetRequestMatchRule(RequestMatchRule requestMatchRule)
+        public IReadOnlyList<(bool IsMatch, string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> AllCalls 
+            => m_AllCalls.Select(c => (c.IsMatch, c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList();
+
+        internal void SetRequestMatchRule(RequestMatchRule requestMatchRule, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
         {
             m_RequestMatchRule = requestMatchRule;
+            m_AllCalls = allRecordedHttpCalls;
         }
 
         public void WasCalled(int? times = null)
@@ -27,32 +31,43 @@ namespace TeePee
                 throw new InvalidOperationException($"Tracker was not attached to a Request Match. Ensure that you Built the {nameof(TeePeeBuilder)} instance.");
 
             var asExpected = times == null
-                                 ? m_Calls.Any()
-                                 : m_Calls.Count == times.Value;
+                                 ? m_MatchedCalls.Any()
+                                 : m_MatchedCalls.Count == times.Value;
 
             if (asExpected)
                 return;
-
-            var msgTimes = times == null ? "at least once" : $"exactly {times.Value} times";
-            var msgNotMet = times == null ? "never called" : $"call {m_Calls.Count} times";
-            var msg = $"Expected match on {m_RequestMatchRule} {msgTimes} but was {msgNotMet}.";
-            throw new IncorrectExpectedRequests(msg);
+            
+            throw new MismatchedTrackerExpectedCalls(this, m_RequestMatchRule, times, m_MatchedCalls.Count, m_AllCalls);
         }
 
         public void WasNotCalled() => WasCalled(0);
 
-        internal async Task AddCallInstance(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        internal void AddCallInstance(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
         {
-            var requestBody = await recordedHttpCall.HttpRequestMessage.ReadContentAsync();
-            m_Calls.Add((recordedHttpCall, requestBody));
+            m_MatchedCalls.Add(recordedHttpCall);
         }
     }
 
-    public class IncorrectExpectedRequests : Exception
+    public class MismatchedTrackerExpectedCalls : Exception
     {
-        public IncorrectExpectedRequests(string message) : base(message)
+        public Tracker Tracker { get; }
+
+        internal MismatchedTrackerExpectedCalls(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls) : base(CreateExceptionMessage(tracker, matchRule, expectedTimes, actualTimes, allRecordedHttpCalls))
         {
-            
+            Tracker = tracker;
+        }
+
+        private static string CreateExceptionMessage(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
+        {
+            var msgTimes = expectedTimes == null ? "at least once" : $"exactly {expectedTimes.Value} times";
+            var msgNotMet = expectedTimes == null ? "never called" : $"call {actualTimes} times";
+            var msg = $"Expected match on {matchRule} {msgTimes} but was {msgNotMet}.\r\n\r\nTracking For:\r\n\r\n\t{matchRule}\r\n\r\nAll Calls:\r\n\r\n{LogCallsMade(allRecordedHttpCalls)}";
+            return msg;
+        }
+
+        private static string LogCallsMade(List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
+        {
+            return string.Join("\r\n", allRecordedHttpCalls.Select(c => $"\t{c}"));
         }
     }
 }
