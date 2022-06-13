@@ -11,6 +11,7 @@
     <RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>teepee-icon.png</PackageIcon>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

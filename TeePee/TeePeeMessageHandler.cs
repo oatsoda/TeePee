@@ -15,11 +15,11 @@ namespace TeePee
         private readonly TeePeeMode m_Mode;
         private readonly List<RequestMatchRule> m_ConfiguredRules;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
-        private readonly ILogger m_Logger;
+        private readonly ILogger? m_Logger;
 
         private readonly List<RecordedHttpCall> m_HttpRequestsMade = new List<RecordedHttpCall>();
 
-        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatchRule> configuredRules, Func<HttpResponseMessage> defaultResponse, ILogger logger)
+        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatchRule> configuredRules, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
         {
             m_Mode = mode;
             m_ConfiguredRules = configuredRules;
@@ -65,35 +65,32 @@ namespace TeePee
         internal class RecordedHttpCall
         {
             public HttpRequestMessage HttpRequestMessage { get; private set; }
-            public RequestMatchRule MatchRule { get; private set; }
+            public RequestMatchRule? MatchRule { get; private set; }
             public HttpResponseMessage HttpResponseMessage { get; private set; }
 
             public bool IsMatch => MatchRule != null;
 
-            private RecordedHttpCall() { }
+            private RecordedHttpCall(HttpRequestMessage httpRequestMessage, HttpResponseMessage httpResponseMessage)
+            {
+                HttpRequestMessage = httpRequestMessage;
+                HttpResponseMessage = httpResponseMessage;
+            }
 
             public static Task<RecordedHttpCall> NotMatched(HttpRequestMessage httpRequestMessage, Func<HttpResponseMessage> defaultResponse)
             {
                 var response = defaultResponse();
                 response.RequestMessage = httpRequestMessage;
-                return Task.FromResult(new RecordedHttpCall
-                                       {
-                                           HttpRequestMessage = httpRequestMessage,
-                                           MatchRule = null,
-                                           HttpResponseMessage = response
-                                       });
+                return Task.FromResult(new RecordedHttpCall(httpRequestMessage, response));
             }
 
             public static async Task<RecordedHttpCall> Matched(HttpRequestMessage httpRequestMessage, RequestMatchRule matchRule)
             {
                 var response = matchRule.ToHttpResponseMessage();
-                var recordedHttpCall = new RecordedHttpCall
-                       {
-                           HttpRequestMessage = httpRequestMessage,
-                           MatchRule = matchRule,
-                           HttpResponseMessage = response
-                       };
                 response.RequestMessage = httpRequestMessage;
+                var recordedHttpCall = new RecordedHttpCall(httpRequestMessage, response)
+                       {
+                           MatchRule = matchRule
+                       };
                 await matchRule.AddCallInstance(recordedHttpCall);
                 return recordedHttpCall;
             }

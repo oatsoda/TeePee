@@ -19,7 +19,7 @@ namespace TeePee.DependencyInjection
             return serviceCollection.BuildServiceProvider().GetService<T>();
         }
 
-        public static T WithNamedClients<T>(Action<IServiceCollection> configureServices = null, params TeePeeBuilder[] teePeeBuilders) where T : class
+        public static T WithNamedClients<T>(Action<IServiceCollection>? configureServices = null, params TeePeeBuilder[] teePeeBuilders) where T : class
         {
             var serviceCollection = new ServiceCollection();
 
@@ -28,6 +28,9 @@ namespace TeePee.DependencyInjection
             foreach (var teePeeBuilder in teePeeBuilders)
             {
                 var teePee = teePeeBuilder.Build();
+
+                if (teePee.HttpClientNamedInstance == null)
+                    throw new InvalidOperationException($"'{nameof(WithNamedClients)}' requires the '{nameof(TeePee.HttpClientNamedInstance)}' to be set.");
 
                 if (configureServices != null)
                 {
@@ -50,7 +53,7 @@ namespace TeePee.DependencyInjection
             return serviceCollection.BuildServiceProvider().GetService<T>();
         }
         
-        public static T WithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection> configureServices = null) where T : class where TClient : class
+        public static T WithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection>? configureServices = null) where T : class where TClient : class
         {
             var serviceCollection = new ServiceCollection();
 
@@ -74,9 +77,9 @@ namespace TeePee.DependencyInjection
             return serviceCollection.BuildServiceProvider().GetService<T>();
         }
         
-        public static T WithTypedClients<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection> setup = null) where T : class 
-                                                                                                                                                                                                where TClient1 : class
-                                                                                                                                                                                                where TClient2 : class
+        public static T WithTypedClients<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection>? setup = null) where T : class 
+                                                                                                                                                                                          where TClient1 : class
+                                                                                                                                                                                          where TClient2 : class
         {
             var serviceCollection = new ServiceCollection();
             

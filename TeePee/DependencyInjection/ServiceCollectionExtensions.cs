@@ -27,8 +27,13 @@ namespace TeePee.DependencyInjection
             var a = nameof(HttpClientFactoryOptions);
 #pragma warning restore 219
             var type = Type.GetType("Microsoft.Extensions.Internal.TypeNameHelper, Microsoft.Extensions.Http");
+            if (type == null)
+                throw new InvalidOperationException("Could not find TypeNameHelper in assemblies");
             var method = type.GetMethod("GetTypeDisplayName", BindingFlags.Static | BindingFlags.Public, null, CallingConventions.Any, new[] { typeof(Type), typeof(bool), typeof(bool), typeof(bool), typeof(char) }, null);
+            if (method == null)
+                throw new InvalidOperationException("Could not find method TypeNameHelper.GetTypeDisplayName in assemblies");
             var httpClientNamedInstance = (string)method.Invoke(null, new[] { (object)typedClientType, false, false, true, '+' });
+
 
             // Reflection: Create an HttpClientBuilder using the same ServiceCollection and HttpClientFactoryName used within the Startup
             var builder = serviceCollection.GetHttpClientBuilderFor(httpClientNamedInstance);
@@ -44,6 +49,8 @@ namespace TeePee.DependencyInjection
         {
             // Service Collection must be the same one that was used to originally register the type.
             var defaultHttpClientBuilderType = Type.GetType("Microsoft.Extensions.DependencyInjection.DefaultHttpClientBuilder, Microsoft.Extensions.Http");
+            if (defaultHttpClientBuilderType == null)
+                throw new InvalidOperationException("Could not find method DefaultHttpClientBuilder in assemblies");
             return (IHttpClientBuilder)Activator.CreateInstance(defaultHttpClientBuilderType, serviceCollection, httpClientNamedInstance);
         }
 
@@ -55,7 +62,7 @@ namespace TeePee.DependencyInjection
                                                               .ToList();
 
             if (!namedClientOptionsServices.Any())
-                throw new InvalidOperationException($"No registration found for Named Client '{httpClientNamedInstance}'. {namedClientOptionsServices.Count} registrations found [{string.Join(',', namedClientOptionsServices.Select(o => $"'{o.Name}'"))}].");
+                throw new InvalidOperationException($"No registration found for Named Client '{httpClientNamedInstance}'. {namedClientOptionsServices.Count} registrations found [{string.Join(',', namedClientOptionsServices.Select(o => $"'{o!.Name}'"))}].");
         }
     }
 }

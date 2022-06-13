@@ -10,11 +10,11 @@ namespace TeePee
 {
     public class Tracker
     {
-        private readonly List<(TeePeeMessageHandler.RecordedHttpCall Record, string RequestBody)> m_Calls = new List<(TeePeeMessageHandler.RecordedHttpCall, string)>();
+        private readonly List<(TeePeeMessageHandler.RecordedHttpCall Record, string? RequestBody)> m_Calls = new List<(TeePeeMessageHandler.RecordedHttpCall, string?)>();
 
-        private RequestMatchRule m_RequestMatchRule;
+        private RequestMatchRule? m_RequestMatchRule;
 
-        public IEnumerable<(string RequestBody, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.RequestBody, c.Record.HttpResponseMessage));
+        public IEnumerable<(string? RequestBody, HttpResponseMessage Response)> Calls => m_Calls.Select(c => (c.RequestBody, c.Record.HttpResponseMessage));
 
         internal void SetRequestMatchRule(RequestMatchRule requestMatchRule)
         {

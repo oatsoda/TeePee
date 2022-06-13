@@ -5,7 +5,7 @@ namespace TeePee.Extensions
 {
     public static class HttpRequestMessageExtensions
     {
-        public static async Task<string> ReadContentAsync(this HttpRequestMessage httpRequestMessage)
+        public static async Task<string?> ReadContentAsync(this HttpRequestMessage httpRequestMessage)
         {
             if (httpRequestMessage.Content == null)
                 return null;

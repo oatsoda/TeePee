@@ -11,11 +11,11 @@ namespace TeePee
 {
     public class TeePee
     {
-        internal string HttpClientNamedInstance { get; }
+        internal string? HttpClientNamedInstance { get; }
 
         public TeePeeMessageHandler HttpHandler { get; }
         
-        internal TeePee(string httpClientNamedInstance, TeePeeMode mode, List<RequestMatchRule> matches, HttpStatusCode unmatchedStatusCode, string unmatchedBody, ILogger logger)
+        internal TeePee(string? httpClientNamedInstance, TeePeeMode mode, List<RequestMatchRule> matches, HttpStatusCode unmatchedStatusCode, string? unmatchedBody, ILogger? logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
             HttpHandler = new TeePeeMessageHandler(mode, matches, 
@@ -33,18 +33,18 @@ namespace TeePee
          * The CreateClient / Create HttpClientFactory only needed for Manual Injection
          */
 
-        public ManualTeePee Manual(string baseAddressForHttpClient = null)
+        public ManualTeePee Manual(string? baseAddressForHttpClient = null)
         {
             return new ManualTeePee(this, baseAddressForHttpClient);
         }
 
         public class ManualTeePee
         {
-            private readonly Uri m_BaseAddressForHttpClient;
+            private readonly Uri? m_BaseAddressForHttpClient;
 
             public TeePee TeePee { get; }
 
-            internal ManualTeePee(TeePee teePee, string baseAddressForHttpClient)
+            internal ManualTeePee(TeePee teePee, string? baseAddressForHttpClient)
             {
                 m_BaseAddressForHttpClient = baseAddressForHttpClient == null ? null : new Uri(baseAddressForHttpClient);
                 TeePee = teePee;
@@ -64,7 +64,7 @@ namespace TeePee
                 private readonly HttpClient m_HttpClient;
                 private readonly string m_NamedInstance;
 
-                internal WrappedHttpClientFactory(HttpClient httpClient, string namedInstance)
+                internal WrappedHttpClientFactory(HttpClient httpClient, string? namedInstance)
                 {
                     m_HttpClient = httpClient;
                     m_NamedInstance = namedInstance ?? Microsoft.Extensions.Options.Options.DefaultName; // Default value used by actual HttpClientFactoryExtensions.CreateClient();
@@ -101,7 +101,7 @@ namespace TeePee
         {
             private readonly Dictionary<string, HttpClient> m_NamedClients = new Dictionary<string, HttpClient>();
 
-            internal void Add(string namedInstance, HttpClient httpClient)
+            internal void Add(string? namedInstance, HttpClient httpClient)
             {
                 namedInstance ??= Microsoft.Extensions.Options.Options.DefaultName;
                 m_NamedClients.Add(namedInstance, httpClient);
