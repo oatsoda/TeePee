@@ -19,10 +19,14 @@ namespace TeePee
 
         private readonly List<RecordedHttpCall> m_HttpRequestsMade = new List<RecordedHttpCall>();
 
-        internal TeePeeMessageHandler(TeePeeMode mode, List<RequestMatchBuilder> requestMatchBuilders, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
+        internal TeePeeMessageHandler(TeePeeMode mode, IEnumerable<RequestMatchBuilder> requestMatchBuilders, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
         {
             m_Mode = mode;
-            m_ConfiguredRules = requestMatchBuilders.Select(b => b.ToRequestMatchRule(m_HttpRequestsMade)).ToList();
+            m_ConfiguredRules = requestMatchBuilders
+                               .Select(b => b.ToRequestMatchRule(m_HttpRequestsMade))
+                               .OrderByDescending(m => m.SpecificityLevel)
+                               .ThenByDescending(m => m.CreatedAt)
+                               .ToList();
             m_DefaultResponse = defaultResponse;
             m_Logger = logger;
         }
@@ -32,7 +36,7 @@ namespace TeePee
             var requestBody = await request.ReadContentAsync();
             var incomingHttpCall = new IncomingHttpCall(request, requestBody);
 
-            var match = m_ConfiguredRules.OrderByDescending(m => m.SpecificityLevel).FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
+            var match = m_ConfiguredRules.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
 
             if (match == null && m_Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"An HTTP request was made which did not match any of the TeePee rules. [{request.Method} {request.RequestUri}]");
@@ -54,13 +58,7 @@ namespace TeePee
             else
                 m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}] [{num} rules configured]", recordedHttpCall.ToString(), (int)recordedHttpCall.HttpResponseMessage.StatusCode, recordedHttpCall.HttpResponseMessage.StatusCode, m_ConfiguredRules.Count);
         }
-
-        //public override string ToString()
-        //{
-        //    var calls = string.Join("\r\n", m_HttpRequestsMade.Select(r => $"\t{r}"));
-        //    return $"Calls made:\r\n\r\n{calls}";
-        //}
-
+        
         internal class IncomingHttpCall
         {
             public HttpRequestMessage HttpRequestMessage { get; }

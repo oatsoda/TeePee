@@ -16,7 +16,9 @@ namespace TeePee
 
         private ResponseBuilder? m_ResponseBuilder;
         private Tracker? m_Tracker;
-        
+
+        private readonly DateTimeOffset m_CreatedAt = DateTimeOffset.UtcNow;
+
         private string Url { get; }
         private HttpMethod Method { get; }
         private object? RequestBody { get; set; }
@@ -111,7 +113,7 @@ namespace TeePee
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse()
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatchRule(Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker, recordedHttpCalls);
+            return new RequestMatchRule(m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker, recordedHttpCalls);
         }
 
         public Tracker TrackRequest()

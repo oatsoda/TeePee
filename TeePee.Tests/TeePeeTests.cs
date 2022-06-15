@@ -271,6 +271,25 @@ namespace TeePee.Tests
             verifyUrlOnly.WasNotCalled();
             verifyUrlAndBody.WasCalled();
         }
+
+        [Fact]
+        public async Task MatchesMostRecentRuleIfMultipleSameRules()
+        {
+            // Given
+            var bodyObject = new { Test = 1 };
+            var verifyUrlOne = RequestMatchBuilder().WithBody(bodyObject).TrackRequest();
+            var verifyUrlTwo = RequestMatchBuilder().WithBody(bodyObject).TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verifyUrlOne.WasNotCalled();
+            verifyUrlTwo.WasCalled();
+        }
         
         [Theory]
         [InlineData(false)]
