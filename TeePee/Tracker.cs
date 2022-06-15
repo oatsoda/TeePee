@@ -9,8 +9,8 @@ namespace TeePee
     public class Tracker
     {
         private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_MatchedCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
 
-        private List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
         private RequestMatchRule? m_RequestMatchRule;
 
         public IReadOnlyList<(string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> MatchedCalls 
@@ -19,10 +19,9 @@ namespace TeePee
         public IReadOnlyList<(bool IsMatch, string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> AllCalls 
             => m_AllCalls.Select(c => (c.IsMatch, c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList();
 
-        internal void SetRequestMatchRule(RequestMatchRule requestMatchRule, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
+        internal void SetRequestMatchRule(RequestMatchRule requestMatchRule)
         {
             m_RequestMatchRule = requestMatchRule;
-            m_AllCalls = allRecordedHttpCalls;
         }
 
         public void WasCalled(int? times = null)
@@ -42,9 +41,14 @@ namespace TeePee
 
         public void WasNotCalled() => WasCalled(0);
 
-        internal void AddCallInstance(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        internal void AddMatchedCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
         {
             m_MatchedCalls.Add(recordedHttpCall);
+        }
+        
+        internal void AddHttpCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        {
+            m_AllCalls.Add(recordedHttpCall);
         }
     }
 

@@ -107,13 +107,13 @@ namespace TeePee
             return m_ResponseBuilder;
         }
 
-        internal RequestMatchRule ToRequestMatchRule(List<TeePeeMessageHandler.RecordedHttpCall> recordedHttpCalls)
+        internal RequestMatchRule ToRequestMatchRule()
         {
             var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody); // TODO: JSON Serialiser options
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse()
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatchRule(m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker, recordedHttpCalls);
+            return new RequestMatchRule(m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
         }
 
         public Tracker TrackRequest()
