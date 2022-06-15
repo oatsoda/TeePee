@@ -54,14 +54,16 @@ namespace TeePee
 
     public class MismatchedTrackerExpectedCalls : Exception
     {
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public Tracker Tracker { get; }
 
-        internal MismatchedTrackerExpectedCalls(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls) : base(CreateExceptionMessage(tracker, matchRule, expectedTimes, actualTimes, allRecordedHttpCalls))
+        internal MismatchedTrackerExpectedCalls(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls) : base(CreateExceptionMessage(matchRule, expectedTimes, actualTimes, allRecordedHttpCalls))
         {
             Tracker = tracker;
         }
 
-        private static string CreateExceptionMessage(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
+        private static string CreateExceptionMessage(RequestMatchRule matchRule, int? expectedTimes, int actualTimes, List<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)
         {
             var msgTimes = expectedTimes == null ? "at least once" : $"exactly {expectedTimes.Value} times";
             var msgNotMet = expectedTimes == null ? "never called" : $"call {actualTimes} times";
