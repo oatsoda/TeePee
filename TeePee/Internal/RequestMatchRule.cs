@@ -27,8 +27,7 @@ namespace TeePee.Internal
         internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
 
         internal RequestMatchRule(DateTimeOffset createdAt, string? url, HttpMethod method, string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
-                              IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker? tracker, 
-                              List<TeePeeMessageHandler.RecordedHttpCall> recordedHttpCalls)
+                              IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker? tracker)
         {
             CreatedAt = createdAt;
 
@@ -42,7 +41,7 @@ namespace TeePee.Internal
 
             m_Response = response;
             m_Tracker = tracker;
-            m_Tracker?.SetRequestMatchRule(this, recordedHttpCalls);
+            m_Tracker?.SetRequestMatchRule(this);
         }
 
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
@@ -110,9 +109,14 @@ namespace TeePee.Internal
         
         internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();
 
-        internal void AddCallInstance(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        internal void AddMatchedCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
         {
-            m_Tracker?.AddCallInstance(recordedHttpCall);
+            m_Tracker?.AddMatchedCall(recordedHttpCall);
+        }
+        
+        internal void AddHttpCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        {
+            m_Tracker?.AddHttpCall(recordedHttpCall);
         }
     }
 }

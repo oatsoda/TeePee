@@ -343,6 +343,23 @@ namespace TeePee.Tests
             var ex = Record.Exception(Verify);
             Assert.Null(ex);
         }
+        
+        [Fact]
+        public async Task TrackerHasCorrectCallsIfMultipleInstancesOfTeePee()
+        {
+            // Given
+            var verify = RequestMatchBuilder().TrackRequest();
+            await SendRequest(RequestMessage());
+
+            // When
+            await SendRequest(RequestMessage());
+
+            // Then
+            Assert.Equal(2, verify.AllCalls.Count);
+            Assert.Equal(2, verify.MatchedCalls.Count);
+
+            verify.WasCalled(2);
+        }
 
         #endregion
 
