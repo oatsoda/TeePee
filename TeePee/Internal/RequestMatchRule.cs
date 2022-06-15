@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
@@ -13,6 +14,8 @@ namespace TeePee.Internal
         private readonly Response m_Response;
         private readonly Tracker? m_Tracker;
 
+        internal DateTimeOffset CreatedAt { get; }
+        
         public string? Url { get; }
         public HttpMethod Method { get; }
         public string? RequestBody { get; }
@@ -23,10 +26,12 @@ namespace TeePee.Internal
 
         internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatchRule(string? url, HttpMethod method, string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
+        internal RequestMatchRule(DateTimeOffset createdAt, string? url, HttpMethod method, string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
                               IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker? tracker, 
                               List<TeePeeMessageHandler.RecordedHttpCall> recordedHttpCalls)
         {
+            CreatedAt = createdAt;
+
             Url = url;
             Method = method;
             RequestBody = requestBody;
