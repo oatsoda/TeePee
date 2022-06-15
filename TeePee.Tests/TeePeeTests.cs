@@ -440,7 +440,7 @@ namespace TeePee.Tests
             // Then
             Assert.NotNull(ex);
             var nex = Assert.IsType<NotSupportedException>(ex);
-            Assert.Contains("request was made which did not match any of the TeePee rules.", nex.Message);
+            Assert.Contains("Unmatched Http request: GET https://www.test.co.uk/api/items", nex.Message);
         }
 
         [Theory]
