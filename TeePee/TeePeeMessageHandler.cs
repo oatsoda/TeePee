@@ -12,14 +12,14 @@ namespace TeePee
 {
     public class TeePeeMessageHandler : DelegatingHandler
     {
-        private readonly TeePeeMode m_Mode;
+        private readonly TeePeeOptions m_Options;
         private readonly List<RequestMatchRule> m_ConfiguredRules;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
         private readonly ILogger? m_Logger;
         
-        internal TeePeeMessageHandler(TeePeeMode mode, IEnumerable<RequestMatchBuilder> requestMatchBuilders, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
+        internal TeePeeMessageHandler(TeePeeOptions options, IEnumerable<RequestMatchBuilder> requestMatchBuilders, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
         {
-            m_Mode = mode;
+            m_Options = options;
             m_ConfiguredRules = requestMatchBuilders
                                .Select(b => b.ToRequestMatchRule())
                                .OrderByDescending(m => m.SpecificityLevel)
@@ -39,7 +39,7 @@ namespace TeePee
             var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, match, m_DefaultResponse);
             RecordRequest(recordedHttpCall);
 
-            if (match == null && m_Mode == TeePeeMode.Strict)
+            if (match == null && m_Options.Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"An HTTP request was made which did not match any of the TeePee rules. [{request.Method} {request.RequestUri}]");
 
             return recordedHttpCall.HttpResponseMessage;

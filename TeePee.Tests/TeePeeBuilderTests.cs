@@ -165,7 +165,7 @@ namespace TeePee.Tests
         public void ForRequestThrowsOnDuplicateUrlAndMethodIfUniqueUrlsRequired(string url, HttpMethod method)
         {
             // Given
-            var builder = new TeePeeBuilder(builderMode: TeePeeBuilderMode.RequireUniqueUrlRules);
+            var builder = new TeePeeBuilder(opt => opt.BuilderMode = TeePeeBuilderMode.RequireUniqueUrlRules);
             builder.ForRequest(url, method);
 
             // When 
@@ -242,7 +242,7 @@ namespace TeePee.Tests
                                                                   string secondUrl, HttpMethod secondMethod)
         {
             // Given
-            var builder = new TeePeeBuilder(builderMode: TeePeeBuilderMode.RequireUniqueUrlRules);
+            var builder = new TeePeeBuilder(opt => opt.BuilderMode = TeePeeBuilderMode.RequireUniqueUrlRules);
             builder.ForRequest(firstUrl, firstMethod);
 
             // When 

@@ -12,7 +12,7 @@ namespace TeePee
     public class RequestMatchBuilder
     {
         private readonly TeePeeBuilder m_ParentTrackingBuilder;
-        private readonly JsonSerializerOptions m_BodySerializeOptions;
+        private readonly TeePeeOptions m_Options;
 
         private ResponseBuilder? m_ResponseBuilder;
         private Tracker? m_Tracker;
@@ -32,17 +32,17 @@ namespace TeePee
         internal bool HasQueryParams => QueryParams.Any();
         
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod && 
-                                                                           Url.IsSameString(url);
+                                                                           Url.IsSameUrl(url);
 
-        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, JsonSerializerOptions bodySerializeOptions, TeePeeBuilderMode builderMode, string url, HttpMethod httpMethod)
+        internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, TeePeeOptions options, string url, HttpMethod httpMethod)
         {
             m_ParentTrackingBuilder = parentTrackingBuilder;
-            m_BodySerializeOptions = bodySerializeOptions;
+            m_Options = options;
 
             Url = WithUrl(url);
             Method = httpMethod;
 
-            if (builderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
+            if (m_Options.BuilderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
                 throw new ArgumentException($"There is already a request match for {httpMethod} '{url}'");
         }
 
@@ -103,17 +103,17 @@ namespace TeePee
         
         public ResponseBuilder Responds()
         {
-            m_ResponseBuilder = new ResponseBuilder(this, m_BodySerializeOptions);
+            m_ResponseBuilder = new ResponseBuilder(this, m_Options);
             return m_ResponseBuilder;
         }
 
         internal RequestMatchRule ToRequestMatchRule()
         {
-            var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody); // TODO: JSON Serialiser options
+            var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
             var response = m_ResponseBuilder == null 
-                               ? ResponseBuilder.DefaultResponse()
+                               ? ResponseBuilder.DefaultResponse(m_Options)
                                : m_ResponseBuilder.ToHttpResponse();
-            return new RequestMatchRule(m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
+            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
         }
 
         public Tracker TrackRequest()
