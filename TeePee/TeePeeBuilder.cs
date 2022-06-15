@@ -4,26 +4,15 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace TeePee
 {
     public class TeePeeBuilder
     {
-        private static readonly JsonSerializerOptions s_DefaultSerializeOptions = new JsonSerializerOptions
-                                                                                  {
-                                                                                      PropertyNamingPolicy = null,
-                                                                                      Converters =
-                                                                                      {
-                                                                                          new JsonStringEnumConverter()
-                                                                                      }
-                                                                                  };
-
         private readonly string? m_HttpClientNamedInstance;
-        private readonly TeePeeMode m_Mode;
-        private readonly TeePeeBuilderMode m_BuilderMode;
-        private readonly JsonSerializerOptions m_BodySerializeOptions;
+        private readonly TeePeeOptions m_Options = new TeePeeOptions();
+
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
         
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
@@ -31,16 +20,17 @@ namespace TeePee
 
         private bool m_IsBuilt;
         
-        public TeePeeBuilder() : this(default) { }
+        public TeePeeBuilder() : this(null, null) { }
 
-        public TeePeeBuilder(JsonSerializerOptions? bodySerializeOptions = default) : this(null, default, default, bodySerializeOptions) { }
-
-        public TeePeeBuilder(string? httpClientNamedInstance = null, TeePeeMode mode = TeePeeMode.Lenient, TeePeeBuilderMode builderMode = TeePeeBuilderMode.AllowMultipleUrlRules, JsonSerializerOptions? bodySerializeOptions = default)
+        public TeePeeBuilder(JsonSerializerOptions responseBodySerializeOptions) : this(opt => opt.ResponseBodySerializerOptions = responseBodySerializeOptions) { }
+        public TeePeeBuilder(string httpClientNamedInstance) : this(null, httpClientNamedInstance) { }
+        
+        public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
+            if (setOptions != null)
+                setOptions(m_Options);
+
             m_HttpClientNamedInstance = httpClientNamedInstance;
-            m_Mode = mode;
-            m_BuilderMode = builderMode;
-            m_BodySerializeOptions = bodySerializeOptions ?? s_DefaultSerializeOptions;
         }
         
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -63,7 +53,7 @@ namespace TeePee
             if (m_IsBuilt)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been built.");
 
-            var builder = new RequestMatchBuilder(this, m_BodySerializeOptions, m_BuilderMode, url, httpMethod);
+            var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
             // Note: This assumes valid before adding
             m_Requests.Add(builder);
             return builder;
@@ -72,7 +62,7 @@ namespace TeePee
         public TeePee Build(ILogger<TeePee>? logger = null)
         {
             m_IsBuilt = true;
-            return new TeePee(m_HttpClientNamedInstance, m_Mode, m_Requests, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            return new TeePee(m_HttpClientNamedInstance, m_Options, m_Requests, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()

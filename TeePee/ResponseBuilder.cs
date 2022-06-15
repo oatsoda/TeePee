@@ -12,7 +12,7 @@ namespace TeePee
         private static readonly Encoding s_DefaultResponseBodyEncoding = Encoding.UTF8; 
         
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
-        private readonly JsonSerializerOptions m_BodySerializeOptions;
+        private readonly TeePeeOptions m_Options;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
@@ -22,10 +22,10 @@ namespace TeePee
 
         private readonly Dictionary<string, string> m_ResponseHeaders = new Dictionary<string, string>();
         
-        internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, JsonSerializerOptions bodySerializeOptions)
+        internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, TeePeeOptions options)
         {
             m_RequestMatchBuilder = requestMatchBuilder;
-            m_BodySerializeOptions = bodySerializeOptions;
+            m_Options = options;
         }
 
         public ResponseBuilder WithStatus(HttpStatusCode statusCode)
@@ -52,12 +52,12 @@ namespace TeePee
 
         internal Response ToHttpResponse()
         {
-            return new Response(m_ResponseStatusCode, m_BodySerializeOptions, m_ResponseBody, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
+            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
         }
 
-        internal static Response DefaultResponse()
+        internal static Response DefaultResponse(TeePeeOptions options)
         {
-            return new Response(HttpStatusCode.Accepted, new JsonSerializerOptions(), null, s_DefaultResponseBodyMediaType, s_DefaultResponseBodyEncoding, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, options, null, s_DefaultResponseBodyMediaType, s_DefaultResponseBodyEncoding, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()

@@ -11,6 +11,7 @@ namespace TeePee.Internal
 {
     public class RequestMatchRule
     {
+        private readonly TeePeeOptions m_Options;
         private readonly Response m_Response;
         private readonly Tracker? m_Tracker;
 
@@ -26,9 +27,13 @@ namespace TeePee.Internal
 
         internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatchRule(DateTimeOffset createdAt, string? url, HttpMethod method, string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
-                              IDictionary<string, string> queryParams, IDictionary<string, string> headers, Response response, Tracker? tracker)
+        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
+                                  string? url, HttpMethod method, 
+                                  string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
+                                  IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
+                                  Response response, Tracker? tracker)
         {
+            m_Options = options;
             CreatedAt = createdAt;
 
             Url = url;
@@ -61,11 +66,11 @@ namespace TeePee.Internal
 
             // If no params specified, match whole URL including QS
             if (QueryParams.Count == 0)
-                return Url.IsSameString(httpRequestMessage.RequestUri.ToString());
+                return Url.IsSameUrl(httpRequestMessage.RequestUri.ToString());
 
             // If params specified, assume URL to match excludes QS, so match on everything else (protocol, host, port, path)
             var uriWithoutQuery = httpRequestMessage.RequestUri.RemoveQueryString();
-            return Url.IsSameString(uriWithoutQuery);
+            return Url.IsSameUrl(uriWithoutQuery);
         }
 
         private bool IsMatchingBody(string? requestBody, HttpRequestMessage httpRequestMessage)
@@ -76,12 +81,12 @@ namespace TeePee.Internal
             if (requestBody == null)
                 return false;
             
-            if (!RequestBody.IsSameString(requestBody))
+            if (!RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
                 return false;
 
             var contentType = httpRequestMessage.Content.Headers.ContentType;
-            return contentType.CharSet.IsSameString(RequestBodyEncoding.WebName) &&
-                   contentType.MediaType.IsSameString(RequestBodyMediaType);
+            return contentType.CharSet.IsSameString(RequestBodyEncoding.WebName, m_Options.CaseSensitiveMatching) &&
+                   contentType.MediaType.IsSameString(RequestBodyMediaType, m_Options.CaseSensitiveMatching);
         }
 
         private bool ContainsMatchingQueryParams(HttpRequestMessage httpRequestMessage)
@@ -90,7 +95,7 @@ namespace TeePee.Internal
                 return true;
 
             var requestQueryParams = HttpUtility.ParseQueryString(httpRequestMessage.RequestUri.Query);
-            return QueryParams.All(q => q.Value.IsSameString(requestQueryParams[q.Key]));
+            return QueryParams.All(q => q.Value.IsSameString(requestQueryParams[q.Key], m_Options.CaseSensitiveMatching));
         }
         
         private bool ContainsMatchingHeaders(HttpRequestMessage httpRequestMessage)
@@ -99,7 +104,7 @@ namespace TeePee.Internal
                 return true;
 
             return Headers.All(h => httpRequestMessage.Headers.Contains(h.Key) &&
-                                    httpRequestMessage.Headers.GetValues(h.Key).Any(v => v.IsSameString(h.Value)));
+                                    httpRequestMessage.Headers.GetValues(h.Key).Any(v => v.IsSameString(h.Value, m_Options.CaseSensitiveMatching)));
         }
 
         public override string ToString()

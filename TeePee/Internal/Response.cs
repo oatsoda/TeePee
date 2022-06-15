@@ -11,7 +11,7 @@ namespace TeePee.Internal
     {
         private readonly HttpStatusCode m_ResponseStatusCode;
         
-        private readonly JsonSerializerOptions m_BodySerializeOptions;
+        private readonly TeePeeOptions m_Options;
 
         private readonly object? m_ResponseBody;
         private readonly string m_ResponseBodyMediaType;
@@ -19,11 +19,11 @@ namespace TeePee.Internal
 
         private readonly ReadOnlyDictionary<string, string> m_ResponseHeaders;
 
-        public Response(HttpStatusCode responseStatusCode, JsonSerializerOptions bodySerializeOptions, object? responseBody, string responseBodyMediaType, Encoding responseBodyEncoding, IDictionary<string, string> responseHeaders)
+        public Response(HttpStatusCode responseStatusCode, TeePeeOptions options, object? responseBody, string responseBodyMediaType, Encoding responseBodyEncoding, IDictionary<string, string> responseHeaders)
         {
             m_ResponseStatusCode = responseStatusCode;
 
-            m_BodySerializeOptions = bodySerializeOptions;
+            m_Options = options;
 
             m_ResponseBody = responseBody;
             m_ResponseBodyMediaType = responseBodyMediaType;
@@ -49,7 +49,7 @@ namespace TeePee.Internal
             if (m_ResponseBody == null)
                 return null;
 
-            var serialisedResponseBody = JsonSerializer.Serialize(m_ResponseBody, m_BodySerializeOptions);
+            var serialisedResponseBody = JsonSerializer.Serialize(m_ResponseBody, m_Options.ResponseBodySerializerOptions);
             
             // TODO: Non string? Multipart/FormUrl
             return new StringContent(serialisedResponseBody, m_ResponseBodyEncoding, m_ResponseBodyMediaType);
