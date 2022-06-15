@@ -18,6 +18,8 @@ namespace TeePee
         public JsonSerializerOptions ResponseBodySerializerOptions { get; set; } = DefaultSerializeOptions;
         public JsonSerializerOptions RequestBodySerializerOptions { get; set; } = DefaultSerializeOptions;
         public bool CaseSensitiveMatching { get; set; }
+        public int? TruncateBodyOutputLength { get; set; } = 500;
+        public bool ShowFullDetailsOnMatchFailure { get; set; }
         public TeePeeMode Mode { get; set; } = TeePeeMode.Lenient;
         public TeePeeBuilderMode BuilderMode { get; set; } = TeePeeBuilderMode.AllowMultipleUrlRules;
     }

@@ -118,7 +118,7 @@ namespace TeePee
 
         public Tracker TrackRequest()
         {
-            return m_Tracker ??= new Tracker();
+            return m_Tracker ??= new Tracker(m_Options);
         }
     }
 }
