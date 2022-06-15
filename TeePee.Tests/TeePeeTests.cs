@@ -355,6 +355,21 @@ namespace TeePee.Tests
             // Then
             m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
+        
+        [Fact]
+        public async Task LogsFullDetailsMessageIfSettingEnabled()
+        {
+            // Given
+            m_TrackingBuilder = new TeePeeBuilder(opt => opt.ShowFullDetailsOnMatchFailure = true);
+            RequestMatchBuilder();
+            m_HttpMethod = HttpMethod.Options;
+
+            // When
+            await SendRequest(RequestMessage());
+
+            // Then
+            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) =>  o.ToString().Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+        }
 
         #endregion
 

@@ -62,7 +62,12 @@ namespace TeePee
         public TeePee Build(ILogger<TeePee>? logger = null)
         {
             m_IsBuilt = true;
-            return new TeePee(m_HttpClientNamedInstance, m_Options, m_Requests, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            var requestMatchRules = m_Requests
+                                   .Select(b => b.ToRequestMatchRule())
+                                   .OrderByDescending(m => m.SpecificityLevel)
+                                   .ThenByDescending(m => m.CreatedAt)
+                                   .ToList();
+            return new TeePee(m_HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()

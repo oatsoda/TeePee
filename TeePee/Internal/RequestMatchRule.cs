@@ -13,8 +13,8 @@ namespace TeePee.Internal
     {
         private readonly TeePeeOptions m_Options;
         private readonly Response m_Response;
-        private readonly Tracker? m_Tracker;
 
+        internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
         
         public string? Url { get; }
@@ -45,8 +45,8 @@ namespace TeePee.Internal
             Headers = new ReadOnlyDictionary<string, string>(headers);
 
             m_Response = response;
-            m_Tracker = tracker;
-            m_Tracker?.SetRequestMatchRule(this);
+            Tracker = tracker;
+            Tracker?.SetRequestMatchRule(this);
         }
 
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
@@ -107,21 +107,19 @@ namespace TeePee.Internal
                                     httpRequestMessage.Headers.GetValues(h.Key).Any(v => v.IsSameString(h.Value, m_Options.CaseSensitiveMatching)));
         }
 
-        public override string ToString()
+        public string Log(int? truncateBodyLength)
         {
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [B: {RequestBody?.Trunc()}]";
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
         }
         
         internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();
-
-        internal void AddMatchedCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+    }
+    
+    public static class RequestMatchRuleListExtensions
+    {
+        internal static string Log(this IEnumerable<RequestMatchRule> matchRules, TeePeeOptions options)
         {
-            m_Tracker?.AddMatchedCall(recordedHttpCall);
-        }
-        
-        internal void AddHttpCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
-        {
-            m_Tracker?.AddHttpCall(recordedHttpCall);
+            return string.Join("\r\n", matchRules.Select(c => $"\t{c.Log(options.TruncateBodyOutputLength)}"));
         }
     }
 }
