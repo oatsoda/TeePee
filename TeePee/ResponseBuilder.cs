@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Net.Http;
 using System.Text;
 using TeePee.Internal;
 
@@ -15,6 +15,7 @@ namespace TeePee
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
         private object? m_ResponseBody;
+        private HttpContent? m_ResponseBodyContent;
         private string? m_ResponseBodyMediaType;
         private string? m_ResponseBodyEncoding; 
 
@@ -34,11 +35,25 @@ namespace TeePee
         
         public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
         {
+            if (m_ResponseBodyContent != null)
+                throw new InvalidOperationException("The response Body has already been set from HttpContent.");
+
             m_ResponseBody = body;
             m_ResponseBodyMediaType = mediaType;
             m_ResponseBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8.
             return this;
         }
+        
+        public ResponseBuilder WithHttpContentBody(HttpContent body)
+        {
+            if (m_ResponseBody != null)
+                throw new InvalidOperationException("The response Body has already been set from Json Body.");
+
+            m_ResponseBodyContent = body;
+            // ContentType and Encoding should be set on the HttpContent as required
+            return this;
+        }
+
         
         public ResponseBuilder WithHeader(string name, string value)
         {
@@ -48,12 +63,12 @@ namespace TeePee
 
         internal Response ToHttpResponse()
         {
-            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
+            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyContent, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
         }
 
         internal static Response DefaultResponse(TeePeeOptions options)
         {
-            return new Response(HttpStatusCode.Accepted, options, null, null, null, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, options, null, null, null, null, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()

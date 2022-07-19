@@ -614,6 +614,24 @@ namespace TeePee.Tests
         }
         
         [Theory]
+        [ClassData(typeof(NonJsonContentTypesData))]
+        public async Task RespondsWithCorrectNonJsonBody(HttpContent httpContent)
+        {
+            // Given
+            RequestMatchBuilder().Responds()
+                                 .WithHttpContentBody(httpContent);
+
+            // When
+            var response = await SendRequest();
+
+            // The
+            Assert.NotNull(response);
+            Assert.Equal(httpContent.GetType(), response.Content.GetType());
+            Assert.Equal(httpContent.Headers.ContentType?.MediaType, response.Content.Headers.ContentType?.MediaType);
+            Assert.Equal(httpContent.Headers.ContentType?.CharSet, response.Content.Headers.ContentType?.CharSet);
+        }
+        
+        [Theory]
         [ClassData(typeof(JsonContentTypesData))]
         public async Task RespondsWithCorrectBodyIfSameClientUsedAndResponseDisposed(string mediaType, Encoding encoding)
         {
