@@ -171,7 +171,7 @@ namespace TeePee.Tests
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
-            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding.WebName == Encoding.UTF32.WebName ? Encoding.UTF7 : Encoding.UTF32, mediaType);
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding.WebName == Encoding.UTF32.WebName ? Encoding.Latin1 : Encoding.UTF32, mediaType);
 
             // When
             await SendRequest(httpRequestMessage);
@@ -520,7 +520,7 @@ namespace TeePee.Tests
             // Then
             Assert.NotNull(response);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            Assert.Null(response.Content);
+            Assert.Equal("EmptyContent", response.Content.GetType().Name);
             Assert.Empty(response.Headers);
         }
         
@@ -558,7 +558,7 @@ namespace TeePee.Tests
             // Then
             Assert.NotNull(response);
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-            Assert.Null(response.Content);
+            Assert.Equal("EmptyContent", response.Content.GetType().Name);
             Assert.Empty(response.Headers);
         }
 
