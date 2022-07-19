@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using TeePee.Examples.WebApp.ExternalApi;
 using TeePee.Examples.WebApp.ExternalApi.Helpers;
@@ -67,7 +68,7 @@ namespace TeePee.Examples.WebApp.Controllers
 
         public async Task Put()
         {
-            var requestBody = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
+            var requestBody = JsonContent.Create(new ThirdPartyRequestModel { Caller = "ThisCaller" });
             await HttpClient.PutAsync("/path/otherresource?filter=other", requestBody);
         }
     }

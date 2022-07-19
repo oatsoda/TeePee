@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -57,12 +58,12 @@ namespace TeePee.Tests
         #region Matches
 
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task MatchesBodyWithContentType(string mediaType, Encoding encoding)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject, mediaType, encoding)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -76,7 +77,7 @@ namespace TeePee.Tests
         }
         
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task DoesNotMatchBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding)
         {
             // Given
@@ -86,7 +87,7 @@ namespace TeePee.Tests
                                                       opt.RequestBodySerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                                                   });
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject, mediaType, encoding)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -100,8 +101,8 @@ namespace TeePee.Tests
         }
         
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
-        public async Task MatchesBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding)
+        [ClassData(typeof(JsonContentTypesData))]
+        public async Task MatchesBodyWithSameSerialisationSettings(string mediaType, Encoding encoding)
         {
             // Given
             m_TrackingBuilder = new TeePeeBuilder(opt =>
@@ -110,7 +111,7 @@ namespace TeePee.Tests
                                                       opt.RequestBodySerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                                                   });
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject, mediaType, encoding)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -128,7 +129,7 @@ namespace TeePee.Tests
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -142,12 +143,12 @@ namespace TeePee.Tests
         }
 
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task DoesNotMatchBodyIfMediaTypeDifferent(string mediaType, Encoding encoding)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject, mediaType, encoding)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -161,12 +162,12 @@ namespace TeePee.Tests
         }
 
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task DoesNotMatchBodyIfContentTypeDifferent(string mediaType, Encoding encoding)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().WithBody(bodyObject, mediaType, encoding)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -189,7 +190,7 @@ namespace TeePee.Tests
         {
             // Given
             var bodyObject = new ReferenceBodyType { Test = 1 };
-            var verify = RequestMatchBuilder().WithBody(bodyObject)
+            var verify = RequestMatchBuilder().ThatHasJsonBody(bodyObject)
                                               .TrackRequest();
 
             bodyObject.Test = 23;
@@ -202,6 +203,46 @@ namespace TeePee.Tests
 
             // Then
             verify.WasCalled();
+        }
+        
+        [Theory]
+        [ClassData(typeof(NonJsonContentTypesData))]
+        public async Task MatchesNonJsonBody(HttpContent requestBodyContent)
+        {
+            // Given
+            var verify = RequestMatchBuilder().ThatHasBody(requestBodyContent)
+                                              .TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = requestBodyContent;
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasCalled();
+        }
+
+        
+        [Fact]
+        public async Task DoesNotMatchIfNonJsonBodyWrongContentType()
+        {
+            // Given
+            var expectedBody = new ByteArrayContent(new byte[] { 65, 98, 48 })
+                                     {
+                                        Headers = { ContentType = new MediaTypeHeaderValue("test/input")}
+                                     };
+            var verify = RequestMatchBuilder().ThatHasBody(expectedBody)
+                                              .TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new ByteArrayContent(new byte[] { 65, 98, 48 });
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasNotCalled();
         }
 
         [Theory]
@@ -226,8 +267,8 @@ namespace TeePee.Tests
         {
             // Given
             m_HttpMethod = httpMethod;
-            var verify = RequestMatchBuilder().ContainingQueryParam("name1", "val1")
-                                              .ContainingQueryParam("name2", "val2")
+            var verify = RequestMatchBuilder().ThatContainsQueryParam("name1", "val1")
+                                              .ThatContainsQueryParam("name2", "val2")
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage(m_HttpMethod, $"{m_Url}?Name1=val1&name2=VAL2&name3=val3");
@@ -245,8 +286,8 @@ namespace TeePee.Tests
         {
             // Given
             m_HttpMethod = httpMethod;
-            var verify = RequestMatchBuilder().ContainingQueryParam("name1", "val1")
-                                              .ContainingQueryParam("name2", "val2")
+            var verify = RequestMatchBuilder().ThatContainsQueryParam("name1", "val1")
+                                              .ThatContainsQueryParam("name2", "val2")
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage(m_HttpMethod, $"{m_Url}?Name1=val1&name3=val3");
@@ -264,8 +305,8 @@ namespace TeePee.Tests
         {
             // Given
             m_HttpMethod = httpMethod;
-            var verify = RequestMatchBuilder().ContainingHeader("name1", "val1")
-                                              .ContainingHeader("name2", "val2")
+            var verify = RequestMatchBuilder().ThatContainsHeader("name1", "val1")
+                                              .ThatContainsHeader("name2", "val2")
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -286,7 +327,7 @@ namespace TeePee.Tests
         {
             // Given
             m_HttpMethod = httpMethod;
-            var verify = RequestMatchBuilder().ContainingHeader("name1", "val1")
+            var verify = RequestMatchBuilder().ThatContainsHeader("name1", "val1")
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -306,7 +347,7 @@ namespace TeePee.Tests
             var bodyObject = new { Test = 1 };
             var verifyUrlOnly = RequestMatchBuilder()
                                     .TrackRequest();
-            var verifyUrlAndBody = RequestMatchBuilder().WithBody(bodyObject)
+            var verifyUrlAndBody = RequestMatchBuilder().ThatHasJsonBody(bodyObject)
                                         .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
@@ -325,8 +366,8 @@ namespace TeePee.Tests
         {
             // Given
             var bodyObject = new { Test = 1 };
-            var verifyUrlOne = RequestMatchBuilder().WithBody(bodyObject).TrackRequest();
-            var verifyUrlTwo = RequestMatchBuilder().WithBody(bodyObject).TrackRequest();
+            var verifyUrlOne = RequestMatchBuilder().ThatHasJsonBody(bodyObject).TrackRequest();
+            var verifyUrlTwo = RequestMatchBuilder().ThatHasJsonBody(bodyObject).TrackRequest();
 
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
@@ -368,7 +409,7 @@ namespace TeePee.Tests
             await SendRequest(RequestMessage());
 
             // Then
-            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) =>  o.ToString().Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) =>  o.ToString().Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
 
         #endregion
@@ -553,7 +594,7 @@ namespace TeePee.Tests
         }
 
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task RespondsWithCorrectBody(string mediaType, Encoding encoding)
         {
             // Given
@@ -573,7 +614,7 @@ namespace TeePee.Tests
         }
         
         [Theory]
-        [ClassData(typeof(ContentTypesData))]
+        [ClassData(typeof(JsonContentTypesData))]
         public async Task RespondsWithCorrectBodyIfSameClientUsedAndResponseDisposed(string mediaType, Encoding encoding)
         {
             // Given

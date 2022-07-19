@@ -20,8 +20,8 @@ namespace TeePee.Internal
         public string? Url { get; }
         public HttpMethod Method { get; }
         public string? RequestBody { get; }
-        public string RequestBodyMediaType { get; }
-        public Encoding RequestBodyEncoding { get; }
+        public string? RequestBodyMediaType { get; }
+        public Encoding? RequestBodyEncoding { get; }
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
         public ReadOnlyDictionary<string, string> Headers { get; }
 
@@ -29,7 +29,7 @@ namespace TeePee.Internal
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
                                   string? url, HttpMethod method, 
-                                  string? requestBody, string requestBodyMediaType, Encoding requestBodyEncoding, 
+                                  string? requestBody, string? requestBodyMediaType, Encoding? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
                                   Response response, Tracker? tracker)
         {
@@ -84,9 +84,26 @@ namespace TeePee.Internal
             if (!RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
                 return false;
 
+            return IsMatchingContentType(httpRequestMessage);
+        }
+
+        private bool IsMatchingContentType(HttpRequestMessage httpRequestMessage)
+        {
+            if (RequestBodyEncoding == null && RequestBodyMediaType == null) // Ignored
+                return true;
+
             var contentType = httpRequestMessage.Content.Headers.ContentType;
-            return contentType.CharSet.IsSameString(RequestBodyEncoding.WebName, m_Options.CaseSensitiveMatching) &&
-                   contentType.MediaType.IsSameString(RequestBodyMediaType, m_Options.CaseSensitiveMatching);
+
+            if (contentType == null)
+                return false;
+            
+            if (RequestBodyEncoding != null && !contentType.CharSet.IsSameString(RequestBodyEncoding.WebName, m_Options.CaseSensitiveMatching))
+                return false;
+
+            if (RequestBodyMediaType != null && !contentType.MediaType.IsSameString(RequestBodyMediaType, m_Options.CaseSensitiveMatching))
+                return false;
+
+            return true;
         }
 
         private bool ContainsMatchingQueryParams(HttpRequestMessage httpRequestMessage)
@@ -109,7 +126,7 @@ namespace TeePee.Internal
 
         public string Log(int? truncateBodyLength)
         {
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding?.WebName}] [CT: {RequestBodyMediaType}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
         }
         
         internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();

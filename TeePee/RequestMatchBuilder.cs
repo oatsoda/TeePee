@@ -22,8 +22,9 @@ namespace TeePee
         private string Url { get; }
         private HttpMethod Method { get; }
         private object? RequestBody { get; set; }
-        private string RequestBodyMediaType { get; set; } = "application/json";
-        private Encoding RequestBodyEncoding { get; set; } = Encoding.UTF8;
+        private HttpContent? RequestBodyContent { get; set; }
+        private string? RequestBodyMediaType { get; set; }
+        private Encoding? RequestBodyEncoding { get; set; }
         
         private Dictionary<string, string> QueryParams { get; } = new Dictionary<string, string>();
         private Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
@@ -39,14 +40,14 @@ namespace TeePee
             m_ParentTrackingBuilder = parentTrackingBuilder;
             m_Options = options;
 
-            Url = WithUrl(url);
+            Url = ThatHasUrl(url);
             Method = httpMethod;
 
             if (m_Options.BuilderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
                 throw new ArgumentException($"There is already a request match for {httpMethod} '{url}'");
         }
 
-        private string WithUrl(string url)
+        private string ThatHasUrl(string url)
         {
             var uri = new Uri(url, UriKind.RelativeOrAbsolute);
 
@@ -67,23 +68,48 @@ namespace TeePee
             return url;
         }
 
-        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
+        [Obsolete("Use ThatHasJsonBody instead.")]
+        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) => ThatHasJsonBody(body, mediaType, encoding);
+
+        /// <summary>
+        /// REQUEST Match this request with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
+        /// </summary>
+        public RequestMatchBuilder ThatHasJsonBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
         {
             if (body == null)
                 throw new ArgumentNullException();
-
-            if (RequestBody != null)
+            
+            if (RequestBody != null || RequestBodyContent != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
             RequestBody = body;
-            if (mediaType != null)
-                RequestBodyMediaType = mediaType;
-            if (encoding != null)
-                RequestBodyEncoding = encoding;
+            RequestBodyMediaType = mediaType;
+            RequestBodyEncoding = encoding ?? Encoding.UTF8; // Json Body defaults to UTF8, instead of ignore.
             return this;
         }
+        
+        /// <summary>
+        /// REQUEST Match this request with the given HttpContent Body. Use <c>ThatHasJsonBody</c> for JSON Body content.
+        /// </summary>
+        public RequestMatchBuilder ThatHasBody(HttpContent body)
+        {
+            if (body == null)
+                throw new ArgumentNullException();
+            
+            if (RequestBody != null || RequestBodyContent != null)
+                throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
-        public RequestMatchBuilder ContainingQueryParam(string name, string value)
+            RequestBodyContent = body;
+            RequestBodyMediaType = body.Headers.ContentType?.MediaType;
+            
+            // What about Encoding?  Does that apply?
+            return this;
+        }
+        
+        /// <summary>
+        /// REQUEST Match this request with the given Querystring Parameter in the URL.
+        /// </summary>
+        public RequestMatchBuilder ThatContainsQueryParam(string name, string value)
         {
             if (MatchUrlWithQuery)
                 throw new InvalidOperationException($"You cannot use ContainingQueryParam as Url has already been configured to match with a QueryString. '{Url}'");
@@ -94,13 +120,19 @@ namespace TeePee
             QueryParams.Add(name, value);
             return this;
         }
-
-        public RequestMatchBuilder ContainingHeader(string name, string value)
+        
+        /// <summary>
+        /// REQUEST Match this request with the given Header Parameter in the request.
+        /// </summary>
+        public RequestMatchBuilder ThatContainsHeader(string name, string value)
         {
             Headers.Add(name, value);
             return this;
         }
         
+        /// <summary>
+        /// Define that the Request will respond.
+        /// </summary>
         public ResponseBuilder Responds()
         {
             m_ResponseBuilder = new ResponseBuilder(this, m_Options);
@@ -109,13 +141,19 @@ namespace TeePee
 
         internal RequestMatchRule ToRequestMatchRule()
         {
-            var serialisedRequestBody = RequestBody == null ? null : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
+            var serialisedRequestBody = RequestBodyContent != null 
+                                            ? RequestBodyContent.ReadContentAsync().GetAwaiter().GetResult()
+                                            : RequestBody == null
+                                                ? null 
+                                                : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
+
             var response = m_ResponseBuilder == null 
                                ? ResponseBuilder.DefaultResponse(m_Options)
                                : m_ResponseBuilder.ToHttpResponse();
+
             return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
         }
-
+        
         public Tracker TrackRequest()
         {
             return m_Tracker ??= new Tracker(m_Options);

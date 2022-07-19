@@ -20,7 +20,7 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
-                           .ContainingQueryParam("filter", "those")
+                           .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
@@ -51,8 +51,8 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
-                                                .ContainingQueryParam("filter", "other")
-                                                .WithBody(new { Caller = "ThisCaller" })
+                                                .ThatContainsQueryParam("filter", "other")
+                                                .ThatHasJsonBody(new { Caller = "ThisCaller" })
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
@@ -78,7 +78,7 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
-                           .ContainingQueryParam("filter", "those")
+                           .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
@@ -116,8 +116,8 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
-                                                .ContainingQueryParam("filter", "other")
-                                                .WithBody(new { Caller = "ThisCaller" })
+                                                .ThatContainsQueryParam("filter", "other")
+                                                .ThatHasJsonBody(new { Caller = "ThisCaller" })
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();

@@ -46,10 +46,10 @@ namespace TeePee.Tests
             // Given
             var builder = new TeePeeBuilder();
             var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .WithBody("test");
+                                        .ThatHasJsonBody("test");
 
             // When
-            var ex = Record.Exception(() => requestBuilder.WithBody("test"));
+            var ex = Record.Exception(() => requestBuilder.ThatHasJsonBody("test"));
 
             // Then
             Assert.IsType<InvalidOperationException>(ex);
@@ -64,7 +64,7 @@ namespace TeePee.Tests
             var requestBuilder = builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
 
             // When
-            var ex = Record.Exception(() => requestBuilder.ContainingQueryParam("sort", "name"));
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
 
             // Then
             Assert.IsType<InvalidOperationException>(ex);
@@ -80,7 +80,7 @@ namespace TeePee.Tests
             var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
 
             // When
-            var ex = Record.Exception(() => requestBuilder.ContainingQueryParam("sort", "name"));
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
 
             // Then
             Assert.IsType<InvalidOperationException>(ex);
@@ -96,7 +96,7 @@ namespace TeePee.Tests
             var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
 
             // When
-            var ex = Record.Exception(() => requestBuilder.ContainingQueryParam("sort", "name"));
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
 
             // Then
             Assert.IsType<InvalidOperationException>(ex);
@@ -109,10 +109,10 @@ namespace TeePee.Tests
             // Given
             var builder = new TeePeeBuilder();
             var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
-                                        .ContainingQueryParam("sort", "name");
+                                        .ThatContainsQueryParam("sort", "name");
             
             // When
-            var ex = Record.Exception(() => requestBuilder.ContainingQueryParam("sort", "name2"));
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name2"));
             
             // Then
             Assert.IsType<ArgumentException>(ex);
@@ -125,10 +125,10 @@ namespace TeePee.Tests
             // Given
             var builder = new TeePeeBuilder();
             var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
-                                        .ContainingHeader("Authorization", "Bearer x");
+                                        .ThatContainsHeader("Authorization", "Bearer x");
             
             // When
-            var ex = Record.Exception(() => requestBuilder.ContainingHeader("Authorization", "Bearer y"));
+            var ex = Record.Exception(() => requestBuilder.ThatContainsHeader("Authorization", "Bearer y"));
             
             // Then
             Assert.IsType<ArgumentException>(ex);
