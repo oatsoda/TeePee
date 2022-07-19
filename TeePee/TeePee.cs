@@ -11,7 +11,7 @@ namespace TeePee
 {
     public class TeePee
     {
-        internal string? HttpClientNamedInstance { get; }
+        public string? HttpClientNamedInstance { get; }
 
         public TeePeeMessageHandler HttpHandler { get; }
         

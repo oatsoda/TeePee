@@ -10,7 +10,6 @@ namespace TeePee
 {
     public class TeePeeBuilder
     {
-        private readonly string? m_HttpClientNamedInstance;
         private readonly TeePeeOptions m_Options = new TeePeeOptions();
 
         private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
@@ -19,6 +18,8 @@ namespace TeePee
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
+        
+        public string? HttpClientNamedInstance { get; }
         
         public TeePeeBuilder() : this(null, null) { }
 
@@ -30,7 +31,7 @@ namespace TeePee
             if (setOptions != null)
                 setOptions(m_Options);
 
-            m_HttpClientNamedInstance = httpClientNamedInstance;
+            HttpClientNamedInstance = httpClientNamedInstance;
         }
         
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -67,7 +68,7 @@ namespace TeePee
                                    .OrderByDescending(m => m.SpecificityLevel)
                                    .ThenByDescending(m => m.CreatedAt)
                                    .ToList();
-            return new TeePee(m_HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            return new TeePee(HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()
