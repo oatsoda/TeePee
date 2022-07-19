@@ -7,12 +7,12 @@ namespace TeePee.Refit
 {
     public static class ServiceCollectionExtensions
     {
-        private static readonly Lazy<MethodInfo> s_RefitGetHttpClientFactoryNameMethod = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> s_RefitGetHttpClientFactoryNameMethod = new(() =>
         {
 #pragma warning disable 219 //Force assembly reference to Refit
             var a = nameof(global::Refit.HttpClientFactoryExtensions.AddRefitClient);
 #pragma warning restore 219
-            var type = Type.GetType("Refit.UniqueName, Refit");
+            var type = Type.GetType("Refit.UniqueName, Refit")!;
             return type.GetMethods(BindingFlags.Public | BindingFlags.Static).Single(m => m.Name == "ForType" && !m.IsGenericMethod);
         });
 
