@@ -222,7 +222,6 @@ namespace TeePee.Tests
             // Then
             verify.WasCalled();
         }
-
         
         [Fact]
         public async Task DoesNotMatchIfNonJsonBodyWrongContentType()
@@ -237,6 +236,30 @@ namespace TeePee.Tests
 
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new ByteArrayContent(new byte[] { 65, 98, 48 });
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasNotCalled();
+        }
+        
+        [Fact]
+        public async Task DoesNotMatchIfNonJsonBodyWrongEncoding()
+        {
+            // Given
+            var expectedBody = new ByteArrayContent(new byte[] { 65, 98, 48 })
+                               {
+                                   Headers = { ContentType = new MediaTypeHeaderValue("test/input") { CharSet = Encoding.UTF8.WebName } }
+                               };
+            var verify = RequestMatchBuilder().ThatHasHttpContentBody(expectedBody)
+                                              .TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new ByteArrayContent(new byte[] { 65, 98, 48 })
+                                         {
+                                             Headers = { ContentType = new MediaTypeHeaderValue("test/input") { CharSet = Encoding.ASCII.WebName } }
+                                         };
 
             // When
             await SendRequest(httpRequestMessage);

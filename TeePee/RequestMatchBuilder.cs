@@ -101,7 +101,7 @@ namespace TeePee
 
             RequestBodyContent = body;
             RequestBodyMediaType = body.Headers.ContentType?.MediaType;
-            // TODO: Encoding
+            RequestBodyEncoding = body.Headers.ContentType?.CharSet;
             return this;
         }
         
