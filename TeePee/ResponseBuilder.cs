@@ -1,26 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
 using TeePee.Internal;
 
 namespace TeePee
 {
     public class ResponseBuilder
     {
-        private static readonly string s_DefaultResponseBodyMediaType = "application/json";
-        private static readonly Encoding s_DefaultResponseBodyEncoding = Encoding.UTF8; 
-        
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
         private readonly TeePeeOptions m_Options;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
         private object? m_ResponseBody;
-        private string m_ResponseBodyMediaType = s_DefaultResponseBodyMediaType;
-        private Encoding m_ResponseBodyEncoding = s_DefaultResponseBodyEncoding; 
+        private string? m_ResponseBodyMediaType;
+        private string? m_ResponseBodyEncoding; 
 
-        private readonly Dictionary<string, string> m_ResponseHeaders = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> m_ResponseHeaders = new();
         
         internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, TeePeeOptions options)
         {
@@ -33,14 +31,13 @@ namespace TeePee
             m_ResponseStatusCode = statusCode;
             return this;
         }
-        
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = null, Encoding? encoding = null)
+
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null) => WithJsonBody(body, mediaType, encoding);
+        public ResponseBuilder WithJsonBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
         {
             m_ResponseBody = body;
-            if (mediaType != null)
-                m_ResponseBodyMediaType = mediaType;
-            if (encoding != null)
-                m_ResponseBodyEncoding = encoding;
+            m_ResponseBodyMediaType = mediaType;
+            m_ResponseBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8.
             return this;
         }
         
@@ -57,7 +54,7 @@ namespace TeePee
 
         internal static Response DefaultResponse(TeePeeOptions options)
         {
-            return new Response(HttpStatusCode.Accepted, options, null, s_DefaultResponseBodyMediaType, s_DefaultResponseBodyEncoding, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, options, null, null, null, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()

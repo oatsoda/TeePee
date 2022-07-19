@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Web;
 using TeePee.Extensions;
 
@@ -21,7 +20,7 @@ namespace TeePee.Internal
         public HttpMethod Method { get; }
         public string? RequestBody { get; }
         public string? RequestBodyMediaType { get; }
-        public Encoding? RequestBodyEncoding { get; }
+        public string? RequestBodyEncoding { get; }
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
         public ReadOnlyDictionary<string, string> Headers { get; }
 
@@ -29,7 +28,7 @@ namespace TeePee.Internal
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
                                   string? url, HttpMethod method, 
-                                  string? requestBody, string? requestBodyMediaType, Encoding? requestBodyEncoding, 
+                                  string? requestBody, string? requestBodyMediaType, string? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
                                   Response response, Tracker? tracker)
         {
@@ -97,7 +96,7 @@ namespace TeePee.Internal
             if (contentType == null)
                 return false;
             
-            if (RequestBodyEncoding != null && !contentType.CharSet.IsSameString(RequestBodyEncoding.WebName, m_Options.CaseSensitiveMatching))
+            if (RequestBodyEncoding != null && !contentType.CharSet.IsSameString(RequestBodyEncoding, m_Options.CaseSensitiveMatching))
                 return false;
 
             if (RequestBodyMediaType != null && !contentType.MediaType.IsSameString(RequestBodyMediaType, m_Options.CaseSensitiveMatching))
@@ -126,7 +125,7 @@ namespace TeePee.Internal
 
         public string Log(int? truncateBodyLength)
         {
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding?.WebName}] [CT: {RequestBodyMediaType}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
         }
         
         internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();

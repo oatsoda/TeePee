@@ -24,10 +24,10 @@ namespace TeePee
         private object? RequestBody { get; set; }
         private HttpContent? RequestBodyContent { get; set; }
         private string? RequestBodyMediaType { get; set; }
-        private Encoding? RequestBodyEncoding { get; set; }
+        private string? RequestBodyEncoding { get; set; }
         
-        private Dictionary<string, string> QueryParams { get; } = new Dictionary<string, string>();
-        private Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
+        private Dictionary<string, string> QueryParams { get; } = new();
+        private Dictionary<string, string> Headers { get; } = new();
         
         internal bool MatchUrlWithQuery { get; private set; }
         internal bool HasQueryParams => QueryParams.Any();
@@ -84,7 +84,7 @@ namespace TeePee
 
             RequestBody = body;
             RequestBodyMediaType = mediaType;
-            RequestBodyEncoding = encoding ?? Encoding.UTF8; // Json Body defaults to UTF8, instead of ignore.
+            RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
             return this;
         }
         
@@ -101,8 +101,7 @@ namespace TeePee
 
             RequestBodyContent = body;
             RequestBodyMediaType = body.Headers.ContentType?.MediaType;
-            
-            // What about Encoding?  Does that apply?
+            // Encoding should be set
             return this;
         }
         

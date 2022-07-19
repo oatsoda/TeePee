@@ -26,7 +26,7 @@ namespace TeePee.Tests
         private HttpMethod m_HttpMethod = HttpMethod.Get;
 
         // Instance of Tracking Builder for each test
-        private TeePeeBuilder m_TrackingBuilder = new TeePeeBuilder();
+        private TeePeeBuilder m_TrackingBuilder = new();
 
         // Logger
         private readonly Mock<ILogger<TeePee>> m_MockLogger;
@@ -34,7 +34,7 @@ namespace TeePee.Tests
         // Shortcut methods
         private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
         private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
-        private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new HttpRequestMessage(httpMethod, url);
+        private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new(httpMethod, url);
         private Task<HttpResponseMessage> SendRequest() => SendRequest(RequestMessage());
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient().SendAsync(httpRequestMessage);
 
@@ -580,7 +580,7 @@ namespace TeePee.Tests
             m_HttpMethod = httpMethod;
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject);
+                                 .WithJsonBody(bodyObject);
 
             // When
             var response = await SendRequest();
@@ -600,7 +600,7 @@ namespace TeePee.Tests
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } }, EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject, mediaType, encoding);
+                                 .WithJsonBody(bodyObject, mediaType, encoding);
 
             // When
             var response = await SendRequest();
@@ -620,7 +620,7 @@ namespace TeePee.Tests
             // Given
             var bodyObject = new { Test = 1 };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject, mediaType, encoding);
+                                 .WithJsonBody(bodyObject, mediaType, encoding);
             
             using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
             var firstResponse = await client.SendAsync(RequestMessage());
@@ -643,7 +643,7 @@ namespace TeePee.Tests
             // Given
             var bodyObject = new ReferenceBodyType { Test = 1 };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject);
+                                 .WithJsonBody(bodyObject);
 
             bodyObject.Test = 23;
 
@@ -681,7 +681,7 @@ namespace TeePee.Tests
             // Given
             var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject);
+                                 .WithJsonBody(bodyObject);
 
             // When
             var response = await SendRequest();
@@ -696,11 +696,11 @@ namespace TeePee.Tests
         public async Task RespondsWithCorrectBodyWithCustomJsonSerializerOptions()
         {
             // Given
-            var jsonSerializeOptions = new JsonSerializerOptions { IgnoreNullValues = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var jsonSerializeOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             m_TrackingBuilder = new TeePeeBuilder(responseBodySerializeOptions: jsonSerializeOptions);
             var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
-                                 .WithBody(bodyObject);
+                                 .WithJsonBody(bodyObject);
 
             // When
             var response = await SendRequest();

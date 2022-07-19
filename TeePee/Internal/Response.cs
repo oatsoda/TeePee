@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace TeePee.Internal
 {
@@ -14,12 +14,12 @@ namespace TeePee.Internal
         private readonly TeePeeOptions m_Options;
 
         private readonly object? m_ResponseBody;
-        private readonly string m_ResponseBodyMediaType;
-        private readonly Encoding m_ResponseBodyEncoding; 
+        private readonly string? m_ResponseBodyMediaType;
+        private readonly string? m_ResponseBodyEncoding; 
 
         private readonly ReadOnlyDictionary<string, string> m_ResponseHeaders;
 
-        public Response(HttpStatusCode responseStatusCode, TeePeeOptions options, object? responseBody, string responseBodyMediaType, Encoding responseBodyEncoding, IDictionary<string, string> responseHeaders)
+        public Response(HttpStatusCode responseStatusCode, TeePeeOptions options, object? responseBody, string? responseBodyMediaType, string? responseBodyEncoding, IDictionary<string, string> responseHeaders)
         {
             m_ResponseStatusCode = responseStatusCode;
 
@@ -46,13 +46,14 @@ namespace TeePee.Internal
         
         private HttpContent? BodyAsContent()
         {
-            if (m_ResponseBody == null)
-                return null;
+            var httpContent = m_ResponseBody == null
+                                  ? null
+                                  : JsonContent.Create(m_ResponseBody, new MediaTypeHeaderValue(m_ResponseBodyMediaType), m_Options.ResponseBodySerializerOptions);
 
-            var serialisedResponseBody = JsonSerializer.Serialize(m_ResponseBody, m_Options.ResponseBodySerializerOptions);
-            
-            // TODO: Non string? Multipart/FormUrl
-            return new StringContent(serialisedResponseBody, m_ResponseBodyEncoding, m_ResponseBodyMediaType);
+            if (httpContent != null && m_ResponseBodyEncoding != null)
+                httpContent.Headers.ContentType.CharSet = m_ResponseBodyEncoding;
+
+            return httpContent;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace TeePee.Examples.WebApp.Tests
                            .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
-                           .WithBody(new
+                           .WithJsonBody(new
                                      {
                                          Things = new[]
                                                   {
@@ -86,7 +86,7 @@ namespace TeePee.Examples.WebApp.Tests
                            .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
-                           .WithBody(new
+                           .WithJsonBody(new
                                      {
                                          Things = new[]
                                                   {
