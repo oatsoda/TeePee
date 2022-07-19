@@ -27,12 +27,18 @@ namespace TeePee
             m_Options = options;
         }
 
+        /// <summary>
+        /// RESPONSE Respond with the given Http Status.
+        /// </summary>
         public ResponseBuilder WithStatus(HttpStatusCode statusCode)
         {
             m_ResponseStatusCode = statusCode;
             return this;
         }
         
+        /// <summary>
+        /// RESPONSE Respond with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
+        /// </summary>
         public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
         {
             if (m_ResponseBodyContent != null)
@@ -44,6 +50,9 @@ namespace TeePee
             return this;
         }
         
+        /// <summary>
+        /// RESPONSE Respond with the given HttpContent Body. Use <c>WithBody</c> for JSON Body content.
+        /// </summary>
         public ResponseBuilder WithHttpContentBody(HttpContent body)
         {
             if (m_ResponseBody != null)
@@ -53,8 +62,10 @@ namespace TeePee
             // ContentType and Encoding should be set on the HttpContent as required
             return this;
         }
-
         
+        /// <summary>
+        /// RESPONSE Respond with the given Header Parameter on the response.
+        /// </summary>
         public ResponseBuilder WithHeader(string name, string value)
         {
             m_ResponseHeaders.Add(name, value);

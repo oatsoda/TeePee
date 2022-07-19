@@ -89,7 +89,7 @@ namespace TeePee
         }
         
         /// <summary>
-        /// REQUEST Match this request with the given HttpContent Body. Use <c>ThatHasJsonBody</c> for JSON Body content.
+        /// REQUEST Match this request with the given HttpContent Body. Use <c>ThatHasBody</c> for JSON Body content.
         /// </summary>
         public RequestMatchBuilder ThatHasHttpContentBody(HttpContent body)
         {
