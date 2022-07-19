@@ -1,9 +1,11 @@
 ﻿using System.Linq;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TeePee.Examples.WebApp.ExternalApi;
 using TeePee.Examples.WebApp.ExternalApi.Helpers;
+
 
 namespace TeePee.Examples.WebApp.Controllers
 {
@@ -45,7 +47,7 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task<IActionResult> FireAndForget()
         {
             var httpClient = m_HttpClientFactory.CreateClient();
-            var requestBody = new JsonContent<ThirdPartyRequestModel>(new ThirdPartyRequestModel { Caller = "ThisCaller" });
+            var requestBody = JsonContent.Create(new ThirdPartyRequestModel { Caller = "ThisCaller" });
             await httpClient.PutAsync("https://some.api/path/resource?filter=other", requestBody);
             return Ok();
         }

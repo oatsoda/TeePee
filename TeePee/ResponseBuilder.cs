@@ -1,26 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using TeePee.Internal;
 
 namespace TeePee
 {
     public class ResponseBuilder
     {
-        private static readonly string s_DefaultResponseBodyMediaType = "application/json";
-        private static readonly Encoding s_DefaultResponseBodyEncoding = Encoding.UTF8; 
-        
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
         private readonly TeePeeOptions m_Options;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
         private object? m_ResponseBody;
-        private string m_ResponseBodyMediaType = s_DefaultResponseBodyMediaType;
-        private Encoding m_ResponseBodyEncoding = s_DefaultResponseBodyEncoding; 
+        private HttpContent? m_ResponseBodyContent;
+        private string? m_ResponseBodyMediaType;
+        private string? m_ResponseBodyEncoding; 
 
-        private readonly Dictionary<string, string> m_ResponseHeaders = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> m_ResponseHeaders = new();
         
         internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, TeePeeOptions options)
         {
@@ -28,22 +27,45 @@ namespace TeePee
             m_Options = options;
         }
 
+        /// <summary>
+        /// RESPONSE Respond with the given Http Status.
+        /// </summary>
         public ResponseBuilder WithStatus(HttpStatusCode statusCode)
         {
             m_ResponseStatusCode = statusCode;
             return this;
         }
         
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = null, Encoding? encoding = null)
+        /// <summary>
+        /// RESPONSE Respond with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
+        /// </summary>
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
         {
+            if (m_ResponseBodyContent != null)
+                throw new InvalidOperationException("The response Body has already been set from HttpContent.");
+
             m_ResponseBody = body;
-            if (mediaType != null)
-                m_ResponseBodyMediaType = mediaType;
-            if (encoding != null)
-                m_ResponseBodyEncoding = encoding;
+            m_ResponseBodyMediaType = mediaType;
+            m_ResponseBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8.
             return this;
         }
         
+        /// <summary>
+        /// RESPONSE Respond with the given HttpContent Body. Use <c>WithBody</c> for JSON Body content.
+        /// </summary>
+        public ResponseBuilder WithHttpContentBody(HttpContent body)
+        {
+            if (m_ResponseBody != null)
+                throw new InvalidOperationException("The response Body has already been set from Json Body.");
+
+            m_ResponseBodyContent = body;
+            // ContentType and Encoding should be set on the HttpContent as required
+            return this;
+        }
+        
+        /// <summary>
+        /// RESPONSE Respond with the given Header Parameter on the response.
+        /// </summary>
         public ResponseBuilder WithHeader(string name, string value)
         {
             m_ResponseHeaders.Add(name, value);
@@ -52,12 +74,12 @@ namespace TeePee
 
         internal Response ToHttpResponse()
         {
-            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
+            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyContent, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
         }
 
         internal static Response DefaultResponse(TeePeeOptions options)
         {
-            return new Response(HttpStatusCode.Accepted, options, null, s_DefaultResponseBodyMediaType, s_DefaultResponseBodyEncoding, new Dictionary<string, string>());
+            return new Response(HttpStatusCode.Accepted, options, null, null, null, null, new Dictionary<string, string>());
         }
 
         public Tracker TrackRequest()

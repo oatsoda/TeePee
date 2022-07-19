@@ -20,7 +20,7 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             m_TeePeeBuilderOne.ForRequest("https://some.api/path/resource", HttpMethod.Get)
-                              .ContainingQueryParam("filter", "those")
+                              .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
                               .WithBody(new
@@ -35,7 +35,7 @@ namespace TeePee.Examples.WebApp.Tests
                                         });
 
             m_TeePeeBuilderTwo.ForRequest("https://other.api/path/otherresource", HttpMethod.Get)
-                              .ContainingQueryParam("filter", "those")
+                              .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
                               .WithBody(new
@@ -68,15 +68,15 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://some.api/path/resource", HttpMethod.Put)
-                                                      .ContainingQueryParam("filter", "other")
-                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .ThatContainsQueryParam("filter", "other")
+                                                      .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
             var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://other.api/path/otherresource", HttpMethod.Put)
-                                                      .ContainingQueryParam("filter", "other")
-                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .ThatContainsQueryParam("filter", "other")
+                                                      .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
@@ -110,7 +110,7 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             m_TeePeeBuilderOne.ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Get)
-                              .ContainingQueryParam("filter", "those")
+                              .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
                               .WithBody(new
@@ -125,7 +125,7 @@ namespace TeePee.Examples.WebApp.Tests
                                         });
 
             m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/otherresource", HttpMethod.Get)
-                              .ContainingQueryParam("filter", "those")
+                              .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
                               .WithBody(new
@@ -162,15 +162,15 @@ namespace TeePee.Examples.WebApp.Tests
         {
             // Given
             var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Put)
-                                                      .ContainingQueryParam("filter", "other")
-                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .ThatContainsQueryParam("filter", "other")
+                                                      .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
             var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/otherresource", HttpMethod.Put)
-                                                      .ContainingQueryParam("filter", "other")
-                                                      .WithBody(new { Caller = "ThisCaller" })
+                                                      .ThatContainsQueryParam("filter", "other")
+                                                      .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();

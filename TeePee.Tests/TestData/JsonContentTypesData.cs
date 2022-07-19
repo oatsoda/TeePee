@@ -3,7 +3,7 @@ using System.Text;
 
 namespace TeePee.Tests.TestData
 {
-    public class ContentTypesData : BaseData
+    public class JsonContentTypesData : BaseData
     {
         public override IEnumerator<object[]> GetEnumerator()
         {
