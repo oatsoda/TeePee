@@ -22,7 +22,7 @@ namespace TeePee.Examples.WebApp.Tests
                            .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
-                           .WithJsonBody(new
+                           .WithBody(new
                                      {
                                          Things = new[]
                                                   {
@@ -51,7 +51,7 @@ namespace TeePee.Examples.WebApp.Tests
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
                                                 .ThatContainsQueryParam("filter", "other")
-                                                .ThatHasJsonBody(new { Caller = "ThisCaller" })
+                                                .ThatHasBody(new { Caller = "ThisCaller" })
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
@@ -86,7 +86,7 @@ namespace TeePee.Examples.WebApp.Tests
                            .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
-                           .WithJsonBody(new
+                           .WithBody(new
                                      {
                                          Things = new[]
                                                   {
@@ -123,7 +123,7 @@ namespace TeePee.Examples.WebApp.Tests
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Put)
                                                 .ThatContainsQueryParam("filter", "other")
-                                                .ThatHasJsonBody(new { Caller = "ThisCaller" })
+                                                .ThatHasBody(new { Caller = "ThisCaller" })
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();

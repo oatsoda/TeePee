@@ -46,10 +46,10 @@ namespace TeePee.Tests
             // Given
             var builder = new TeePeeBuilder();
             var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasJsonBody("test");
+                                        .ThatHasBody("test");
 
             // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasJsonBody("test"));
+            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
 
             // Then
             Assert.IsType<InvalidOperationException>(ex);

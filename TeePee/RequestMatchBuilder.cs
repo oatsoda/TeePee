@@ -68,13 +68,13 @@ namespace TeePee
             return url;
         }
 
-        [Obsolete("Use ThatHasJsonBody instead.")]
-        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) => ThatHasJsonBody(body, mediaType, encoding);
+        [Obsolete("Use ThatHasBody instead.")]
+        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) => ThatHasBody(body, mediaType, encoding);
 
         /// <summary>
         /// REQUEST Match this request with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
         /// </summary>
-        public RequestMatchBuilder ThatHasJsonBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
+        public RequestMatchBuilder ThatHasBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
         {
             if (body == null)
                 throw new ArgumentNullException();
@@ -91,7 +91,7 @@ namespace TeePee
         /// <summary>
         /// REQUEST Match this request with the given HttpContent Body. Use <c>ThatHasJsonBody</c> for JSON Body content.
         /// </summary>
-        public RequestMatchBuilder ThatHasBody(HttpContent body)
+        public RequestMatchBuilder ThatHasHttpContentBody(HttpContent body)
         {
             if (body == null)
                 throw new ArgumentNullException();

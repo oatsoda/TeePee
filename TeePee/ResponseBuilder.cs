@@ -31,9 +31,8 @@ namespace TeePee
             m_ResponseStatusCode = statusCode;
             return this;
         }
-
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null) => WithJsonBody(body, mediaType, encoding);
-        public ResponseBuilder WithJsonBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
+        
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
         {
             m_ResponseBody = body;
             m_ResponseBodyMediaType = mediaType;
