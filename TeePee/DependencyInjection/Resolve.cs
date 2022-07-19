@@ -16,7 +16,7 @@ namespace TeePee.DependencyInjection
             
             serviceCollection.AddTransient<T>();
 
-            return serviceCollection.BuildServiceProvider().GetService<T>();
+            return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
 
         public static T WithNamedClients<T>(Action<IServiceCollection>? configureServices = null, params TeePeeBuilder[] teePeeBuilders) where T : class
@@ -50,7 +50,7 @@ namespace TeePee.DependencyInjection
 
             serviceCollection.AddTransient<T>();
 
-            return serviceCollection.BuildServiceProvider().GetService<T>();
+            return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
         
         public static T WithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection>? configureServices = null) where T : class where TClient : class
@@ -74,7 +74,7 @@ namespace TeePee.DependencyInjection
 
             serviceCollection.AddTransient<T>();
 
-            return serviceCollection.BuildServiceProvider().GetService<T>();
+            return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
         
         public static T WithTypedClients<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection>? setup = null) where T : class 
@@ -103,7 +103,7 @@ namespace TeePee.DependencyInjection
 
             serviceCollection.AddTransient<T>();
 
-            return serviceCollection.BuildServiceProvider().GetService<T>();
+            return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
 
         // TODO: More Generic versions of WithTypedClients
