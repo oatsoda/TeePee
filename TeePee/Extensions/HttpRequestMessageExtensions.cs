@@ -16,9 +16,8 @@ namespace TeePee.Extensions
         
         public static async Task<string?> ReadContentAsync(this HttpContent httpContent)
         {
-            // StringContent is derived from Byte Array, but will know the encoding to read as string, but byte array 
-            if (httpContent is ByteArrayContent byteContent and not StringContent)
-                return Convert.ToBase64String(await byteContent.ReadAsByteArrayAsync());
+            if (httpContent.GetType() == typeof(ByteArrayContent))
+                return Convert.ToBase64String(await httpContent.ReadAsByteArrayAsync());
                 
             return await httpContent.ReadAsStringAsync();
         }
