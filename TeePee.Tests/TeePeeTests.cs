@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -182,6 +183,7 @@ namespace TeePee.Tests
         
         private class ReferenceBodyType 
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public int Test { get; set; }
         }
 
@@ -564,7 +566,7 @@ namespace TeePee.Tests
 
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]
-        public async Task ResponseWithDefaultStatusIfResponseConfiguredWithoutStatus(HttpMethod httpMethod)
+        public async Task RespondsWithDefaultStatusIfResponseConfiguredWithoutStatus(HttpMethod httpMethod)
         {
             // Given
             m_HttpMethod = httpMethod;
@@ -580,7 +582,7 @@ namespace TeePee.Tests
 
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]
-        public async Task ResponseWithCorrectStatus(HttpMethod httpMethod)
+        public async Task RespondsWithCorrectStatus(HttpMethod httpMethod)
         {
             // Given
             m_HttpMethod = httpMethod;
@@ -612,7 +614,7 @@ namespace TeePee.Tests
             Assert.NotNull(response);
             var responseBody = await response.Content.ReadAsStringAsync();
             Assert.Equal(JsonSerializer.Serialize(bodyObject), responseBody);
-            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+            Assert.Equal("application/json", response.Content.Headers.ContentType!.MediaType);
             Assert.Equal("utf-8", response.Content.Headers.ContentType.CharSet);
         }
 
@@ -632,7 +634,7 @@ namespace TeePee.Tests
             Assert.NotNull(response);
             var responseBody = await response.Content.ReadAsStringAsync();
             Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }}), responseBody);
-            Assert.Equal(mediaType, response.Content.Headers.ContentType.MediaType);
+            Assert.Equal(mediaType, response.Content.Headers.ContentType!.MediaType);
             Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
         }
         
@@ -674,7 +676,7 @@ namespace TeePee.Tests
 
             // Then
             Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }}), responseBody);
-            Assert.Equal(mediaType, secondResponse.Content.Headers.ContentType.MediaType);
+            Assert.Equal(mediaType, secondResponse.Content.Headers.ContentType!.MediaType);
             Assert.Equal(encoding.WebName, secondResponse.Content.Headers.ContentType.CharSet);
         }
         
@@ -754,9 +756,186 @@ namespace TeePee.Tests
 
         private enum ToTestJsonSettings
         {
+            // ReSharper disable once UnusedMember.Local
             On = 2,
             Off = 3
         }
+
+        #region Chained Responses
+        
+        [Theory]
+        [ClassData(typeof(CommonHttpMethodsData))]
+        public async Task RespondsWithSameResponseStatusIfNoChainedResponse(HttpMethod httpMethod)
+        {
+            // Given
+            m_HttpMethod = httpMethod;
+            RequestMatchBuilder()
+               .Responds()
+               .WithStatus(HttpStatusCode.Ambiguous);
+            
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            var firstResponse = await client.SendAsync(RequestMessage());
+            Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
+
+            // When
+            var secondResponse = await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Equal(HttpStatusCode.Ambiguous, secondResponse.StatusCode);
+        }
+        
+        [Fact]
+        public async Task ThrowsExceptionIfChainedResponseConfiguredButExceedsNumberOfChainedResponses()
+        {
+            // Given
+            RequestMatchBuilder()
+               .Responds()
+               .WithStatus(HttpStatusCode.Ambiguous)
+               .ThenResponds()
+               .WithStatus(HttpStatusCode.ExpectationFailed);
+            
+            var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            await client.SendAsync(RequestMessage());
+            await client.SendAsync(RequestMessage());
+
+            // When
+            Task Func() => client.SendAsync(RequestMessage());
+
+            // Then
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(Func);
+        }
+
+        [Theory]
+        [ClassData(typeof(CommonHttpMethodsData))]
+        public async Task RespondsWithChainedStatusIfChainedResponseConfigured(HttpMethod httpMethod)
+        {
+            // Given
+            m_HttpMethod = httpMethod;
+            RequestMatchBuilder()
+               .Responds()
+               .WithStatus(HttpStatusCode.Ambiguous)
+               .ThenResponds()
+               .WithStatus(HttpStatusCode.ExpectationFailed);
+            
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+
+            var firstResponse = await client.SendAsync(RequestMessage());
+            Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
+
+            // When
+            var secondResponse = await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
+        }
+        
+        [Theory]
+        [ClassData(typeof(CommonHttpMethodsData))]
+        public async Task RespondsWithStatusIfMultipleChainedResponseConfigured(HttpMethod httpMethod)
+        {
+            // Given
+            m_HttpMethod = httpMethod;
+            RequestMatchBuilder()
+               .Responds()
+               .WithStatus(HttpStatusCode.Ambiguous)
+               .ThenResponds()
+               .WithStatus(HttpStatusCode.ExpectationFailed)
+               .ThenResponds()
+               .WithStatus(HttpStatusCode.MisdirectedRequest);
+            
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+
+            var firstResponse = await client.SendAsync(RequestMessage());
+            Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
+
+            var secondResponse = await client.SendAsync(RequestMessage());
+            Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
+
+            // When
+            var thirdResponse = await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Equal(HttpStatusCode.MisdirectedRequest, thirdResponse.StatusCode);
+        }
+        
+        [Theory]
+        [ClassData(typeof(CommonHttpMethodsData))]
+        public async Task RespondsWithDefaultStatusIfChainedResponseConfiguredWithoutStatus(HttpMethod httpMethod)
+        {
+            // Given
+            m_HttpMethod = httpMethod;
+            RequestMatchBuilder()
+               .Responds()
+               .WithStatus(HttpStatusCode.Ambiguous)
+               .ThenResponds();
+            
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            await client.SendAsync(RequestMessage());
+
+            // When
+            var secondResponse = await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Equal(HttpStatusCode.NoContent, secondResponse.StatusCode);
+        }
+        
+        [Fact]
+        public async Task TrackerHasCorrectCallsIfChainedResponses()
+        {
+            // Given
+            var verify = RequestMatchBuilder()
+                        .Responds()
+                        .WithStatus(HttpStatusCode.BadRequest)
+                        .ThenResponds()
+                        .WithStatus(HttpStatusCode.Accepted)
+                        .ThenResponds()
+                        .TrackRequest();
+
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            await client.SendAsync(RequestMessage());
+            await client.SendAsync(RequestMessage());
+
+            // When
+            await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Equal(3, verify.AllCalls.Count);
+            Assert.Equal(3, verify.MatchedCalls.Count);
+
+            verify.WasCalled(3);
+            
+            Assert.Equal(HttpStatusCode.BadRequest, verify.MatchedCalls[0].Response.StatusCode);
+            Assert.Equal(HttpStatusCode.Accepted, verify.MatchedCalls[1].Response.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, verify.MatchedCalls[2].Response.StatusCode);
+        }
+        
+        [Fact]
+        public async Task TrackerIsSameOnAnyChainedResponse()
+        {
+            // Given
+            var firstResponseBuilder = RequestMatchBuilder()
+                        .Responds()
+                        .WithStatus(HttpStatusCode.BadRequest);
+            var firstTracker = firstResponseBuilder.TrackRequest();
+
+            var secondTracker = firstResponseBuilder
+                        .ThenResponds()
+                        .WithStatus(HttpStatusCode.Accepted)
+                        .TrackRequest();
+
+            using var client = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateClient();
+            await client.SendAsync(RequestMessage());
+
+            // When
+            await client.SendAsync(RequestMessage());
+
+            // Then
+            Assert.Same(firstTracker, secondTracker);
+            firstTracker.WasCalled(2);
+            secondTracker.WasCalled(2);
+        }
+
+        #endregion
 
         #endregion
     }

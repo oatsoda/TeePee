@@ -146,11 +146,18 @@ namespace TeePee
                                                 ? null 
                                                 : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
 
-            var response = m_ResponseBuilder == null 
-                               ? ResponseBuilder.DefaultResponse(m_Options)
-                               : m_ResponseBuilder.ToHttpResponse();
+            var responseBuilder = m_ResponseBuilder;
+            var responses = responseBuilder == null
+                                ? new List<Response> { ResponseBuilder.DefaultResponse(m_Options) }
+                                : new List<Response>(5){ responseBuilder.ToHttpResponse() };
 
-            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
+            while (responseBuilder?.NextResponse != null)
+            {
+                responseBuilder = responseBuilder.NextResponse;
+                responses.Add(responseBuilder.ToHttpResponse());
+            }
+
+            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
         }
         
         public Tracker TrackRequest()
