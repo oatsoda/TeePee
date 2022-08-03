@@ -785,7 +785,7 @@ namespace TeePee.Tests
         }
         
         [Fact]
-        public async Task ThrowsExceptionIfChainedResponseConfiguredButExceedsNumberOfChainedResponses()
+        public async Task RespondsWithLastResponseIfChainedResponseConfiguredAndExceedsNumberOfChainedResponses()
         {
             // Given
             RequestMatchBuilder()
@@ -799,10 +799,10 @@ namespace TeePee.Tests
             await client.SendAsync(RequestMessage());
 
             // When
-            Task Func() => client.SendAsync(RequestMessage());
+            var thirdResponse = await client.SendAsync(RequestMessage());
 
             // Then
-            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(Func);
+            Assert.Equal(HttpStatusCode.ExpectationFailed, thirdResponse.StatusCode);
         }
 
         [Theory]

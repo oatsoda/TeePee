@@ -131,11 +131,8 @@ namespace TeePee.Internal
 
         internal HttpResponseMessage ToHttpResponseMessage()
         {
-            if (m_Responses.Count == 1)
-                return m_Responses.Single().ToHttpResponseMessage();
-
             if (m_Responses.Count == m_CurrentResponse)
-                throw new ArgumentOutOfRangeException($"Rule was configured with {m_Responses.Count} but was called {m_CurrentResponse + 1} times.");
+                m_CurrentResponse--;
 
             return m_Responses[m_CurrentResponse++].ToHttpResponseMessage();
         }
