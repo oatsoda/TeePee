@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using TeePee.Extensions;
 using TeePee.Internal;
 
@@ -138,24 +139,49 @@ namespace TeePee
             return m_ResponseBuilder;
         }
 
-        internal RequestMatchRule ToRequestMatchRule()
-        {
-            var serialisedRequestBody = RequestBodyContent != null 
-                                            ? RequestBodyContent.ReadContentAsync().GetAwaiter().GetResult()
-                                            : RequestBody == null
-                                                ? null 
-                                                : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
-
-            var response = m_ResponseBuilder == null 
-                               ? ResponseBuilder.DefaultResponse(m_Options)
-                               : m_ResponseBuilder.ToHttpResponse();
-
-            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, response, m_Tracker);
-        }
+        #region Create Tracker
         
         public Tracker TrackRequest()
         {
             return m_Tracker ??= new Tracker(m_Options);
         }
+        
+        #endregion
+
+        #region Internal: Build Rule into Responses
+
+        internal RequestMatchRule ToRequestMatchRule()
+        {
+            var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
+            var responses = CreateResponses();
+            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
+        }
+        
+        private async Task<string?> SerialiseExpectedRequestMatchBody()
+        {
+            return RequestBodyContent != null 
+                       ? await RequestBodyContent.ReadContentAsync()
+                       : RequestBody == null
+                           ? null 
+                           : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
+        }
+
+        private List<Response> CreateResponses()
+        {
+            var responseBuilder = m_ResponseBuilder;
+            var responses = responseBuilder == null
+                                ? new List<Response> { ResponseBuilder.DefaultResponse(m_Options) }
+                                : new List<Response>(5) { responseBuilder.ToHttpResponse() };
+
+            while (responseBuilder?.NextResponse != null)
+            {
+                responseBuilder = responseBuilder.NextResponse;
+                responses.Add(responseBuilder.ToHttpResponse());
+            }
+
+            return responses;
+        }
+        
+        #endregion
     }
 }

@@ -20,7 +20,9 @@ namespace TeePee
         private string? m_ResponseBodyEncoding; 
 
         private readonly Dictionary<string, string> m_ResponseHeaders = new();
-        
+
+        internal ResponseBuilder? NextResponse;
+
         internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, TeePeeOptions options)
         {
             m_RequestMatchBuilder = requestMatchBuilder;
@@ -71,6 +73,26 @@ namespace TeePee
             m_ResponseHeaders.Add(name, value);
             return this;
         }
+        
+        /// <summary>
+        /// Define that the Request will then respond with a different response.
+        /// </summary>
+        public ResponseBuilder ThenResponds()
+        {
+            NextResponse = new ResponseBuilder(m_RequestMatchBuilder, m_Options);
+            return NextResponse;
+        }
+
+        #region Create Tracker
+
+        public Tracker TrackRequest()
+        {
+            return m_RequestMatchBuilder.TrackRequest();
+        }
+        
+        #endregion
+
+        #region Internal: Create Response
 
         internal Response ToHttpResponse()
         {
@@ -82,9 +104,8 @@ namespace TeePee
             return new Response(HttpStatusCode.Accepted, options, null, null, null, null, new Dictionary<string, string>());
         }
 
-        public Tracker TrackRequest()
-        {
-            return m_RequestMatchBuilder.TrackRequest();
-        }
+        #endregion
+
+
     }
 }

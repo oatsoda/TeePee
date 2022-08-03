@@ -11,7 +11,8 @@ namespace TeePee.Internal
     public class RequestMatchRule
     {
         private readonly TeePeeOptions m_Options;
-        private readonly Response m_Response;
+        private readonly List<Response> m_Responses;
+        private int m_CurrentResponse;
 
         internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
@@ -30,7 +31,7 @@ namespace TeePee.Internal
                                   string? url, HttpMethod method, 
                                   string? requestBody, string? requestBodyMediaType, string? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
-                                  Response response, Tracker? tracker)
+                                  List<Response> responses, Tracker? tracker)
         {
             m_Options = options;
             CreatedAt = createdAt;
@@ -43,7 +44,7 @@ namespace TeePee.Internal
             QueryParams = new ReadOnlyDictionary<string, string>(queryParams);
             Headers = new ReadOnlyDictionary<string, string>(headers);
 
-            m_Response = response;
+            m_Responses = responses;
             Tracker = tracker;
             Tracker?.SetRequestMatchRule(this);
         }
@@ -127,8 +128,14 @@ namespace TeePee.Internal
         {
             return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
         }
-        
-        internal HttpResponseMessage ToHttpResponseMessage() => m_Response.ToHttpResponseMessage();
+
+        internal HttpResponseMessage ToHttpResponseMessage()
+        {
+            if (m_Responses.Count == m_CurrentResponse)
+                m_CurrentResponse--;
+
+            return m_Responses[m_CurrentResponse++].ToHttpResponseMessage();
+        }
     }
     
     public static class RequestMatchRuleListExtensions
