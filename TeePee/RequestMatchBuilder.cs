@@ -152,12 +152,12 @@ namespace TeePee
 
         internal RequestMatchRule ToRequestMatchRule()
         {
-            var serialisedRequestBody = SerialiseRequestBody().GetAwaiter().GetResult();
+            var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
             var responses = CreateResponses();
             return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
         }
         
-        private async Task<string?> SerialiseRequestBody()
+        private async Task<string?> SerialiseExpectedRequestMatchBody()
         {
             return RequestBodyContent != null 
                        ? await RequestBodyContent.ReadContentAsync()
