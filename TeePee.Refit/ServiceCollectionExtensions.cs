@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 
@@ -17,17 +17,12 @@ namespace TeePee.Refit
             return type.GetMethods(BindingFlags.Public | BindingFlags.Static).Single(m => m.Name == "ForType" && !m.IsGenericMethod);
         });
 
-        private static readonly Dictionary<Type, string> s_HttpClientFactoryNames = new();
+        private static readonly ConcurrentDictionary<Type, string> s_HttpClientFactoryNames = new();
 
         private static string GetRefitHttpFactoryName<T>()
         {
             var type = typeof(T);
-            if (s_HttpClientFactoryNames.TryGetValue(type, out var name))
-                return name;
-
-            name = (string)s_RefitGetHttpClientFactoryNameMethod.Value.Invoke(null, new object[] { type });
-            s_HttpClientFactoryNames[type] = name;
-            return name;
+            return s_HttpClientFactoryNames.GetOrAdd(type, t => (string)s_RefitGetHttpClientFactoryNameMethod.Value.Invoke(null, new object[] { t }));
         }
 
         public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePee teePee)
