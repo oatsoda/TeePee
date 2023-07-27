@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/oatsoda/TeePee/master/TeePee/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
+<img src="https://raw.githubusercontent.com/oatsoda/TeePee/main/TeePee/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
 
 # TeePee
 
@@ -6,8 +6,8 @@
 
 A fluent API to configure HttpClients for unit testing.
 
-CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI?branchName=master)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=4&branchName=master) \
-Full: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Full?branchName=master)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=5&branchName=master)
+CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=4&branchName=main) \
+Full: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Full?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=5&branchName=main)
 
 # Documentation
 
@@ -26,9 +26,9 @@ Add requests that you want to support by using the fluent API to specify as litt
 
 ```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
-             .WithBody(new { Value = 12 })
-             .ContainingQueryParam("filter", "those")
-             .ContainingHeader("ApiKey", "123abc-xyz987");             
+             .ThatHasBody(new { Value = 12 })
+             .ThatContainsQueryParam("filter", "those")
+             .ThatContainsHeader("ApiKey", "123abc-xyz987");             
 ```
 
 #### Query strings
@@ -43,7 +43,7 @@ or by matching using the `ContainsQueryParam`
 
 ```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
-             .ContainingQueryParam("filter", "those")
+             .ThatContainsQueryParam("filter", "those")
 ```
 
 You cannot combine both though. Once you specify `ContainingQueryParam` then incoming requests at execution-time will have their query string removed when attempting to match a rule which is using `ContainingQueryParam`.
@@ -213,5 +213,5 @@ var subjectUnderTest = Resolve.WithTypedClient<UserController, MyTypedHttpClient
 
 ## Multiple HttpClient dependencies
 
-See [Examples](https://github.com/oatsoda/TeePee/tree/master/Examples) for demonstrations of how to apply the above Manual or Auto injection when you have multiple HttpClient dependencies.
+See [Examples](https://github.com/oatsoda/TeePee/tree/main/Examples) for demonstrations of how to apply the above Manual or Auto injection when you have multiple HttpClient dependencies.
 
