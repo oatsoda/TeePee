@@ -9,6 +9,7 @@
     <Description>A fluent API to configure HttpClients for unit testing.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/oatsoda/TeePee</PackageProjectUrl>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>teepee-icon.png</PackageIcon>

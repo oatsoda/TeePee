@@ -9,6 +9,7 @@
 		<Description>Refit extensions for TeePee.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/oatsoda/TeePee</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageIcon>teepee-icon.png</PackageIcon>
