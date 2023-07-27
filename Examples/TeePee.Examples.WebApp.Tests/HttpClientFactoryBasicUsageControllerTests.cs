@@ -11,7 +11,7 @@ namespace TeePee.Examples.WebApp.Tests
     // Basic usage of HttpClientFactory (i.e. non-named or type clients is only really meant as a refactoring step)
     public class HttpClientFactoryBasicUsageControllerTests
     {
-        private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder();
+        private readonly TeePeeBuilder m_TeePeeBuilder = new();
 
         #region Manual Injection
 

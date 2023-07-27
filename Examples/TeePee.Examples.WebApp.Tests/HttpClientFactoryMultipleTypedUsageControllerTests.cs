@@ -10,8 +10,8 @@ namespace TeePee.Examples.WebApp.Tests
 {
     public class HttpClientFactoryMultipleTypedUsageControllerTests
     {
-        private readonly TeePeeBuilder<ExampleTypedHttpClient> m_TeePeeBuilderOne = new TeePeeBuilder<ExampleTypedHttpClient>();
-        private readonly TeePeeBuilder<AnotherExampleTypedHttpClient> m_TeePeeBuilderTwo = new TeePeeBuilder<AnotherExampleTypedHttpClient>();
+        private readonly TeePeeBuilder<ExampleTypedHttpClient> m_TeePeeBuilderOne = new();
+        private readonly TeePeeBuilder<AnotherExampleTypedHttpClient> m_TeePeeBuilderTwo = new();
 
         #region Manual Injection
 
@@ -34,7 +34,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            m_TeePeeBuilderTwo.ForRequest("https://other.api/path/otherresource", HttpMethod.Get)
+            m_TeePeeBuilderTwo.ForRequest("https://other.api/path/other-resource", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -50,8 +50,8 @@ namespace TeePee.Examples.WebApp.Tests
                                         });
 
 
-            var controller = new HttpClientFactoryMultipleTypedUsageController(new ExampleTypedHttpClient(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
-                                                                               new AnotherExampleTypedHttpClient(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(new(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
+                                                                               new(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
 
             // When
             var result = await controller.FireAndAct();
@@ -74,15 +74,15 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://other.api/path/otherresource", HttpMethod.Put)
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://other.api/path/other-resource", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
             
-            var controller = new HttpClientFactoryMultipleTypedUsageController(new ExampleTypedHttpClient(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
-                                                                               new AnotherExampleTypedHttpClient(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(new(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
+                                                                               new(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
 
             // When
             var result = await controller.FireAndForget();
@@ -124,7 +124,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/otherresource", HttpMethod.Get)
+            m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -168,7 +168,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/otherresource", HttpMethod.Put)
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()

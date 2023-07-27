@@ -1,17 +1,16 @@
+using Microsoft.Extensions.Logging;
+using Moq;
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Moq;
 using TeePee.Tests.TestData;
 using Xunit;
 using Xunit.Abstractions;
+// ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests
 {
@@ -42,7 +41,7 @@ namespace TeePee.Tests
         public TeePeeTests(ITestOutputHelper testOutputHelper)
         {
             m_TestOutputHelper = testOutputHelper;
-            m_MockLogger = new Mock<ILogger<TeePee>>();
+            m_MockLogger = new();
             m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()))
                         .Callback(new InvocationAction(invocation =>
                                                        {
@@ -82,11 +81,12 @@ namespace TeePee.Tests
         public async Task DoesNotMatchBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding)
         {
             // Given
-            m_TrackingBuilder = new TeePeeBuilder(opt =>
-                                                  {
-                                                      opt.CaseSensitiveMatching = true;
-                                                      opt.RequestBodySerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                                                  });
+            m_TrackingBuilder = new(opt =>
+                                    {
+                                        opt.CaseSensitiveMatching = true;
+                                        opt.RequestBodySerializerOptions = new()
+                                                                           { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                                    });
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
             var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
@@ -106,11 +106,12 @@ namespace TeePee.Tests
         public async Task MatchesBodyWithSameSerialisationSettings(string mediaType, Encoding encoding)
         {
             // Given
-            m_TrackingBuilder = new TeePeeBuilder(opt =>
-                                                  {
-                                                      opt.CaseSensitiveMatching = true;
-                                                      opt.RequestBodySerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                                                  });
+            m_TrackingBuilder = new(opt =>
+                                    {
+                                        opt.CaseSensitiveMatching = true;
+                                        opt.RequestBodySerializerOptions = new()
+                                                                           { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                                    });
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
             var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
                                               .TrackRequest();
@@ -153,7 +154,7 @@ namespace TeePee.Tests
                                               .TrackRequest();
 
             var httpRequestMessage = RequestMessage();
-            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, "wrong/mediatype");
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, "wrong/media-type");
 
             // When
             await SendRequest(httpRequestMessage);
@@ -231,7 +232,7 @@ namespace TeePee.Tests
             // Given
             var expectedBody = new ByteArrayContent(new byte[] { 65, 98, 48 })
                                      {
-                                        Headers = { ContentType = new MediaTypeHeaderValue("test/input")}
+                                        Headers = { ContentType = new("test/input")}
                                      };
             var verify = RequestMatchBuilder().ThatHasHttpContentBody(expectedBody)
                                               .TrackRequest();
@@ -252,7 +253,7 @@ namespace TeePee.Tests
             // Given
             var expectedBody = new ByteArrayContent(new byte[] { 65, 98, 48 })
                                {
-                                   Headers = { ContentType = new MediaTypeHeaderValue("test/input") { CharSet = Encoding.UTF8.WebName } }
+                                   Headers = { ContentType = new("test/input") { CharSet = Encoding.UTF8.WebName } }
                                };
             var verify = RequestMatchBuilder().ThatHasHttpContentBody(expectedBody)
                                               .TrackRequest();
@@ -260,7 +261,7 @@ namespace TeePee.Tests
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new ByteArrayContent(new byte[] { 65, 98, 48 })
                                          {
-                                             Headers = { ContentType = new MediaTypeHeaderValue("test/input") { CharSet = Encoding.ASCII.WebName } }
+                                             Headers = { ContentType = new("test/input") { CharSet = Encoding.ASCII.WebName } }
                                          };
 
             // When
@@ -426,7 +427,7 @@ namespace TeePee.Tests
         public async Task LogsFullDetailsMessageIfSettingEnabled()
         {
             // Given
-            m_TrackingBuilder = new TeePeeBuilder(opt => opt.ShowFullDetailsOnMatchFailure = true);
+            m_TrackingBuilder = new(opt => opt.ShowFullDetailsOnMatchFailure = true);
             RequestMatchBuilder();
             m_HttpMethod = HttpMethod.Options;
 
@@ -498,7 +499,7 @@ namespace TeePee.Tests
         public async Task ThrowsIfNoMatchInStrictMode()
         {
             // Given
-            m_TrackingBuilder = new TeePeeBuilder(opt => opt.Mode = TeePeeMode.Strict);
+            m_TrackingBuilder = new(opt => opt.Mode = TeePeeMode.Strict);
 
             // When
             var ex = await Record.ExceptionAsync(async () => await SendRequest());
@@ -740,7 +741,7 @@ namespace TeePee.Tests
         {
             // Given
             var jsonSerializeOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            m_TrackingBuilder = new TeePeeBuilder(responseBodySerializeOptions: jsonSerializeOptions);
+            m_TrackingBuilder = new(responseBodySerializeOptions: jsonSerializeOptions);
             var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
                                  .WithBody(bodyObject);

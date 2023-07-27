@@ -100,7 +100,7 @@ namespace TeePee
         
         internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
         {
-            private readonly Dictionary<string, HttpClient> m_NamedClients = new Dictionary<string, HttpClient>();
+            private readonly Dictionary<string, HttpClient> m_NamedClients = new();
 
             internal void Add(string? namedInstance, HttpClient httpClient)
             {

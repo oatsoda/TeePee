@@ -10,7 +10,7 @@ namespace TeePee.Examples.WebApp.Tests
 {
     public class HttpClientFactoryTypedUsageControllerTests
     {
-        private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder();
+        private readonly TeePeeBuilder m_TeePeeBuilder = new();
 
         #region Manual Injection
 

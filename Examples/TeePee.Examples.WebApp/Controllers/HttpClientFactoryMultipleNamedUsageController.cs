@@ -33,11 +33,11 @@ namespace TeePee.Examples.WebApp.Controllers
         public async Task<IActionResult> FireAndAct()
         {
             var httpClientOne = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_ONE);
-            var httpResponseMessageOne = await httpClientOne.GetAsync("/pathone/resourceone?filter=those");
+            var httpResponseMessageOne = await httpClientOne.GetAsync("/path-one/resource-one?filter=those");
             var resultOne = await httpResponseMessageOne.DeserialiseTo<ThirdPartyResponseModel>();
             
             var httpClientTwo = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_TWO);
-            var httpResponseMessageTwo = await httpClientTwo.GetAsync("/pathtwo/resourcetwo?filter=those");
+            var httpResponseMessageTwo = await httpClientTwo.GetAsync("/path-two/resource-two?filter=those");
             var resultTwo = await httpResponseMessageTwo.DeserialiseTo<ThirdPartyResponseModel>();
 
             return Ok(resultOne.Things.Single().Value + resultTwo.Things.Single().Value);
@@ -52,11 +52,11 @@ namespace TeePee.Examples.WebApp.Controllers
         {
             var httpClientOne = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_ONE);
             var requestBodyOne = JsonContent.Create(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await httpClientOne.PutAsync("/pathone/resourceone?filter=other", requestBodyOne);
+            await httpClientOne.PutAsync("/path-one/resource-one?filter=other", requestBodyOne);
             
             var httpClientTwo = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME_TWO);
             var requestBodyTwo = JsonContent.Create(new ThirdPartyRequestModel { Caller = "ThisCaller" });
-            await httpClientTwo.PutAsync("/pathtwo/resourcetwo?filter=other", requestBodyTwo);
+            await httpClientTwo.PutAsync("/path-two/resource-two?filter=other", requestBodyTwo);
 
             return Ok();
         }

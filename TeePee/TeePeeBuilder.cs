@@ -10,9 +10,9 @@ namespace TeePee
 {
     public class TeePeeBuilder
     {
-        private readonly TeePeeOptions m_Options = new TeePeeOptions();
+        private readonly TeePeeOptions m_Options = new();
 
-        private readonly List<RequestMatchBuilder> m_Requests = new List<RequestMatchBuilder>();
+        private readonly List<RequestMatchBuilder> m_Requests = new();
         
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
         private string? m_DefaultResponseBody;

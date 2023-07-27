@@ -9,8 +9,8 @@ namespace TeePee
     public class Tracker
     {
         internal TeePeeOptions Options { get; }
-        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_MatchedCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
-        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = new List<TeePeeMessageHandler.RecordedHttpCall>();
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_MatchedCalls = new();
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = new();
 
         private RequestMatchRule? m_RequestMatchRule;
 

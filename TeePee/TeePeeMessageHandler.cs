@@ -41,39 +41,37 @@ namespace TeePee
         private void RecordRequest(RecordedHttpCall recordedHttpCall)
         {
             m_ConfiguredRules.Where(r => r.Tracker != null).ToList().ForEach(r => r.Tracker!.AddHttpCall(recordedHttpCall));
-            
+
             if (!recordedHttpCall.IsMatch && m_Options.Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(m_Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{m_ConfiguredRules.Count} rules configured]");
 
             if (m_Logger == null)
                 return;
-            
+
             if (recordedHttpCall.IsMatch)
             {
-                m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]", 
-                                        recordedHttpCall.Log(m_Options), 
-                                        (int)recordedHttpCall.HttpResponseMessage.StatusCode, 
+                m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]",
+                                        recordedHttpCall.Log(m_Options),
+                                        (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                                         recordedHttpCall.HttpResponseMessage.StatusCode);
+                return;
             }
-            else
+
+            if (!m_Options.ShowFullDetailsOnMatchFailure)
             {
-                if (!m_Options.ShowFullDetailsOnMatchFailure)
-                {
-                    m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}] [{num} rules configured]", 
-                                        recordedHttpCall.Log(m_Options), 
-                                        (int)recordedHttpCall.HttpResponseMessage.StatusCode, 
-                                        recordedHttpCall.HttpResponseMessage.StatusCode, 
-                                        m_ConfiguredRules.Count);
-                }
-                else
-                {
-                    m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}]\r\n\r\nConfigured Rules:\r\n\r\n{rules}", 
-                                        recordedHttpCall.Log(m_Options), 
-                                        (int)recordedHttpCall.HttpResponseMessage.StatusCode, 
-                                        recordedHttpCall.HttpResponseMessage.StatusCode, 
-                                        m_ConfiguredRules.Log(m_Options));
-                }
+                m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}] [{num} rules configured]",
+                                    recordedHttpCall.Log(m_Options),
+                                    (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                                    recordedHttpCall.HttpResponseMessage.StatusCode,
+                                    m_ConfiguredRules.Count);
+                return;
             }
+
+            m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}]\r\n\r\nConfigured Rules:\r\n\r\n{rules}", 
+                                recordedHttpCall.Log(m_Options), 
+                                (int)recordedHttpCall.HttpResponseMessage.StatusCode, 
+                                recordedHttpCall.HttpResponseMessage.StatusCode, 
+                                m_ConfiguredRules.Log(m_Options));
         }
         
         internal class IncomingHttpCall

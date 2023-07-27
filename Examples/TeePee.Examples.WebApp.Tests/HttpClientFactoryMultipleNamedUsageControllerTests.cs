@@ -12,8 +12,8 @@ namespace TeePee.Examples.WebApp.Tests
     {
         private const string _NAMED_HTTP_CLIENT_ONE = "OneApi";
         private const string _NAMED_HTTP_CLIENT_TWO = "TwoApi";
-        private readonly TeePeeBuilder m_TeePeeBuilderOne = new TeePeeBuilder(_NAMED_HTTP_CLIENT_ONE);
-        private readonly TeePeeBuilder m_TeePeeBuilderTwo = new TeePeeBuilder(_NAMED_HTTP_CLIENT_TWO);
+        private readonly TeePeeBuilder m_TeePeeBuilderOne = new(_NAMED_HTTP_CLIENT_ONE);
+        private readonly TeePeeBuilder m_TeePeeBuilderTwo = new(_NAMED_HTTP_CLIENT_TWO);
 
         #region Manual Injection
 
@@ -21,7 +21,7 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task ManualInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Get)
+            m_TeePeeBuilderOne.ForRequest("https://first.api/path-one/resource-one", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -36,7 +36,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Get)
+            m_TeePeeBuilderTwo.ForRequest("https://second.api/path-two/resource-two", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -68,14 +68,14 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task ManualInjection_MockAndVerify()
         {
             // Given
-            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/pathone/resourceone", HttpMethod.Put)
+            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://first.api/path-one/resource-one", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/pathtwo/resourcetwo", HttpMethod.Put)
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://second.api/path-two/resource-two", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
@@ -104,7 +104,7 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/pathone/resourceone", HttpMethod.Get)
+            m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/path-one/resource-one", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -119,7 +119,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/pathtwo/resourcetwo", HttpMethod.Get)
+            m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/path-two/resource-two", HttpMethod.Get)
                               .ThatContainsQueryParam("filter", "those")
                               .Responds()
                               .WithStatus(HttpStatusCode.OK)
@@ -158,14 +158,14 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task AutoInjection_MockAndVerify()
         {
             // Given
-            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/pathone/resourceone", HttpMethod.Put)
+            var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://unittest.multipleone.named/path-one/resource-one", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/pathtwo/resourcetwo", HttpMethod.Put)
+            var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.multipletwo.named/path-two/resource-two", HttpMethod.Put)
                                                       .ThatContainsQueryParam("filter", "other")
                                                       .ThatHasBody(new { Caller = "ThisCaller" })
                                                       .Responds()

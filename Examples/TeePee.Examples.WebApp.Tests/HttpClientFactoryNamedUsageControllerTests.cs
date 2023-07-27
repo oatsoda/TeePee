@@ -10,7 +10,7 @@ namespace TeePee.Examples.WebApp.Tests
 {
     public class HttpClientFactoryNamedUsageControllerTests
     {
-        private readonly TeePeeBuilder m_TeePeeBuilder = new TeePeeBuilder(_NAMED_HTTP_CLIENT);
+        private readonly TeePeeBuilder m_TeePeeBuilder = new(_NAMED_HTTP_CLIENT);
         private const string _NAMED_HTTP_CLIENT = "ThirdPartyApi";
 
         #region Manual Injection
