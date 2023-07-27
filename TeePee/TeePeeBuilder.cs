@@ -68,7 +68,7 @@ namespace TeePee
                                    .OrderByDescending(m => m.SpecificityLevel)
                                    .ThenByDescending(m => m.CreatedAt)
                                    .ToList();
-            return new TeePee(HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            return new(HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()

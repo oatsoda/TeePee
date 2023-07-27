@@ -79,7 +79,7 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder ThenResponds()
         {
-            NextResponse = new ResponseBuilder(m_RequestMatchBuilder, m_Options);
+            NextResponse = new(m_RequestMatchBuilder, m_Options);
             return NextResponse;
         }
 
@@ -96,12 +96,12 @@ namespace TeePee
 
         internal Response ToHttpResponse()
         {
-            return new Response(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyContent, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
+            return new(m_ResponseStatusCode, m_Options, m_ResponseBody, m_ResponseBodyContent, m_ResponseBodyMediaType, m_ResponseBodyEncoding, m_ResponseHeaders);
         }
 
         internal static Response DefaultResponse(TeePeeOptions options)
         {
-            return new Response(HttpStatusCode.Accepted, options, null, null, null, null, new Dictionary<string, string>());
+            return new(HttpStatusCode.Accepted, options, null, null, null, null, new Dictionary<string, string>());
         }
 
         #endregion

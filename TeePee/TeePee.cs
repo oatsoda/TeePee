@@ -18,16 +18,16 @@ namespace TeePee
         internal TeePee(string? httpClientNamedInstance, TeePeeOptions options, List<RequestMatchRule> matchRules, HttpStatusCode unmatchedStatusCode, string? unmatchedBody, ILogger? logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
-            HttpHandler = new TeePeeMessageHandler(options, 
-                                                   matchRules,
-                                                   () => new HttpResponseMessage(unmatchedStatusCode)
-                                                   {
-                                                       Content = unmatchedBody == null
-                                                            ? null
-                                                            : new StringContent(unmatchedBody)
-                                                   },
-                                                   logger
-                                                   );
+            HttpHandler = new(options, 
+                              matchRules,
+                              () => new(unmatchedStatusCode)
+                                    {
+                                        Content = unmatchedBody == null
+                                                      ? null
+                                                      : new StringContent(unmatchedBody)
+                                    },
+                              logger
+                             );
         }
         
         /*
@@ -36,7 +36,7 @@ namespace TeePee
 
         public ManualTeePee Manual(string? baseAddressForHttpClient = null)
         {
-            return new ManualTeePee(this, baseAddressForHttpClient);
+            return new(this, baseAddressForHttpClient);
         }
 
         public class ManualTeePee
@@ -54,7 +54,7 @@ namespace TeePee
             public HttpClient CreateClient()
             {
                 return m_BaseAddressForHttpClient == null 
-                           ? new HttpClient(TeePee.HttpHandler) 
+                           ? new(TeePee.HttpHandler) 
                            : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
             }
 

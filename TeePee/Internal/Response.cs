@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace TeePee.Internal
@@ -54,7 +53,7 @@ namespace TeePee.Internal
             if (m_ResponseBody == null)
                 return m_ResponseBodyContent; // Note: Can only be used once as Dispose will dispose it and we can't create another instance from this
 
-            var jsonContent = JsonContent.Create(m_ResponseBody, new MediaTypeHeaderValue(m_ResponseBodyMediaType), m_Options.ResponseBodySerializerOptions);
+            var jsonContent = JsonContent.Create(m_ResponseBody, new(m_ResponseBodyMediaType), m_Options.ResponseBodySerializerOptions);
             if (m_ResponseBodyEncoding != null)
                 jsonContent.Headers.ContentType.CharSet = m_ResponseBodyEncoding;
 

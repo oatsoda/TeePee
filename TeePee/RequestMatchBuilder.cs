@@ -135,7 +135,7 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder Responds()
         {
-            m_ResponseBuilder = new ResponseBuilder(this, m_Options);
+            m_ResponseBuilder = new(this, m_Options);
             return m_ResponseBuilder;
         }
 
@@ -143,7 +143,7 @@ namespace TeePee
         
         public Tracker TrackRequest()
         {
-            return m_Tracker ??= new Tracker(m_Options);
+            return m_Tracker ??= new(m_Options);
         }
         
         #endregion
@@ -154,7 +154,7 @@ namespace TeePee
         {
             var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
             var responses = CreateResponses();
-            return new RequestMatchRule(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
+            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
         }
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()
@@ -170,7 +170,8 @@ namespace TeePee
         {
             var responseBuilder = m_ResponseBuilder;
             var responses = responseBuilder == null
-                                ? new List<Response> { ResponseBuilder.DefaultResponse(m_Options) }
+                                ? new()
+                                  { ResponseBuilder.DefaultResponse(m_Options) }
                                 : new List<Response>(5) { responseBuilder.ToHttpResponse() };
 
             while (responseBuilder?.NextResponse != null)

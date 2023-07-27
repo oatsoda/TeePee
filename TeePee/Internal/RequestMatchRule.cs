@@ -41,8 +41,8 @@ namespace TeePee.Internal
             RequestBody = requestBody;
             RequestBodyMediaType = requestBodyMediaType;
             RequestBodyEncoding = requestBodyEncoding;
-            QueryParams = new ReadOnlyDictionary<string, string>(queryParams);
-            Headers = new ReadOnlyDictionary<string, string>(headers);
+            QueryParams = new(queryParams);
+            Headers = new(headers);
 
             m_Responses = responses;
             Tracker = tracker;
