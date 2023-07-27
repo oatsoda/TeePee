@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30503.244
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeePee.Refit", "TeePee.Refit\TeePee.Refit.csproj", "{E6680B73-F6C5-494F-8677-A3C31799D036}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeePee.Refit.Tests", "TeePee.Refit.Tests\TeePee.Refit.Tests.csproj", "{B610A58C-8B3F-4615-999B-4E023AF8602E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{E6680B73-F6C5-494F-8677-A3C31799D036}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6680B73-F6C5-494F-8677-A3C31799D036}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6680B73-F6C5-494F-8677-A3C31799D036}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B610A58C-8B3F-4615-999B-4E023AF8602E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B610A58C-8B3F-4615-999B-4E023AF8602E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B610A58C-8B3F-4615-999B-4E023AF8602E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B610A58C-8B3F-4615-999B-4E023AF8602E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
