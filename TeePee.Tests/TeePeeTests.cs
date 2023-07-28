@@ -456,6 +456,8 @@ namespace TeePee.Tests
             // Then
             var ex = Assert.Throws<MismatchedTrackerExpectedCalls>(Verify);
             m_TestOutputHelper.WriteLine(ex.Message);
+            Assert.Contains($"{m_HttpMethod} {m_Url}", ex.Message);
+            Assert.Contains($"to be called at least once but was never called", ex.Message);
         }
         
         [Fact]
