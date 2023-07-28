@@ -36,7 +36,7 @@ namespace TeePee
                 throw new InvalidOperationException($"Tracker was not attached to a Request Match. Ensure that you Built the {nameof(TeePeeBuilder)} instance.");
 
             var asExpected = times == null
-                                 ? m_MatchedCalls.Any()
+                                 ? m_MatchedCalls.Count > 0
                                  : m_MatchedCalls.Count == times.Value;
 
             if (asExpected)
