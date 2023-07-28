@@ -40,7 +40,8 @@ namespace TeePee
 
         private void RecordRequest(RecordedHttpCall recordedHttpCall)
         {
-            m_ConfiguredRules.Where(r => r.Tracker != null).ToList().ForEach(r => r.Tracker!.AddHttpCall(recordedHttpCall));
+            foreach (var ruleWithTracker in m_ConfiguredRules.Where(r => r.Tracker != null))
+                ruleWithTracker.Tracker!.AddHttpCall(recordedHttpCall);
 
             if (!recordedHttpCall.IsMatch && m_Options.Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(m_Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{m_ConfiguredRules.Count} rules configured]");
