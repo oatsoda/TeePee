@@ -442,22 +442,30 @@ namespace TeePee.Tests
 
         #region Tracker Specific
         
-        [Fact]
-        public async Task TrackerThrowsIfMatchNotMade()
+        [Theory]
+        [InlineData(false, 1, null, "to be called at least once but was never called")]
+        [InlineData(false, 1, 1, "to be called exactly 1 times but was called 0 times")]
+        [InlineData(false, 1, 2, "to be called exactly 2 times but was called 0 times")]
+        [InlineData(true, 1, 2, "to be called exactly 2 times but was called 1 times")]
+        [InlineData(true, 2, 3, "to be called exactly 3 times but was called 2 times")]
+        public async Task TrackerThrowsIfMatchNotMade(bool requestCorrectMatch, int callTimes, int? expectedCallTimes, string expectedExceptionMessageFragment)
         {
             // Given
             var verify = RequestMatchBuilder().TrackRequest();
-            var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
-            await SendRequest(httpRequestMessage);
+            for (var i = 0; i < callTimes; i++)
+            {
+                var httpRequestMessage = RequestMessage(requestCorrectMatch ? HttpMethod.Get : HttpMethod.Put, m_Url);
+                await SendRequest(httpRequestMessage);
+            }
 
             // When
-            void Verify() => verify.WasCalled();
+            void Verify() => verify.WasCalled(expectedCallTimes);
 
             // Then
             var ex = Assert.Throws<MismatchedTrackerExpectedCalls>(Verify);
             m_TestOutputHelper.WriteLine(ex.Message);
             Assert.Contains($"{m_HttpMethod} {m_Url}", ex.Message);
-            Assert.Contains($"to be called at least once but was never called", ex.Message);
+            Assert.Contains(expectedExceptionMessageFragment, ex.Message);
         }
         
         [Fact]
