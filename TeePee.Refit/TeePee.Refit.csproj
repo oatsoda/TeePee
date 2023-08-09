@@ -18,7 +18,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
-	  <PackageReference Include="TeePee" Version="1.0.40" />
+	  <PackageReference Include="TeePee" Version="1.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
