@@ -1,4 +1,4 @@
-name: 1.0$(rev:.r)
+name: 1$(rev:.r).0
 
 trigger: none
 
@@ -17,7 +17,7 @@ variables:
 steps:
 
 - task: DotNetCoreCLI@2
-  displayName: 'Build All'
+  displayName: 'Build Solution'
   inputs:
     command: 'build'
     projects: '$(solution)'
@@ -27,7 +27,7 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: '**/*[Tt]ests/*.csproj'
+    projects: '**/*[Tt]ests/TeePee.Refit.Tests.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
 
 # Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.
