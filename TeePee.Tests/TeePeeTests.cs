@@ -1,6 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -59,82 +62,31 @@ namespace TeePee.Tests
 
         #region JSON Body
 
-        [Theory]
-        [ClassData(typeof(JsonContentTypesData))]
-        public async Task MatchesBodyWithContentType(string mediaType, Encoding encoding)
+        public class BodyMatchTestData : BaseData
         {
-            // Given
-            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
-                                              .TrackRequest();
-
-            var httpRequestMessage = RequestMessage();
-            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
-
-            // When
-            await SendRequest(httpRequestMessage);
-
-            // Then
-            verify.WasCalled();
+            public override IEnumerator<object[]> GetEnumerator()
+            {
+                yield return new object[] { "text/plain", Encoding.UTF8, true };
+                yield return new object[] { "text/plain", Encoding.UTF8, false };
+                yield return new object[] { "application/json", Encoding.UTF8, true };
+                yield return new object[] { "application/json", Encoding.UTF8, false };
+                yield return new object[] { "text/plain", Encoding.ASCII, true };
+                yield return new object[] { "text/plain", Encoding.ASCII, false };
+            }
         }
         
+        internal record BodyTypeForPartialMatch(int Test, object[] Other);
+
         [Theory]
-        [ClassData(typeof(JsonContentTypesData))]
-        public async Task DoesNotMatchBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding)
-        {
-            // Given
-            m_TrackingBuilder = new(opt =>
-                                    {
-                                        opt.CaseSensitiveMatching = true;
-                                        opt.RequestBodySerializerOptions = new()
-                                                                           { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                                    });
-            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
-                                              .TrackRequest();
-
-            var httpRequestMessage = RequestMessage();
-            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
-
-            // When
-            await SendRequest(httpRequestMessage);
-
-            // Then
-            verify.WasNotCalled();
-        }
-        
-        [Theory]
-        [ClassData(typeof(JsonContentTypesData))]
-        public async Task MatchesBodyWithSameSerialisationSettings(string mediaType, Encoding encoding)
-        {
-            // Given
-            m_TrackingBuilder = new(opt =>
-                                    {
-                                        opt.CaseSensitiveMatching = true;
-                                        opt.RequestBodySerializerOptions = new()
-                                                                           { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                                    });
-            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
-                                              .TrackRequest();
-
-            var httpRequestMessage = RequestMessage();
-            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), encoding, mediaType);
-
-            // When
-            await SendRequest(httpRequestMessage);
-
-            // Then
-            verify.WasCalled();
-        }
-
-        [Fact]
-        public async Task MatchesBodyWithDefaultContentType()
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task MatchesBodyWithDefaultEncodingAndMediaType(bool partialMatch)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject)
-                                              .TrackRequest();
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject).TrackRequest();
 
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
@@ -147,13 +99,84 @@ namespace TeePee.Tests
         }
 
         [Theory]
-        [ClassData(typeof(JsonContentTypesData))]
-        public async Task DoesNotMatchBodyIfMediaTypeDifferent(string mediaType, Encoding encoding)
+        [ClassData(typeof(BodyMatchTestData))]
+        public async Task MatchesBodyWithEncodingAndMediaType(string mediaType, Encoding encoding, bool partialMatch)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
-                                              .TrackRequest();
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2, mediaType, encoding).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding).TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasCalled();
+        }
+        
+        [Theory]
+        [ClassData(typeof(BodyMatchTestData))]
+        public async Task DoesNotMatchBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding, bool partialMatch)
+        {
+            // Given
+            m_TrackingBuilder = new(opt =>
+                                    {
+                                        opt.CaseSensitiveMatching = true;
+                                        opt.RequestBodySerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                                    });
+            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2, mediaType, encoding).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding).TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasNotCalled();
+        }
+        
+        [Theory]
+        [ClassData(typeof(BodyMatchTestData))]
+        public async Task MatchesBodyWithSameSerialisationSettings(string mediaType, Encoding encoding, bool partialMatch)
+        {
+            // Given
+            m_TrackingBuilder = new(opt =>
+                                    {
+                                        opt.CaseSensitiveMatching = true;
+                                        opt.RequestBodySerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                                    });
+            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2, mediaType, encoding).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding).TrackRequest();
+
+            var httpRequestMessage = RequestMessage();
+            httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), encoding, mediaType);
+
+            // When
+            await SendRequest(httpRequestMessage);
+
+            // Then
+            verify.WasCalled();
+        }
+        
+        [Theory]
+        [ClassData(typeof(BodyMatchTestData))]
+        public async Task DoesNotMatchBodyIfMediaTypeDifferent(string mediaType, Encoding encoding, bool partialMatch)
+        {
+            // Given
+            var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2, mediaType, encoding).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding).TrackRequest();
 
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, "wrong/media-type");
@@ -166,13 +189,14 @@ namespace TeePee.Tests
         }
 
         [Theory]
-        [ClassData(typeof(JsonContentTypesData))]
-        public async Task DoesNotMatchBodyIfContentTypeDifferent(string mediaType, Encoding encoding)
+        [ClassData(typeof(BodyMatchTestData))]
+        public async Task DoesNotMatchBodyIfContentTypeDifferent(string mediaType, Encoding encoding, bool partialMatch)
         {
             // Given
             var bodyObject = new { Test = 1, Other = new[] { new { Thing = "Yes" }, new { Thing = "No" } } };
-            var verify = RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding)
-                                              .TrackRequest();
+            var verify = partialMatch 
+                             ? RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1 && b.Other.Length == 2, mediaType, encoding).TrackRequest()
+                             : RequestMatchBuilder().ThatHasBody(bodyObject, mediaType, encoding).TrackRequest();
 
             var httpRequestMessage = RequestMessage();
             httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding.WebName == Encoding.UTF32.WebName ? Encoding.Latin1 : Encoding.UTF32, mediaType);
@@ -184,7 +208,7 @@ namespace TeePee.Tests
             verify.WasNotCalled();
         }
         
-        private class ReferenceBodyType 
+        private class ReferenceBodyType
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public int Test { get; set; }
@@ -211,7 +235,7 @@ namespace TeePee.Tests
         }
 
         #endregion
-
+        
         #region Non-JSON Body
         
         [Theory]

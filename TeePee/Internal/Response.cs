@@ -30,7 +30,7 @@ namespace TeePee.Internal
             m_ResponseBodyMediaType = responseBodyMediaType;
             m_ResponseBodyEncoding = responseBodyEncoding;
 
-            m_ResponseHeaders = new ReadOnlyDictionary<string, string>(responseHeaders);
+            m_ResponseHeaders = new(responseHeaders);
         }
         
         internal HttpResponseMessage ToHttpResponseMessage()
