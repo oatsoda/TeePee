@@ -27,7 +27,8 @@ namespace TeePee.Internal
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
         public ReadOnlyDictionary<string, string> Headers { get; }
 
-        internal int SpecificityLevel => (RequestBody == null ? 0 : 1) + QueryParams.Count + Headers.Count;
+        private bool BodyMatchIsSpecified => RequestBody != null || RequestBodyContainingRule != null;
+        internal int SpecificityLevel => (BodyMatchIsSpecified ? 1 : 0) + QueryParams.Count + Headers.Count;
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
                                   string? url, HttpMethod method, 
@@ -78,7 +79,7 @@ namespace TeePee.Internal
 
         private bool IsMatchingBody(string? requestBody, HttpRequestMessage httpRequestMessage)
         {
-            if (RequestBody == null && RequestBodyContainingRule == null) // Ignored
+            if (!BodyMatchIsSpecified) // Ignored
                 return true;
 
             if (requestBody == null)
