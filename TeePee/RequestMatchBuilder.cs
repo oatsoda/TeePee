@@ -22,8 +22,15 @@ namespace TeePee
 
         private string Url { get; }
         private HttpMethod Method { get; }
+        
+        // Body match is either
+        // a) An object instance which will be serialised when the TeePeeBuilder is built (i.e. before the SUT is executed).
         private object? RequestBody { get; set; }
+        // b) A raw HttpContent object which will have its' content read when the TeePeeBuilder is built (i.e. before the SUT is executed).
         private HttpContent? RequestBodyContent { get; set; }
+        // c) A delegate rule expecting the type and rules about the values it contains, which will only be evaluated at execution time of the SUT.
+        private RequestBodyContainingRule? RequestBodyContainingRule { get; set; }
+        
         private string? RequestBodyMediaType { get; set; }
         private string? RequestBodyEncoding { get; set; }
         
@@ -55,16 +62,16 @@ namespace TeePee
             if (!uri.IsAbsoluteUri)
                 throw new ArgumentException($"Url must be an absolute URI rather than relative. '{url}'", nameof(url));
 
-            if (uri.Query.Length > 0)
-            {
-                MatchUrlWithQuery = true;
+            if (uri.Query.Length <= 0)
+                return url;
 
-                if (QueryParams.Any())
-                    throw new ArgumentException($"Url must not contain QueryString as request has already been configured to match containing a QueryParam. {QueryParams.Keys.Flat()}");
+            MatchUrlWithQuery = true;
 
-                if (m_ParentTrackingBuilder.HasMatchUrlWithQueryParams())
-                    throw new ArgumentException($"Url must not contain QueryString as request matches already exist with <c>ContainingQueryParam</c>. '{url}'", nameof(url));
-            }
+            if (QueryParams.Any())
+                throw new ArgumentException($"Url must not contain QueryString as request has already been configured to match containing a QueryParam. {QueryParams.Keys.Flat()}");
+
+            if (m_ParentTrackingBuilder.HasMatchUrlWithQueryParams())
+                throw new ArgumentException($"Url must not contain QueryString as request matches already exist with <c>ContainingQueryParam</c>. '{url}'", nameof(url));
 
             return url;
         }
@@ -77,7 +84,7 @@ namespace TeePee
             if (body == null)
                 throw new ArgumentNullException();
             
-            if (RequestBody != null || RequestBodyContent != null)
+            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
             RequestBody = body;
@@ -94,12 +101,31 @@ namespace TeePee
             if (body == null)
                 throw new ArgumentNullException();
             
-            if (RequestBody != null || RequestBodyContent != null)
+            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
             RequestBodyContent = body;
             RequestBodyMediaType = body.Headers.ContentType?.MediaType;
             RequestBodyEncoding = body.Headers.ContentType?.CharSet;
+            return this;
+        }
+        
+        /// <summary>
+        /// REQUEST Match this request with the given rule to apply to the expected JSON type specified by the Type parameter. WARNING: Any reference
+        /// types you use within the rule delegate will be evaluated at the point of request (as opposed to at TeePee Build() time) so you must be careful
+        /// not to use the same ref types to seed your test data and this matching rule. MediaType and Encoding default to application/json / UTF8 respectively.
+        /// </summary>
+        public RequestMatchBuilder ThatHasBodyContaining<T>(Func<T, bool> bodyMatchRule, string? mediaType = "application/json", Encoding? encoding = null) where T : class
+        {
+            if (bodyMatchRule == null)
+                throw new ArgumentNullException();
+            
+            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
+                throw new InvalidOperationException("The matching Body has already been added to this request match.");
+            
+            RequestBodyContainingRule = new(typeof(T), o => bodyMatchRule((T)o));
+            RequestBodyMediaType = mediaType;
+            RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
             return this;
         }
         
@@ -151,7 +177,7 @@ namespace TeePee
         {
             var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
             var responses = CreateResponses();
-            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
+            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyContainingRule, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
         }
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()

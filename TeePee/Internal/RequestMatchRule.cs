@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Web;
 using TeePee.Extensions;
 
 namespace TeePee.Internal
 {
-    public class RequestMatchRule
+    internal class RequestMatchRule
     {
         private readonly TeePeeOptions m_Options;
         private readonly List<Response> m_Responses;
@@ -20,6 +21,7 @@ namespace TeePee.Internal
         public string? Url { get; }
         public HttpMethod Method { get; }
         public string? RequestBody { get; }
+        public RequestBodyContainingRule? RequestBodyContainingRule { get; }
         public string? RequestBodyMediaType { get; }
         public string? RequestBodyEncoding { get; }
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
@@ -29,7 +31,7 @@ namespace TeePee.Internal
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
                                   string? url, HttpMethod method, 
-                                  string? requestBody, string? requestBodyMediaType, string? requestBodyEncoding, 
+                                  string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
                                   List<Response> responses, Tracker? tracker)
         {
@@ -39,6 +41,7 @@ namespace TeePee.Internal
             Url = url;
             Method = method;
             RequestBody = requestBody;
+            RequestBodyContainingRule = requestBodyContainingRule;
             RequestBodyMediaType = requestBodyMediaType;
             RequestBodyEncoding = requestBodyEncoding;
             QueryParams = new(queryParams);
@@ -75,13 +78,16 @@ namespace TeePee.Internal
 
         private bool IsMatchingBody(string? requestBody, HttpRequestMessage httpRequestMessage)
         {
-            if (RequestBody == null) // Ignored
+            if (RequestBody == null && RequestBodyContainingRule == null) // Ignored
                 return true;
 
             if (requestBody == null)
                 return false;
             
-            if (!RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
+            if (RequestBody != null && !RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
+                return false;
+
+            if (RequestBodyContainingRule != null && !RequestBodyContainingRule.Rule(JsonSerializer.Deserialize(requestBody, RequestBodyContainingRule.RuleType, m_Options.RequestBodySerializerOptions)!))
                 return false;
 
             return IsMatchingContentType(httpRequestMessage);
@@ -105,7 +111,7 @@ namespace TeePee.Internal
 
             return true;
         }
-
+        
         private bool ContainsMatchingQueryParams(HttpRequestMessage httpRequestMessage)
         {
             if (QueryParams.Count == 0) // Ignored
@@ -126,7 +132,8 @@ namespace TeePee.Internal
 
         public string Log(int? truncateBodyLength)
         {
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {RequestBody?.Trunc(truncateBodyLength)}]";
+            var body = RequestBodyContainingRule != null ? "<Partial Containing Rule>" : RequestBody?.Trunc(truncateBodyLength);
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {body}]";
         }
 
         internal HttpResponseMessage ToHttpResponseMessage()
@@ -145,4 +152,5 @@ namespace TeePee.Internal
             return string.Join("\r\n", matchRules.Select(c => $"\t{c.Log(options.TruncateBodyOutputLength)}"));
         }
     }
+
 }
