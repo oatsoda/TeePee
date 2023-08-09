@@ -68,10 +68,7 @@ namespace TeePee
 
             return url;
         }
-
-        [Obsolete("Use ThatHasBody instead.")]
-        public RequestMatchBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) => ThatHasBody(body, mediaType, encoding);
-
+        
         /// <summary>
         /// REQUEST Match this request with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
         /// </summary>
