@@ -33,7 +33,7 @@ teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
 
 #### Query strings
 
-Query strings van either be included in the URL:
+Query strings can either be included in the URL:
 
 ```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource?filter=those")
