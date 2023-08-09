@@ -57,6 +57,8 @@ namespace TeePee.Tests
 
         #region Matches
 
+        #region JSON Body
+
         [Theory]
         [ClassData(typeof(JsonContentTypesData))]
         public async Task MatchesBodyWithContentType(string mediaType, Encoding encoding)
@@ -207,6 +209,10 @@ namespace TeePee.Tests
             // Then
             verify.WasCalled();
         }
+
+        #endregion
+
+        #region Non-JSON Body
         
         [Theory]
         [ClassData(typeof(NonJsonContentTypesData))]
@@ -271,6 +277,10 @@ namespace TeePee.Tests
             verify.WasNotCalled();
         }
 
+        #endregion
+
+        #region Query String/Params
+
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]
         public async Task MatchesQueryStringInUrl(HttpMethod httpMethod)
@@ -325,6 +335,10 @@ namespace TeePee.Tests
             verify.WasNotCalled();
         }
 
+        #endregion
+
+        #region Headers
+
         [Theory]
         [ClassData(typeof(CommonHttpMethodsData))]
         public async Task MatchesHeadersIfAllMatch(HttpMethod httpMethod)
@@ -365,6 +379,10 @@ namespace TeePee.Tests
             // Then
             verify.WasNotCalled();
         }
+
+        #endregion
+
+        #region Rule Order/Specificity
         
         [Fact]
         public async Task MatchesMoreSpecificRequest()
@@ -405,6 +423,10 @@ namespace TeePee.Tests
             verifyUrlOne.WasNotCalled();
             verifyUrlTwo.WasCalled();
         }
+
+        #endregion
+
+        #region Match Logging
         
         [Theory]
         [InlineData(false)]
@@ -437,6 +459,8 @@ namespace TeePee.Tests
             // Then
             m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) =>  o.ToString().Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
+
+        #endregion
 
         #endregion
 
