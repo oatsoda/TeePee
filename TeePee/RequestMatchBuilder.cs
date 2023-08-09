@@ -25,14 +25,14 @@ namespace TeePee
         
         // Body match is either
         // a) An object instance which will be serialised when the TeePeeBuilder is built (i.e. before the SUT is executed).
-        private object? RequestBody { get; set; }
+        private object? m_RequestBody;
         // b) A raw HttpContent object which will have its' content read when the TeePeeBuilder is built (i.e. before the SUT is executed).
-        private HttpContent? RequestBodyContent { get; set; }
+        private HttpContent? m_RequestBodyContent;
         // c) A delegate rule expecting the type and rules about the values it contains, which will only be evaluated at execution time of the SUT.
-        private RequestBodyContainingRule? RequestBodyContainingRule { get; set; }
-        
-        private string? RequestBodyMediaType { get; set; }
-        private string? RequestBodyEncoding { get; set; }
+        private RequestBodyContainingRule? m_RequestBodyContainingRule;
+
+        private string? m_RequestBodyMediaType;
+        private string? m_RequestBodyEncoding;
         
         private Dictionary<string, string> QueryParams { get; } = new();
         private Dictionary<string, string> Headers { get; } = new();
@@ -84,12 +84,12 @@ namespace TeePee
             if (body == null)
                 throw new ArgumentNullException();
             
-            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
+            if (m_RequestBody != null || m_RequestBodyContent != null || m_RequestBodyContainingRule != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
-            RequestBody = body;
-            RequestBodyMediaType = mediaType;
-            RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
+            m_RequestBody = body;
+            m_RequestBodyMediaType = mediaType;
+            m_RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
             return this;
         }
         
@@ -101,12 +101,12 @@ namespace TeePee
             if (body == null)
                 throw new ArgumentNullException();
             
-            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
+            if (m_RequestBody != null || m_RequestBodyContent != null || m_RequestBodyContainingRule != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
 
-            RequestBodyContent = body;
-            RequestBodyMediaType = body.Headers.ContentType?.MediaType;
-            RequestBodyEncoding = body.Headers.ContentType?.CharSet;
+            m_RequestBodyContent = body;
+            m_RequestBodyMediaType = body.Headers.ContentType?.MediaType;
+            m_RequestBodyEncoding = body.Headers.ContentType?.CharSet;
             return this;
         }
         
@@ -120,12 +120,12 @@ namespace TeePee
             if (bodyMatchRule == null)
                 throw new ArgumentNullException();
             
-            if (RequestBody != null || RequestBodyContent != null || RequestBodyContainingRule != null)
+            if (m_RequestBody != null || m_RequestBodyContent != null || m_RequestBodyContainingRule != null)
                 throw new InvalidOperationException("The matching Body has already been added to this request match.");
             
-            RequestBodyContainingRule = new(typeof(T), o => bodyMatchRule((T)o));
-            RequestBodyMediaType = mediaType;
-            RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
+            m_RequestBodyContainingRule = new(typeof(T), o => bodyMatchRule((T)o));
+            m_RequestBodyMediaType = mediaType;
+            m_RequestBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8, instead of ignore.
             return this;
         }
         
@@ -177,16 +177,16 @@ namespace TeePee
         {
             var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
             var responses = CreateResponses();
-            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, RequestBodyContainingRule, RequestBodyMediaType, RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
+            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, m_RequestBodyContainingRule, m_RequestBodyMediaType, m_RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
         }
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()
         {
-            return RequestBodyContent != null 
-                       ? await RequestBodyContent.ReadContentAsync()
-                       : RequestBody == null
+            return m_RequestBodyContent != null 
+                       ? await m_RequestBodyContent.ReadContentAsync()
+                       : m_RequestBody == null
                            ? null 
-                           : JsonSerializer.Serialize(RequestBody, m_Options.RequestBodySerializerOptions);
+                           : JsonSerializer.Serialize(m_RequestBody, m_Options.RequestBodySerializerOptions);
         }
 
         private List<Response> CreateResponses()
