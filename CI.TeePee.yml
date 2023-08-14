@@ -35,11 +35,11 @@ steps:
        nuget | "$(Agent.OS)"
        nuget
     path: '$(NUGET_PACKAGES)'
-    cacheHitVar: 'CACHE_RESTORED'
+#    cacheHitVar: 'CACHE_RESTORED'
     
 - task: DotNetCoreCLI@2
   displayName: 'Restore Solution'
-  condition: ne(variables.CACHE_RESTORED, true)
+#  condition: ne(variables.CACHE_RESTORED, true)
   inputs:
     command: 'restore'
     projects: '$(solution)'
