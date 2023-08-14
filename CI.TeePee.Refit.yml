@@ -24,14 +24,32 @@ pool:
 variables:
   solution: '**/TeePee.Refit.sln'
   buildConfiguration: 'Release'
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
+- task: Cache@2
+  displayName: 'NuGet Pipeline Cache'
+  inputs:
+    key: 'nuget | "$(Agent.OS)" | TeePee.Refit/**/packages.lock.json,!**/bin/**,!**/obj/**'
+    restoreKeys: |
+       nuget | "$(Agent.OS)"
+       nuget
+    path: '$(NUGET_PACKAGES)'
+    cacheHitVar: 'CACHE_RESTORED'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  condition: ne(variables.CACHE_RESTORED, true)
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+
 - task: DotNetCoreCLI@2
   displayName: 'Build All'
   inputs:
     command: 'build'
     projects: '$(solution)'
-    arguments: '-c $(buildConfiguration)'
+    arguments: '-c $(buildConfiguration) --no-restore'
 
 - task: DotNetCoreCLI@2
   displayName: 'Unit Tests'
