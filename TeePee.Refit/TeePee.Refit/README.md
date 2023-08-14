@@ -6,7 +6,8 @@
 
 Add on adaptor for [TeePee](https://www.nuget.org/packages/TeePee/) when production code is using Refit.
 
-[![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Full.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=10&branchName=main)
+CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Release.TeePee.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=10&branchName=main)
+Release: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI.TeePee.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=11&branchName=main)
 
 # Documentation
 
