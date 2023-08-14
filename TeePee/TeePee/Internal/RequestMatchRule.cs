@@ -41,11 +41,13 @@ namespace TeePee.Internal
 
             Url = url;
             Method = method;
+            
             RequestBody = requestBody;
             RequestBodyContainingRule = requestBodyContainingRule;
             RequestBodyMediaType = requestBodyMediaType;
             RequestBodyEncoding = requestBodyEncoding;
             QueryParams = new(queryParams);
+            
             Headers = new(headers);
 
             m_Responses = responses;

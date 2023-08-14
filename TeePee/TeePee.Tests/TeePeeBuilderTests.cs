@@ -43,7 +43,20 @@ public class TeePeeBuilderTests
         // Then
         Assert.Null(ex);
     }
-        
+
+    [Fact]
+    public void ForRequestThrowsIfUrlHasQueryStringButAnotherRequestMatchAlreadyUsesQueryParam()
+    {
+        // Given
+        m_Builder.ForRequest("https://site.net/api.items", HttpMethod.Get).ThatContainsQueryParam("filter", "those");
+        // When
+        var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api.items?sort=desc", HttpMethod.Get));
+
+        // Then
+        Assert.IsType<ArgumentException>(ex);
+        Assert.Contains("Url must not contain QueryString", ex.Message);
+    }
+
     public static IEnumerable<object[]> UrlAndMethodData()
     {
         yield return new object[] { "https://site.net/api.items", HttpMethod.Get };
@@ -178,20 +191,20 @@ public class TeePeeBuilderTests
     #region ThatHasBody
 
     [Fact]
-    public void ThatHasBodyThrowsIfCalledMoreThanOnce()
+    public void ThatHasBodyThrowsIfBodyNull()
     {
         // Given
-        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                      .ThatHasBody("test");
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
 
         // When
-        var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
+#pragma warning disable CS8714
+        var ex = Record.Exception(() => requestBuilder.ThatHasBody<object?>(null));
+#pragma warning restore CS8714
 
         // Then
-        Assert.IsType<InvalidOperationException>(ex);
-        Assert.Contains("matching Body has already been added", ex.Message);
+        Assert.IsType<ArgumentNullException>(ex);
     }
-
+    
     [Fact]
     public void ThatHasBodyThrowsIfWithHttpContentBodyAlreadyCalled()
     {
@@ -225,6 +238,19 @@ public class TeePeeBuilderTests
     #endregion
 
     #region ThatHasHttpContentBody
+    
+    [Fact]
+    public void ThatHasHttpContentBodyThrowsIfBodyNull()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+
+        // When
+        var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(null!));
+
+        // Then
+        Assert.IsType<ArgumentNullException>(ex);
+    }
 
     [Fact]
     public void ThatHasHttpContentBodyThrowsIfCalledMoreThanOnce()
@@ -275,6 +301,19 @@ public class TeePeeBuilderTests
 
     #region ThatHasBodyContaining
         
+    [Fact]
+    public void ThatHasBodyContainingThrowsIfBodyRuleNull()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+
+        // When
+        var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(null!));
+
+        // Then
+        Assert.IsType<ArgumentNullException>(ex);
+    }
+
     [Fact]
     public void ThatHasBodyContainingThrowsIfCalledMoreThanOnce()
     {

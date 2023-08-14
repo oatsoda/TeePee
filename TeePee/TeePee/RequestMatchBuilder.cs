@@ -47,39 +47,28 @@ namespace TeePee
         {
             m_ParentTrackingBuilder = parentTrackingBuilder;
             m_Options = options;
-
-            Url = ThatHasUrl(url);
-            Method = httpMethod;
-
-            if (m_Options.BuilderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
-                throw new ArgumentException($"There is already a request match for {httpMethod} '{url}'");
-        }
-
-        private string ThatHasUrl(string url)
-        {
+            
             var uri = new Uri(url, UriKind.RelativeOrAbsolute);
 
             if (!uri.IsAbsoluteUri)
                 throw new ArgumentException($"Url must be an absolute URI rather than relative. '{url}'", nameof(url));
 
-            if (uri.Query.Length <= 0)
-                return url;
+            if (m_Options.BuilderMode == TeePeeBuilderMode.RequireUniqueUrlRules && m_ParentTrackingBuilder.HasMatchUrlAndMethod(url, httpMethod))
+                throw new ArgumentException($"There is already a request match for {httpMethod} '{url}'");
 
-            MatchUrlWithQuery = true;
-
-            if (QueryParams.Any())
-                throw new ArgumentException($"Url must not contain QueryString as request has already been configured to match containing a QueryParam. {QueryParams.Keys.Flat()}");
-
-            if (m_ParentTrackingBuilder.HasMatchUrlWithQueryParams())
-                throw new ArgumentException($"Url must not contain QueryString as request matches already exist with <c>ContainingQueryParam</c>. '{url}'", nameof(url));
-
-            return url;
+            MatchUrlWithQuery = uri.Query.Length > 0;
+            
+            if (MatchUrlWithQuery && m_ParentTrackingBuilder.HasMatchUrlWithQueryParams())
+                throw new ArgumentException($"Url must not contain QueryString as request matches already exist using ThatContainsQueryParam. '{url}'", nameof(url));
+            
+            Url = url;
+            Method = httpMethod;
         }
-        
+
         /// <summary>
         /// REQUEST Match this request with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
         /// </summary>
-        public RequestMatchBuilder ThatHasBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
+        public RequestMatchBuilder ThatHasBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) where T : notnull
         {
             if (body == null)
                 throw new ArgumentNullException();
@@ -98,7 +87,7 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatHasHttpContentBody(HttpContent body)
         {
-            if (body == null)
+            if (body == null!) // Force check for null even though nullable not allowing.
                 throw new ArgumentNullException();
             
             if (m_RequestBody != null || m_RequestBodyContent != null || m_RequestBodyContainingRule != null)
