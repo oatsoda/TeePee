@@ -7,6 +7,8 @@ namespace TeePee.Tests
 {
     public class TeePeeBuilderTests
     {
+        #region ForRequest
+
         [Theory]
         [InlineData("/api/items")]
         [InlineData("www.site.com/api/items")]
@@ -28,7 +30,7 @@ namespace TeePee.Tests
         [Theory]
         [InlineData("http://www.site.com/api/items")]
         [InlineData("https://site.com")]
-        public void WithUrlDoesNotThrowIfAbsolute(string absoluteUrl)
+        public void ForRequestDoesNotThrowIfAbsolute(string absoluteUrl)
         {
             // Given
             var builder = new TeePeeBuilder();
@@ -40,229 +42,6 @@ namespace TeePee.Tests
             Assert.Null(ex);
         }
         
-        [Fact]
-        public void WithBodyThrowsIfCalledMoreThanOnce()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBody("test");
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithBodyThrowsIfWithHttpContentBodyAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasHttpContentBody(new StringContent(""));
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithBodyThrowsIfWithBodyContainingAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBodyContaining<object>(_ => true);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-        
-        [Fact]
-        public void WithHttpContentBodyThrowsIfCalledMoreThanOnce()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasHttpContentBody(new StringContent(""));
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithHttpContentBodyThrowsIfWithBodyAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBody("test");
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithHttpContentBodyThrowsIfWithBodyContainingAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBodyContaining<object>(_ => true);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-        
-        [Fact]
-        public void WithBodyContainingThrowsIfCalledMoreThanOnce()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBodyContaining<object>(_ => true);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithBodyContainingThrowsIfWithBodyAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasBody("test");
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void WithBodyContainingThrowsIfWithHttpContentBodyAlreadyCalled()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
-                                        .ThatHasHttpContentBody(new StringContent(""));
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("matching Body has already been added", ex.Message);
-        }
-
-        [Fact]
-        public void ContainingQueryParamThrowsIfUrlHasQueryString()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("Url has already been configured to match with a QueryString", ex.Message);
-        }
-        
-        [Fact]
-        public void WithUrlThrowsIfAnotherMatchContainingQueryParamAlreadyExists()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
-            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("request matches already exist with QueryString matching", ex.Message);
-        }
-        
-        [Fact]
-        public void ContainingQueryParamThrowsIfAnotherMatchForUrlWithQueryStringAlreadyExists()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
-            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
-
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
-
-            // Then
-            Assert.IsType<InvalidOperationException>(ex);
-            Assert.Contains("request matches already exist with QueryString matching", ex.Message);
-        }
-        
-        [Fact]
-        public void ContainingQueryParamThrowsIfDupeName()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
-                                        .ThatContainsQueryParam("sort", "name");
-            
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name2"));
-            
-            // Then
-            Assert.IsType<ArgumentException>(ex);
-            Assert.Contains("already been added", ex.Message);
-        }
-        
-        [Fact]
-        public void ContainingHeaderThrowsIfDupeName()
-        {
-            // Given
-            var builder = new TeePeeBuilder();
-            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
-                                        .ThatContainsHeader("Authorization", "Bearer x");
-            
-            // When
-            var ex = Record.Exception(() => requestBuilder.ThatContainsHeader("Authorization", "Bearer y"));
-            
-            // Then
-            Assert.IsType<ArgumentException>(ex);
-            Assert.Contains("already been added", ex.Message);
-        }
-
         public static IEnumerable<object[]> UrlAndMethodData()
         {
             yield return new object[] { "https://site.net/api.items", HttpMethod.Get };
@@ -303,7 +82,6 @@ namespace TeePee.Tests
             Assert.IsType<ArgumentException>(ex);
             Assert.Contains("already a request match for", ex.Message);
         }
-        
         
         public static IEnumerable<object[]> UrlAndMethodDifferentCombinations()
         {
@@ -375,9 +153,257 @@ namespace TeePee.Tests
 
             // When 
             var ex = Record.Exception(() => builder.ForRequest(secondUrl, secondMethod));
-
+            
+            // Then
             Assert.Null(ex);
         }
+
+        #endregion
+
+        #region ThatHasBody
+
+        [Fact]
+        public void ThatHasBodyThrowsIfCalledMoreThanOnce()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBody("test");
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasBodyThrowsIfWithHttpContentBodyAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasHttpContentBody(new StringContent(""));
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasBodyThrowsIfWithBodyContainingAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBodyContaining<object>(_ => true);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBody("test"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+        
+        #endregion
+
+        #region ThatHasHttpContentBody
+
+        [Fact]
+        public void ThatHasHttpContentBodyThrowsIfCalledMoreThanOnce()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasHttpContentBody(new StringContent(""));
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasHttpContentBodyThrowsIfWithBodyAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBody("test");
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasHttpContentBodyThrowsIfWithBodyContainingAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBodyContaining<object>(_ => true);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasHttpContentBody(new StringContent("")));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        #endregion
+
+        #region ThatHasBodyContaining
+        
+        [Fact]
+        public void ThatHasBodyContainingThrowsIfCalledMoreThanOnce()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBodyContaining<object>(_ => true);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasBodyContainingThrowsIfWithBodyAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasBody("test");
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        [Fact]
+        public void ThatHasBodyContainingThrowsIfWithHttpContentBodyAlreadyCalled()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items", HttpMethod.Get)
+                                        .ThatHasHttpContentBody(new StringContent(""));
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatHasBodyContaining<object>(_ => true));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("matching Body has already been added", ex.Message);
+        }
+
+        #endregion
+
+        #region ThatContainsQueryParam
+
+        [Fact]
+        public void ThatContainsQueryParamThrowsIfUrlHasQueryString()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("Url has already been configured to match with a QueryString", ex.Message);
+        }
+        
+        [Fact]
+        public void ThatContainsQueryParamThrowsIfAnotherMatchContainingQueryParamAlreadyExists()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
+            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("request matches already exist with QueryString matching", ex.Message);
+        }
+        
+        [Fact]
+        public void ThatContainsQueryParamThrowsIfAnotherMatchForUrlWithQueryStringAlreadyExists()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            builder.ForRequest("https://site.net/api/items?filter=value", HttpMethod.Get);
+            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get);
+
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name"));
+
+            // Then
+            Assert.IsType<InvalidOperationException>(ex);
+            Assert.Contains("request matches already exist with QueryString matching", ex.Message);
+        }
+        
+        [Fact]
+        public void ThatContainsQueryParamThrowsIfDupeName()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
+                                        .ThatContainsQueryParam("sort", "name");
+            
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name2"));
+            
+            // Then
+            Assert.IsType<ArgumentException>(ex);
+            Assert.Contains("already been added", ex.Message);
+        }
+
+        #endregion
+
+        #region ThatContainsHeader
+        
+        [Fact]
+        public void ThatContainsHeaderhrowsIfDupeName()
+        {
+            // Given
+            var builder = new TeePeeBuilder();
+            var requestBuilder = builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
+                                        .ThatContainsHeader("Authorization", "Bearer x");
+            
+            // When
+            var ex = Record.Exception(() => requestBuilder.ThatContainsHeader("Authorization", "Bearer y"));
+            
+            // Then
+            Assert.IsType<ArgumentException>(ex);
+            Assert.Contains("already been added", ex.Message);
+        }
+
+        #endregion
+        
+        #region Build
 
         [Fact]
         public void BuildDoesNotThrowOnMultipleCalls()
@@ -389,7 +415,8 @@ namespace TeePee.Tests
             
             // When 
             var ex = Record.Exception(() => builder.Build());
-
+            
+            // Then
             Assert.Null(ex);
         }
         
@@ -411,5 +438,7 @@ namespace TeePee.Tests
             // Then
             Assert.Null(ex);
         }
+
+        #endregion
     }
 }
