@@ -76,9 +76,8 @@ namespace TeePee
                     // Force callers to specify correct named instance
                     return m_NamedInstance == name 
                                ? m_HttpClient
-                               : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
+                               : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
                 }
-
             }
         }
     }
@@ -111,9 +110,9 @@ namespace TeePee
             public HttpClient CreateClient(string name)
             {
                 // Force callers to specify correct named instance
-                return m_NamedClients.ContainsKey(name)
+                return name != null! && m_NamedClients.ContainsKey(name)
                            ? m_NamedClients[name]
-                           : throw new ArgumentOutOfRangeException($"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
+                           : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
             }
         }
     }

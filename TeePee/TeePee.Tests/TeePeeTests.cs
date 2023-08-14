@@ -1080,4 +1080,106 @@ public class TeePeeTests
     #endregion
 
     #endregion
+
+    #region Manual
+    
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData("", "")]
+    [InlineData("myClient", "myClient")]
+    public async Task ManualCreateHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string? requestedName)
+    {
+        // Given
+        if (configuredName != null)
+            m_TrackingBuilder = new(configuredName);
+        var verify = RequestMatchBuilder().TrackRequest();
+
+        var httpClientFactory = m_TrackingBuilder.Build(m_MockLogger.Object).Manual().CreateHttpClientFactory();
+
+        // When
+        await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage());
+
+        // Then
+        verify.WasCalled();
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("myClient", "wrongClient")]
+    [InlineData(null, "wrongClient")]
+    public void ManualCreateHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
+    {
+        // Given
+        if (configuredName != null)
+            m_TrackingBuilder = new(configuredName);
+        RequestMatchBuilder();
+
+        var httpClientFactory = m_TrackingBuilder.Build().Manual().CreateHttpClientFactory();
+
+        // When
+        var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
+
+        // Then
+        Assert.IsType<ArgumentOutOfRangeException>(ex);
+        Assert.Contains($"No HttpClients configured with name '{requestedName}'. Configured with '{configuredName}'", ex.Message);
+    }
+
+    [Fact]
+    public async Task ManualCreateClientMatchesRelativePathsIfBaseUrlSupplied()
+    {
+        // Given
+        var verify = RequestMatchBuilder().TrackRequest();
+        var httpClient = m_TrackingBuilder.Build().Manual("https://www.test.co.uk/").CreateClient();
+
+        // When
+        await httpClient.SendAsync(RequestMessage(m_HttpMethod, "api/items"));
+
+        // Then
+        verify.WasCalled();
+    }
+        
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData("", "")]
+    [InlineData("myClient", "myClient")]
+    public async Task MultipleManualToHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string? requestedName)
+    {
+        // Given
+        var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
+        var builderTwo = new TeePeeBuilder("Second");
+        
+        var verify = builderOne.ForRequest(m_Url, m_HttpMethod).TrackRequest();
+
+        var httpClientFactory = new[] { builderOne.Build().Manual(), builderTwo.Build().Manual() }.ToHttpClientFactory();
+
+        // When
+        await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage());
+
+        // Then
+        verify.WasCalled();
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("myClient", "wrongClient")]
+    [InlineData(null, "wrongClient")]
+    public void MultipleManualToHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
+    {
+        // Given
+        var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
+        var builderTwo = new TeePeeBuilder("Second");
+        
+        var httpClientFactory = new[] { builderOne.Build().Manual(), builderTwo.Build().Manual() }.ToHttpClientFactory();
+
+        // When
+        var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
+
+        // Then
+        Assert.IsType<ArgumentOutOfRangeException>(ex);
+        Assert.Contains($"No HttpClients configured with name '{requestedName}'. Configured with '{configuredName}','Second'", ex.Message);
+    }
+    
+    #endregion
 }
