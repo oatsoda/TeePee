@@ -1,9 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -45,7 +43,7 @@ namespace TeePee.Tests
         {
             m_TestOutputHelper = testOutputHelper;
             m_MockLogger = new();
-            m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()))
+            m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
                         .Callback(new InvocationAction(invocation =>
                                                        {
                                                            var logLevel = (LogLevel)invocation.Arguments[0];               
@@ -53,7 +51,7 @@ namespace TeePee.Tests
                                                            var exception = (Exception)invocation.Arguments[3];
                                                            var formatter = invocation.Arguments[4];
                                                            var invokeMethod = formatter.GetType().GetMethod("Invoke");
-                                                           var logMessage = (string)invokeMethod?.Invoke(formatter, new[] { state, exception });
+                                                           var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
                                                            testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
                                                        }));
         }
@@ -466,7 +464,7 @@ namespace TeePee.Tests
             await SendRequest(RequestMessage());
 
             // Then
-            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
         
         [Fact]
@@ -481,7 +479,7 @@ namespace TeePee.Tests
             await SendRequest(RequestMessage());
 
             // Then
-            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) =>  o.ToString().Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) => o != null && (o.ToString() ?? "").Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
 
         #endregion
@@ -781,7 +779,7 @@ namespace TeePee.Tests
         public async Task RespondsWithCorrectBodyWithDefaultJsonSerializerOptions()
         {
             // Given
-            var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
+            var bodyObject = new { Nullable = (string?)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
                                  .WithBody(bodyObject);
 
@@ -800,7 +798,7 @@ namespace TeePee.Tests
             // Given
             var jsonSerializeOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             m_TrackingBuilder = new(responseBodySerializeOptions: jsonSerializeOptions);
-            var bodyObject = new { Nullable = (string)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
+            var bodyObject = new { Nullable = (string?)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
             RequestMatchBuilder().Responds()
                                  .WithBody(bodyObject);
 
