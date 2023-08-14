@@ -22,7 +22,7 @@ var teePeeBuilder = new TeePeeBuilder();
 
 ### Matching requests
 
-Add requests that you want to support by using the fluent API to specify as little or as much you want to match one
+Add requests that you want to support by using the fluent API to specify as little or as much you want to match on:
 
 ```csharp
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)

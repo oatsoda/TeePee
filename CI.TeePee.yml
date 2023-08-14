@@ -36,16 +36,16 @@ steps:
        nuget
     path: '$(NUGET_PACKAGES)'
     cacheHitVar: 'CACHE_RESTORED'
-
-- task: NuGetCommand@2
-  displayName: 'NuGet restore'
-  condition: ne(variables.CACHE_RESTORED, true)
+    
+- task: DotNetCoreCLI@2
+  displayName: 'Restore Solution'
   inputs:
     command: 'restore'
-    restoreSolution: '$(solution)'
+    projects: '$(solution)'
+    arguments: '-c $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Build All'
+  displayName: 'Build Solution'
   inputs:
     command: 'build'
     projects: '$(solution)'
