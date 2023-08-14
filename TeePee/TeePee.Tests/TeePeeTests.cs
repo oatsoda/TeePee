@@ -594,8 +594,10 @@ public class TeePeeTests
         // Then
         var ex = Assert.Throws<MismatchedTrackerExpectedCalls>(Verify);
         m_TestOutputHelper.WriteLine(ex.Message);
-        Assert.Contains($"{m_HttpMethod} {m_Url}", ex.Message);
+        Assert.Contains($"Expected {m_HttpMethod} {m_Url}", ex.Message);
         Assert.Contains(expectedExceptionMessageFragment, ex.Message);
+        Assert.Contains("\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n", ex.Message);
+        Assert.Contains($"\t{(requestCorrectMatch ? HttpMethod.Get : HttpMethod.Put)} https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: {requestCorrectMatch}]", ex.Message);
         Assert.Same(verify, ex.Tracker);
     }
         
