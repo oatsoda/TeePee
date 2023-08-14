@@ -18,7 +18,7 @@ namespace TeePee.Internal
         internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
         
-        public string? Url { get; }
+        public string Url { get; }
         public HttpMethod Method { get; }
 
         public string? RequestBody { get; }
@@ -33,7 +33,7 @@ namespace TeePee.Internal
         internal int SpecificityLevel => (BodyMatchIsSpecified ? 1 : 0) + QueryParams.Count + Headers.Count;
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
-                                  string? url, HttpMethod method, 
+                                  string url, HttpMethod method, 
                                   bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
                                   List<Response> responses, Tracker? tracker)
@@ -78,9 +78,6 @@ namespace TeePee.Internal
 
         private bool IsMatchingUrl(HttpRequestMessage httpRequestMessage)
         {
-            if (Url == null) // Ignored
-                return true;
-
             // If no params specified, match whole URL including QS
             if (QueryParams.Count == 0)
                 return Url.IsSameUrl(httpRequestMessage.RequestUri.ToString());
