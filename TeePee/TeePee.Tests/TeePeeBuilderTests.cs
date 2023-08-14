@@ -404,6 +404,24 @@ public class TeePeeBuilderTests
 
     #endregion
         
+    #region TrackRequest
+    
+    [Fact]
+    public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsBuild()
+    {
+        // Given
+        var tracker = m_Builder.ForRequest("http://test", HttpMethod.Get).TrackRequest();
+
+        // When
+        var ex = Record.Exception(() => tracker.WasCalled());
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("Ensure that you built the TeePeeBuilder", ex.Message);
+    }
+
+    #endregion
+
     #region Build
 
     [Fact]
