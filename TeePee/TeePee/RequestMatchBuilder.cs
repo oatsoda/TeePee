@@ -147,6 +147,9 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder Responds()
         {
+            if (m_ResponseBuilder != null)
+                throw new InvalidOperationException("You can only call Responds once per rule.");
+
             m_ResponseBuilder = new(this, m_Options);
             return m_ResponseBuilder;
         }

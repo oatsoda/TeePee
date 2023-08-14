@@ -442,7 +442,66 @@ public class TeePeeBuilderTests
     }
 
     #endregion
-        
+    
+    #region Responds
+    
+    [Fact]
+    public void RespondsThrowsIfCalledTwice()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+        requestBuilder.Responds();
+
+        // When
+        var ex = Record.Exception(() => requestBuilder.Responds());
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("You can only call Responds once per rule", ex.Message);
+    }
+
+    #region WithBody
+    
+    [Fact]
+    public void RespondsWithBodyThrowsIfRespondsWithHttpContentBodyAlreadyCalled()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+        var responseBuilder = requestBuilder.Responds();
+        responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[]{ 255 }));
+
+        // When
+        var ex = Record.Exception(() => responseBuilder.WithBody(new { A = "b" }));
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("The response Body has already been set", ex.Message);
+    }
+
+    #endregion
+    
+    #region WithHttpContentBody
+    
+    [Fact]
+    public void RespondsWithHttpContentBodyThrowsIfRespondsWithBodyAlreadyCalled()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+        var responseBuilder = requestBuilder.Responds();
+        responseBuilder.WithBody(new { A = "b" });
+
+        // When
+        var ex = Record.Exception(() => responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[]{ 255 })));
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("The response Body has already been set", ex.Message);
+    }
+
+    #endregion
+
+    #endregion
+
     #region TrackRequest
     
     [Fact]
