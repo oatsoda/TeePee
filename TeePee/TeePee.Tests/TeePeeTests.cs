@@ -549,6 +549,7 @@ public class TeePeeTests
         m_TestOutputHelper.WriteLine(ex.Message);
         Assert.Contains($"{m_HttpMethod} {m_Url}", ex.Message);
         Assert.Contains(expectedExceptionMessageFragment, ex.Message);
+        Assert.Same(verify, ex.Tracker);
     }
         
     [Fact]
