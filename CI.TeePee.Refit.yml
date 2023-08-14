@@ -1,25 +1,31 @@
 name: CI_$(date:yyyyMMdd)$(rev:.r)
 
 trigger:
-- main
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - TeePee.Refit/*
+    - CI.TeePee.Refit.yml
 
+pr: 
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - TeePee.Refit/*
+    - CI.TeePee.Refit.yml
+ 
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
+  solution: '**/TeePee.Refit.sln'
   buildConfiguration: 'Release'
-  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 steps:
-#- task: Cache@2
-#  displayName: Cache NuGet packages
-#  inputs:
-#    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
-#    restoreKeys: |
-#       nuget | "$(Agent.OS)"
-#    path: $(NUGET_PACKAGES)
-
 - task: DotNetCoreCLI@2
   displayName: 'Build All'
   inputs:
@@ -31,5 +37,5 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: '**/*[Tt]ests/*.csproj'
+    projects: 'TeePee.Refit/*[Tt]ests/*.csproj'
     arguments: '-c $(buildConfiguration) --no-build'

@@ -1,8 +1,6 @@
-name: 1.1$(rev:.r)
+name: 1.2$(rev:.r)
 
 trigger: none
-
-# no PR triggers
 pr: none
 
 pool:
@@ -27,7 +25,7 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: '**/*[Tt]ests/TeePee.Tests.csproj'
+    projects: 'TeePee/*[Tt]ests/*.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
 
 # Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.
@@ -36,7 +34,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      dotnet pack TeePee/TeePee.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+      dotnet pack TeePee/TeePee/TeePee.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
 
 - task: PublishBuildArtifacts@1
   displayName: Publish NuGet Package

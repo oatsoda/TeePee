@@ -213,5 +213,5 @@ var subjectUnderTest = Resolve.WithTypedClient<UserController, MyTypedHttpClient
 
 ## Multiple HttpClient dependencies
 
-See [Examples](https://github.com/oatsoda/TeePee/tree/main/Examples) for demonstrations of how to apply the above Manual or Auto injection when you have multiple HttpClient dependencies.
+See [Examples](https://github.com/oatsoda/TeePee/tree/main/TeePee/Examples) for demonstrations of how to apply the above Manual or Auto injection when you have multiple HttpClient dependencies.
 

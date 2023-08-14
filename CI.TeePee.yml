@@ -1,0 +1,50 @@
+name: CI_$(date:yyyyMMdd)$(rev:.r)
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - TeePee/*
+    - CI.TeePee.yml
+
+pr: 
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - TeePee/*
+    - CI.TeePee.yml
+ 
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/TeePee.sln'
+  buildConfiguration: 'Release'
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
+steps:
+#- task: Cache@2
+#  displayName: Cache NuGet packages
+#  inputs:
+#    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+#    restoreKeys: |
+#       nuget | "$(Agent.OS)"
+#    path: $(NUGET_PACKAGES)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build All'
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '-c $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Unit Tests'
+  inputs:
+    command: 'test'
+    projects: 'TeePee/*[Tt]ests/*.csproj'
+    arguments: '-c $(buildConfiguration) --no-build'
