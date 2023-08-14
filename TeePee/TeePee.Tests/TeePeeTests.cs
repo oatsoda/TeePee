@@ -449,13 +449,7 @@ public class TeePeeTests
     #endregion
 
     #region Match Logging
-        
-    // Y No Log if no Logger
-    // Y Message text
-    // Y Matched = true/false in message
-    // Y Does not log Info if Warning logged
-    // Message contains all calls if Detailed
-        
+
     [Fact]
     public async Task DoesNotLogMessageIfNoLogger()
     {
@@ -504,6 +498,7 @@ public class TeePeeTests
         m_TrackingBuilder = new(opt => opt.ShowFullDetailsOnMatchFailure = true);
         RequestMatchBuilder();
         m_HttpMethod = HttpMethod.Options;
+        m_TrackingBuilder.ForRequest("https://www.test.co.uk/api/items2", HttpMethod.Head);
 
         // When
         await SendRequest();
@@ -517,7 +512,7 @@ public class TeePeeTests
                                                                o != null && 
                                                                (o.ToString() ?? "").Contains("Unmatched Http request") && 
                                                                (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
-                                                               (o.ToString() ?? "").Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
+                                                               (o.ToString() ?? "").Contains("\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
                                                           ), 
                                        It.IsAny<Exception>(), 
                                        It.IsAny<Func<It.IsAnyType, Exception?, string>>())
