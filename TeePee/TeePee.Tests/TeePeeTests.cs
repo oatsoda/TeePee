@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TeePee.Tests.TestData;
 using Xunit;
@@ -450,6 +451,25 @@ namespace TeePee.Tests
 
         #region Match Logging
         
+        // Y No Log if no Logger
+        // Y Message text
+        // Y Matched = true/false in message
+        // Y Does not log Info if Warning logged
+        // Message contains all calls if Detailed
+        
+        [Fact]
+        public async Task DoesNotLogMessageIfNoLogger()
+        {
+            // Given
+            RequestMatchBuilder();
+
+            // When
+            await m_TrackingBuilder.Build().Manual().CreateClient().SendAsync(RequestMessage());
+
+            // Then
+            Assert.Empty(m_MockLogger.Invocations);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -461,14 +481,25 @@ namespace TeePee.Tests
                 m_HttpMethod = HttpMethod.Options;
 
             // When
-            await SendRequest(RequestMessage());
+            await SendRequest();
 
             // Then
-            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+            Assert.Single(m_MockLogger.Invocations);
+            m_MockLogger.Verify(l => l.Log(
+                                           It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)), 
+                                           It.IsAny<EventId>(),
+                                           It.Is<It.IsAnyType>((o, t) => 
+                                                                   o != null && 
+                                                                   (o.ToString() ?? "").Contains($"{(isMatch ? "Matched" : "Unmatched")} Http request") && 
+                                                                   (o.ToString() ?? "").Contains($"{m_HttpMethod} https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: {isMatch}]")
+                                                              ), 
+                                           It.IsAny<Exception>(), 
+                                           It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+                                , Times.Once);
         }
         
         [Fact]
-        public async Task LogsFullDetailsMessageIfSettingEnabled()
+        public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled()
         {
             // Given
             m_TrackingBuilder = new(opt => opt.ShowFullDetailsOnMatchFailure = true);
@@ -476,10 +507,22 @@ namespace TeePee.Tests
             m_HttpMethod = HttpMethod.Options;
 
             // When
-            await SendRequest(RequestMessage());
+            await SendRequest();
 
             // Then
-            m_MockLogger.Verify(l => l.Log(It.Is<LogLevel>(level => level == LogLevel.Warning), It.IsAny<EventId>(), It.Is<It.IsAnyType>((o, t) => o != null && (o.ToString() ?? "").Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+            Assert.Single(m_MockLogger.Invocations);
+            m_MockLogger.Verify(l => l.Log(
+                                           It.Is<LogLevel>(level => level == LogLevel.Warning), 
+                                           It.IsAny<EventId>(), 
+                                           It.Is<It.IsAnyType>((o, t) => 
+                                                                   o != null && 
+                                                                   (o.ToString() ?? "").Contains("Unmatched Http request") && 
+                                                                   (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
+                                                                   (o.ToString() ?? "").Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
+                                                                   ), 
+                                           It.IsAny<Exception>(), 
+                                           It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+                                , Times.Once);
         }
 
         #endregion
