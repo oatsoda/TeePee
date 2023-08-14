@@ -390,10 +390,12 @@ public class TeePeeTests
         // Given
         m_HttpMethod = httpMethod;
         var verify = RequestMatchBuilder().ThatContainsHeader("name1", "val1")
+                                          .ThatContainsHeader("name2", "val2")
                                           .TrackRequest();
 
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Headers.Add("name2", "val2");
+        httpRequestMessage.Headers.Add("name3", "val3");
 
         // When
         await SendRequest(httpRequestMessage);
