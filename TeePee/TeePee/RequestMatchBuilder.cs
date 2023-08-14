@@ -166,7 +166,11 @@ namespace TeePee
         {
             var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
             var responses = CreateResponses();
-            return new(m_Options, m_CreatedAt, Url, Method, serialisedRequestBody, m_RequestBodyContainingRule, m_RequestBodyMediaType, m_RequestBodyEncoding, QueryParams, Headers, responses, m_Tracker);
+            return new(m_Options, m_CreatedAt, 
+                       Url, Method, 
+                       m_RequestBodyContent != null, serialisedRequestBody, m_RequestBodyContainingRule, m_RequestBodyMediaType, m_RequestBodyEncoding, 
+                       QueryParams, Headers, 
+                       responses, m_Tracker);
         }
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()

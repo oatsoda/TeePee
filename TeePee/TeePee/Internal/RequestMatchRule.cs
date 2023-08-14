@@ -20,10 +20,12 @@ namespace TeePee.Internal
         
         public string? Url { get; }
         public HttpMethod Method { get; }
+
         public string? RequestBody { get; }
         public RequestBodyContainingRule? RequestBodyContainingRule { get; }
         public string? RequestBodyMediaType { get; }
         public string? RequestBodyEncoding { get; }
+
         public ReadOnlyDictionary<string, string> QueryParams { get; } 
         public ReadOnlyDictionary<string, string> Headers { get; }
 
@@ -32,7 +34,7 @@ namespace TeePee.Internal
 
         internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
                                   string? url, HttpMethod method, 
-                                  string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding, 
+                                  bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding, 
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
                                   List<Response> responses, Tracker? tracker)
         {
@@ -41,13 +43,22 @@ namespace TeePee.Internal
 
             Url = url;
             Method = method;
-            
+
             RequestBody = requestBody;
             RequestBodyContainingRule = requestBodyContainingRule;
             RequestBodyMediaType = requestBodyMediaType;
             RequestBodyEncoding = requestBodyEncoding;
+
+            if (!isHttpContentBodyMatch && BodyMatchIsSpecified)
+            {
+                if (RequestBodyMediaType == null)
+                    throw new ArgumentNullException(nameof(requestBodyMediaType), "Body MediaType must be specified if matching a JSON body.");
+
+                if (RequestBodyEncoding == null)
+                    throw new ArgumentNullException(nameof(requestBodyEncoding), "Body Encoding must be specified if matching a JSON body.");
+            }
+
             QueryParams = new(queryParams);
-            
             Headers = new(headers);
 
             m_Responses = responses;
