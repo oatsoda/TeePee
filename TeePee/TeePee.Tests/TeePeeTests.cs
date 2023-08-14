@@ -404,6 +404,23 @@ public class TeePeeTests
         verify.WasNotCalled();
     }
 
+    [Fact]
+    public async Task MatchesHeadersIfOneValueOfHeaderMatches()
+    {
+        // Given
+        var verify = RequestMatchBuilder().ThatContainsHeader("name1", "val1")
+                                          .TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Headers.Add("Name1", new[] { "val1", "otherVal" });
+
+        // When
+        await SendRequest(httpRequestMessage);
+
+        // Then
+        verify.WasCalled();
+    }
+
     #endregion
 
     #region Rule Order/Specificity
@@ -413,12 +430,36 @@ public class TeePeeTests
     {
         // Given
         var bodyObject = new { Test = 1 };
-        var verifyUrlOnly = RequestMatchBuilder()
-           .TrackRequest();
-        var verifyUrlAndBody = RequestMatchBuilder().ThatHasBody(bodyObject)
-                                                    .TrackRequest();
+        var verifyUrlOnly = RequestMatchBuilder().TrackRequest();
+        var verifyUrlAndBody = RequestMatchBuilder()
+                              .ThatHasBody(bodyObject)
+                              .TrackRequest();
+        var verifyUrlAndBodyAndOneQueryParam = RequestMatchBuilder()
+                                              .ThatHasBody(bodyObject)
+                                              .ThatContainsQueryParam("filter", "a")
+                                              .TrackRequest();
+        var verifyUrlAndBodyAndQueryParams = RequestMatchBuilder()
+                                            .ThatHasBody(bodyObject)
+                                            .ThatContainsQueryParam("filter", "a")
+                                            .ThatContainsQueryParam("sort", "desc")
+                                            .TrackRequest();
+        var verifyUrlAndBodyAndQueryParamsAndOneHeader = RequestMatchBuilder()
+                                                        .ThatHasBody(bodyObject)
+                                                        .ThatContainsQueryParam("filter", "a")
+                                                        .ThatContainsQueryParam("sort", "desc")
+                                                        .ThatContainsHeader("h1", "v1")
+                                                        .TrackRequest();
+        var verifyUrlAndBodyAndQueryParamsAndHeaders = RequestMatchBuilder()
+                                                      .ThatHasBody(bodyObject)
+                                                      .ThatContainsQueryParam("filter", "a")
+                                                      .ThatContainsQueryParam("sort", "desc")
+                                                      .ThatContainsHeader("h1", "v1")
+                                                      .ThatContainsHeader("h2", "v2")
+                                                      .TrackRequest();
 
-        var httpRequestMessage = RequestMessage();
+        var httpRequestMessage = RequestMessage(HttpMethod.Get, $"{m_Url}?filter=a&sort=desc");
+        httpRequestMessage.Headers.Add("h1", "v1");
+        httpRequestMessage.Headers.Add("h2", "v2");
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
 
         // When
@@ -426,7 +467,11 @@ public class TeePeeTests
 
         // Then
         verifyUrlOnly.WasNotCalled();
-        verifyUrlAndBody.WasCalled();
+        verifyUrlAndBody.WasNotCalled();
+        verifyUrlAndBodyAndOneQueryParam.WasNotCalled();
+        verifyUrlAndBodyAndQueryParams.WasNotCalled();
+        verifyUrlAndBodyAndQueryParamsAndOneHeader.WasNotCalled();
+        verifyUrlAndBodyAndQueryParamsAndHeaders.WasCalled();
     }
 
     [Fact]
