@@ -1,29 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<PackageId>TeePee.Refit</PackageId>
-		<Authors>Andrew Milne</Authors>
-		<PackageTags>HttpClient;Unit;Testing;Mock;HttpClientFactory</PackageTags>
-		<Description>Refit extensions for TeePee.</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/oatsoda/TeePee</PackageProjectUrl>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageIcon>teepee-icon.png</PackageIcon>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
-	  <PackageReference Include="TeePee" Version="1.1.1" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="teepee-icon.png" Pack="true" PackagePath="\" />
-		<None Include="README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
+  <PropertyGroup>
+  	<TargetFramework>netstandard2.1</TargetFramework>
+  	<LangVersion>latest</LangVersion>
+  	<PackageId>TeePee.Refit</PackageId>
+  	<Authors>Andrew Milne</Authors>
+  	<PackageTags>HttpClient;Unit;Testing;Mock;HttpClientFactory</PackageTags>
+  	<Description>Refit extensions for TeePee.</Description>
+  	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+  	<PackageProjectUrl>https://github.com/oatsoda/TeePee</PackageProjectUrl>
+  	<PackageReadmeFile>README.md</PackageReadmeFile>
+  	<RepositoryUrl>https://github.com/oatsoda/TeePee</RepositoryUrl>
+  	<RepositoryType>git</RepositoryType>
+  	<PackageIcon>teepee-icon.png</PackageIcon>
+  	<Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
+    <PackageReference Include="TeePee" Version="1.1.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+  	<None Include="..\..\teepee-icon.png" Pack="true" PackagePath="\" />
+  	<None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

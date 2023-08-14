@@ -1,4 +1,4 @@
-﻿<img src="https://raw.githubusercontent.com/oatsoda/TeePee/main/TeePee/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
+﻿<img src="https://raw.githubusercontent.com/oatsoda/TeePee/main/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
 
 # TeePee.Refit
 
@@ -6,7 +6,7 @@
 
 Add on adaptor for [TeePee](https://www.nuget.org/packages/TeePee/) when production code is using Refit.
 
-CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Release.TeePee.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=10&branchName=main)
+CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Release.TeePee.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=10&branchName=main) \ 
 Release: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI.TeePee.Refit?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=11&branchName=main)
 
 # Documentation

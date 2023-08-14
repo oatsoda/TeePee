@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/oatsoda/TeePee/main/TeePee/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
+<img src="https://raw.githubusercontent.com/oatsoda/TeePee/main/teepee-icon.png" alt="TeePee Logo" width="64" height="64" />
 
 # TeePee
 
