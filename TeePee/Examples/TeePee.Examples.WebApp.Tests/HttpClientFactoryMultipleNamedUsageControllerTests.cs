@@ -51,7 +51,11 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne.Build().Manual("https://first.api"), m_TeePeeBuilderTwo.Build().Manual("https://second.api") }
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[]
+                                                                                   {
+                                                                                       (await m_TeePeeBuilderOne.Build()).Manual("https://first.api"), 
+                                                                                       (await m_TeePeeBuilderTwo.Build()).Manual("https://second.api")
+                                                                                   }
                                                                                   .ToHttpClientFactory());
 
             // When
@@ -82,7 +86,11 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
             
-            var controller = new HttpClientFactoryMultipleNamedUsageController(new[] { m_TeePeeBuilderOne.Build().Manual("https://first.api"), m_TeePeeBuilderTwo.Build().Manual("https://second.api") }
+            var controller = new HttpClientFactoryMultipleNamedUsageController(new[]
+                                                                                   {
+                                                                                       (await m_TeePeeBuilderOne.Build()).Manual("https://first.api"), 
+                                                                                       (await m_TeePeeBuilderTwo.Build()).Manual("https://second.api")
+                                                                                   }
                                                                                   .ToHttpClientFactory());
 
             // When
@@ -134,7 +142,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
+            var controller = await Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
                                                                                                      {
                                                                                                          var configuration = UnitTestConfig.LoadUnitTestConfig();
 
@@ -172,7 +180,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var controller = Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
+            var controller = await Resolve.WithNamedClients<HttpClientFactoryMultipleNamedUsageController>(sc =>
                                                                                                      {
                                                                                                          var configuration = UnitTestConfig.LoadUnitTestConfig();
 

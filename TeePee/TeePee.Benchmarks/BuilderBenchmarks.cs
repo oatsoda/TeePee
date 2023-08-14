@@ -7,7 +7,7 @@ namespace TeePee.Benchmarks;
 public class BuilderBenchmarks
 {
     [Benchmark]
-    public void FiveRulesBuild()
+    public async Task FiveRulesBuild()
     {
         var builder = new TeePeeBuilder();
         foreach (var url in Data.Urls)
@@ -22,6 +22,6 @@ public class BuilderBenchmarks
                    .WithBody(new { Id = "abc" });
         }
 
-        builder.Build();
+        await builder.Build();
     }
 }

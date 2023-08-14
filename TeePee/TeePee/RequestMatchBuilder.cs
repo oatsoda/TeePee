@@ -165,9 +165,9 @@ namespace TeePee
 
         #region Internal: Build Rule into Responses
 
-        internal RequestMatchRule ToRequestMatchRule()
+        internal async Task<RequestMatchRule> ToRequestMatchRule()
         {
-            var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
+            var serialisedRequestBody = await SerialiseExpectedRequestMatchBody();
             var responses = CreateResponses();
             return new(m_Options, m_CreatedAt, 
                        Url, Method, 

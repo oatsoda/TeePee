@@ -13,11 +13,11 @@ namespace TeePee
     public class TeePeeMessageHandler : DelegatingHandler
     {
         private readonly TeePeeOptions m_Options;
-        private readonly List<RequestMatchRule> m_ConfiguredRules;
+        private readonly IReadOnlyList<RequestMatchRule> m_ConfiguredRules;
         private readonly Func<HttpResponseMessage> m_DefaultResponse;
         private readonly ILogger? m_Logger;
         
-        internal TeePeeMessageHandler(TeePeeOptions options, List<RequestMatchRule> requestMatchRules, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
+        internal TeePeeMessageHandler(TeePeeOptions options, IReadOnlyList<RequestMatchRule> requestMatchRules, Func<HttpResponseMessage> defaultResponse, ILogger? logger)
         {
             m_Options = options;
             m_ConfiguredRules = requestMatchRules;

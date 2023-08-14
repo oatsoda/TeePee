@@ -50,8 +50,8 @@ namespace TeePee.Examples.WebApp.Tests
                                         });
 
 
-            var controller = new HttpClientFactoryMultipleTypedUsageController(new(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
-                                                                               new(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(new((await m_TeePeeBuilderOne.Build()).Manual("https://some.api").CreateClient()), 
+                                                                               new((await m_TeePeeBuilderTwo.Build()).Manual("https://other.api").CreateClient()));
 
             // When
             var result = await controller.FireAndAct();
@@ -81,8 +81,8 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
             
-            var controller = new HttpClientFactoryMultipleTypedUsageController(new(m_TeePeeBuilderOne.Build().Manual("https://some.api").CreateClient()), 
-                                                                               new(m_TeePeeBuilderTwo.Build().Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(new((await m_TeePeeBuilderOne.Build()).Manual("https://some.api").CreateClient()), 
+                                                                               new((await m_TeePeeBuilderTwo.Build()).Manual("https://other.api").CreateClient()));
 
             // When
             var result = await controller.FireAndForget();
@@ -139,7 +139,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                      }
                                         });
 
-            var controller = Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
+            var controller = await Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
                                                                                                                                                                                                     {
                                                                                                                                                                                                         var configuration = UnitTestConfig.LoadUnitTestConfig();
 
@@ -175,7 +175,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                       .WithStatus(HttpStatusCode.Created)
                                                       .TrackRequest();
 
-            var controller = Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
+            var controller = await Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
                                                                                                                                                                                                     {
                                                                                                                                                                                                         var configuration = UnitTestConfig.LoadUnitTestConfig();
 

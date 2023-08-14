@@ -10,7 +10,7 @@ public class ExecutionBenchmarks
     private HttpClient? m_HttpClient;
 
     [GlobalSetup]
-    public void GlobalSetup()
+    public async Task GlobalSetup()
     {
         var builder = new TeePeeBuilder();
         foreach (var url in Data.Urls)
@@ -25,7 +25,7 @@ public class ExecutionBenchmarks
                    .WithBody(new { Id = "abc" });
         }
 
-        m_HttpClient = builder.Build().Manual().CreateClient();
+        m_HttpClient = (await builder.Build()).Manual().CreateClient();
     }
 
     [Benchmark]

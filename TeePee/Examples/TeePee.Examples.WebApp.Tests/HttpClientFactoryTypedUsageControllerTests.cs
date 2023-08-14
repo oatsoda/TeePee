@@ -33,7 +33,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient(m_TeePeeBuilder.Build().Manual("https://some.api").CreateClient()));
+            var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateClient()));
 
             // When
             var result = await controller.FireAndAct();
@@ -56,7 +56,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient(m_TeePeeBuilder.Build().Manual("https://some.api").CreateClient()));
+            var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateClient()));
 
             // When
             var result = await controller.FireAndForget();
@@ -97,7 +97,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
+            var controller = await Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
                                                                                                                    sc =>
                                                                                                                    {
                                                                                                                        /* Example of using prod Setup code */
@@ -128,7 +128,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
+            var controller = await Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
                                                                                                                     sc =>
                                                                                                                     {
                                                                                                                         var configuration = UnitTestConfig.LoadUnitTestConfig();
