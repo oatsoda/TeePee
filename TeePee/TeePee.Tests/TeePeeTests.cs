@@ -917,7 +917,7 @@ public class TeePeeTests
            .Responds()
            .WithStatus(HttpStatusCode.Ambiguous);
             
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
         var firstResponse = await client.SendAsync(RequestMessage());
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
@@ -938,7 +938,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
             
-        var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
         await client.SendAsync(RequestMessage());
         await client.SendAsync(RequestMessage());
 
@@ -961,7 +961,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
             
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
 
         var firstResponse = await client.SendAsync(RequestMessage());
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
@@ -987,7 +987,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.MisdirectedRequest);
             
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
 
         var firstResponse = await client.SendAsync(RequestMessage());
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
@@ -1013,7 +1013,7 @@ public class TeePeeTests
            .WithStatus(HttpStatusCode.Ambiguous)
            .ThenResponds();
             
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
         await client.SendAsync(RequestMessage());
 
         // When
@@ -1035,7 +1035,7 @@ public class TeePeeTests
                     .ThenResponds()
                     .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
         await client.SendAsync(RequestMessage());
         await client.SendAsync(RequestMessage());
 
@@ -1067,7 +1067,7 @@ public class TeePeeTests
                            .WithStatus(HttpStatusCode.Accepted)
                            .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
         await client.SendAsync(RequestMessage());
 
         // When

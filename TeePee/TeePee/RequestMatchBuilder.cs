@@ -178,19 +178,19 @@ namespace TeePee
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()
         {
-            return m_RequestBodyContent != null 
-                       ? await m_RequestBodyContent.ReadContentAsync()
-                       : m_RequestBody == null
-                           ? null 
-                           : JsonSerializer.Serialize(m_RequestBody, m_Options.RequestBodySerializerOptions);
+            if (m_RequestBodyContent != null)
+                return await m_RequestBodyContent.ReadContentAsync();
+
+            return m_RequestBody == null
+                ? null 
+                : JsonSerializer.Serialize(m_RequestBody, m_Options.RequestBodySerializerOptions);
         }
 
         private List<Response> CreateResponses()
         {
             var responseBuilder = m_ResponseBuilder;
             var responses = responseBuilder == null
-                                ? new()
-                                  { ResponseBuilder.DefaultResponse(m_Options) }
+                                ? new() { ResponseBuilder.DefaultResponse(m_Options) }
                                 : new List<Response>(5) { responseBuilder.ToHttpResponse() };
 
             while (responseBuilder?.NextResponse != null)
