@@ -46,7 +46,7 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: 'TeePee.Refit/*[Tt]ests/*.csproj'
+    projects: 'TeePee.Refit/**/*[Tt]ests.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
 
 # Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.

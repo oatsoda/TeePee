@@ -57,5 +57,5 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: 'TeePee/*[Tt]ests/*.csproj'
+    projects: 'TeePee/**/*[Tt]ests.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
