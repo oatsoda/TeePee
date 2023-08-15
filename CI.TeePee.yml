@@ -1,9 +1,7 @@
 name: CI_$(date:yyyyMMdd)$(rev:.r)
 
 trigger:
-  branches:
-    include:
-    - main
+  batch: true
   paths:
     include:
     - TeePee/*
@@ -59,5 +57,5 @@ steps:
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
-    projects: 'TeePee/*[Tt]ests/*.csproj'
+    projects: 'TeePee/**/*[Tt]ests.csproj'
     arguments: '-c $(buildConfiguration) --no-build'
