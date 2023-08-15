@@ -34,7 +34,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().Manual("https://some.api").CreateHttpClientFactory());
+            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndAct();
@@ -57,7 +57,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Build().Manual("https://some.api").CreateHttpClientFactory());
+            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndForget();
@@ -92,7 +92,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
+            var controller = await Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
                                                                                              {
                                                                                                  var configuration = UnitTestConfig.LoadUnitTestConfig();
 
@@ -122,7 +122,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
+            var controller = await Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
                                                                                              {
                                                                                                  var configuration = UnitTestConfig.LoadUnitTestConfig();
 

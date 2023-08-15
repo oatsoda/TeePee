@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TeePee.Internal;
 
 namespace TeePee
 {
@@ -60,15 +62,21 @@ namespace TeePee
             return builder;
         }
 
-        public TeePee Build(ILogger<TeePee>? logger = null)
+        public async Task<TeePee> Build(ILogger<TeePee>? logger = null)
         {
             m_IsBuilt = true;
-            var requestMatchRules = m_Requests
-                                   .Select(b => b.ToRequestMatchRule())
-                                   .OrderByDescending(m => m.SpecificityLevel)
-                                   .ThenByDescending(m => m.CreatedAt)
-                                   .ToList();
-            return new(HttpClientNamedInstance, m_Options, requestMatchRules, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            var requestMatchRules = new List<RequestMatchRule>(m_Requests.Count);
+            foreach (var request in m_Requests)
+            {
+                var requestMatchRule = await request.ToRequestMatchRule();
+                requestMatchRules.Add(requestMatchRule);
+            }
+
+            var requestMatchRulesOrdered = requestMatchRules
+                                          .OrderByDescending(m => m.SpecificityLevel)
+                                          .ThenByDescending(m => m.CreatedAt)
+                                          .ToList();
+            return new(HttpClientNamedInstance, m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()

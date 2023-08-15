@@ -349,5 +349,5 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Stop my local secrets getting committed!
-appsettings.Development.json
+# Stryker Mutation Test output
+StrykerOutput/

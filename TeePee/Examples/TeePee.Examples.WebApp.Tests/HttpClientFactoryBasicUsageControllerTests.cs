@@ -34,7 +34,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = new HttpClientFactoryBasicUsageController(m_TeePeeBuilder.Build().Manual().CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndAct();
@@ -57,7 +57,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryBasicUsageController(m_TeePeeBuilder.Build().Manual().CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndForget();
@@ -92,7 +92,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                   }
                                      });
 
-            var controller = Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -115,7 +115,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
             
-            var controller = Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();

@@ -165,9 +165,9 @@ namespace TeePee
 
         #region Internal: Build Rule into Responses
 
-        internal RequestMatchRule ToRequestMatchRule()
+        internal async Task<RequestMatchRule> ToRequestMatchRule()
         {
-            var serialisedRequestBody = SerialiseExpectedRequestMatchBody().GetAwaiter().GetResult();
+            var serialisedRequestBody = await SerialiseExpectedRequestMatchBody();
             var responses = CreateResponses();
             return new(m_Options, m_CreatedAt, 
                        Url, Method, 
@@ -178,19 +178,19 @@ namespace TeePee
         
         private async Task<string?> SerialiseExpectedRequestMatchBody()
         {
-            return m_RequestBodyContent != null 
-                       ? await m_RequestBodyContent.ReadContentAsync()
-                       : m_RequestBody == null
-                           ? null 
-                           : JsonSerializer.Serialize(m_RequestBody, m_Options.RequestBodySerializerOptions);
+            if (m_RequestBodyContent != null)
+                return await m_RequestBodyContent.ReadContentAsync();
+
+            return m_RequestBody == null
+                ? null 
+                : JsonSerializer.Serialize(m_RequestBody, m_Options.RequestBodySerializerOptions);
         }
 
         private List<Response> CreateResponses()
         {
             var responseBuilder = m_ResponseBuilder;
             var responses = responseBuilder == null
-                                ? new()
-                                  { ResponseBuilder.DefaultResponse(m_Options) }
+                                ? new() { ResponseBuilder.DefaultResponse(m_Options) }
                                 : new List<Response>(5) { responseBuilder.ToHttpResponse() };
 
             while (responseBuilder?.NextResponse != null)

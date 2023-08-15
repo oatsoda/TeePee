@@ -114,7 +114,8 @@ Once you have finished setting up one or more requests in you `TeePeeBuilder` th
 Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
 
 ```csharp
-var httpClientFactory = teePeeBuilder.Build().Manual().CreateHttpClientFactory();
+var teePee = await teePeeBuilder.Build();
+var httpClientFactory = teePee.Manual().CreateHttpClientFactory();
 var subjectUnderTest = new UserController(httpClientFactory);
 ```
 
@@ -125,9 +126,10 @@ For Named HttpClient instances, you need to specify the expected Name of the ins
 ```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 
-// Setup requests
+// Setup request matching...
 
-var httpClientFactory = teePeeBuilder.Build().Manual().CreateHttpClientFactory();
+var teePee = await teePeeBuilder.Build();
+var httpClientFactory = teePee.Manual().CreateHttpClientFactory();
 var subjectUnderTest = new UserController(httpClientFactory);
 ```
 
@@ -138,9 +140,10 @@ For Typed HttpClient instances, you need to create the HttpClient instead of the
 ```csharp
 var teePeeBuilder = new TeePeeBuilder();
 
-// Setup requests
+// Setup request matching...
 
-var typedHttpClient = new MyTypedHttpClient(teePeeBuilder.Build().Manual().CreateClient());
+var teePee = await teePeeBuilder.Build();
+var typedHttpClient = new MyTypedHttpClient(teePee.Manual().CreateClient());
 var subjectUnderTest = new UserController(typedHttpClient);
 ```
 
@@ -154,8 +157,9 @@ var teePeeBuilder = new TeePeeBuilder("GitHub");
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
              .Responds()
              .WithStatusCode(HttpStatusCode.OK);
-             
-var typedHttpClient = new MyTypedHttpClient(teePeeBuilder.Build().Manual("https://some.api").CreateClient());         
+
+var teePee = await teePeeBuilder.Build();
+var typedHttpClient = new MyTypedHttpClient(teePee.Manual("https://some.api").CreateClient());         
 var subjectUnderTest = new UserController(typedHttpClient);
 ```
 
@@ -169,7 +173,7 @@ Injecting automatically allows you to cover the startup DI registrations as part
 Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
 
 ```csharp
-var subjectUnderTest = Resolve.WithDefaultClient<UserController>(teePeeBuilder);
+var subjectUnderTest = await Resolve.WithDefaultClient<UserController>(teePeeBuilder);
 ```
 
 #### Named HttpClient
@@ -179,16 +183,16 @@ For Named HttpClient instances, you need to specify the expected Name of the ins
 ```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 
-// Setup requests
+// Setup request matching...
 
-var subjectUnderTest = Resolve.WithNamedClients<UserController>(
-                          services => 
-                          {
-                             // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
-                             // Expect any intermediate dependencies to also be registered
-                             services.AddHttpClient("GitHub, c => c.BaseAddress = "https://external.api");                             
-                          },
-                          teePeeBuilder);
+var subjectUnderTest = await Resolve.WithNamedClients<UserController>(
+                                services => 
+                                {
+                                   // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
+                                   // Expect any intermediate dependencies to also be registered
+                                   services.AddHttpClient("GitHub, c => c.BaseAddress = "https://external.api");                             
+                                },
+                                teePeeBuilder);
 ```
 
 #### Typed HttpClient
@@ -198,16 +202,16 @@ For Typed HttpClients, your unit tests unfortunately will need to know which Typ
 ```csharp
 var teePeeBuilder = new TeePeeBuilder();
 
-// Setup requests
+// Setup request matching...
 
-var subjectUnderTest = Resolve.WithTypedClient<UserController, MyTypedHttpClient>(
-                          services => 
-                          {
-                             // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
-                             // Expect any intermediate dependencies to also be registered
-                             services.AddHttpClient<MyTypedHttpClient>(c => c.BaseAddress = "https://external.api");                             
-                          },
-                          teePeeBuilder);
+var subjectUnderTest = await Resolve.WithTypedClient<UserController, MyTypedHttpClient>(
+                                services => 
+                                {
+                                   // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
+                                   // Expect any intermediate dependencies to also be registered
+                                   services.AddHttpClient<MyTypedHttpClient>(c => c.BaseAddress = "https://external.api");                             
+                                },
+                                teePeeBuilder);
 ```
 
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace TeePee.Tests;
@@ -173,10 +174,10 @@ public class TeePeeBuilderTests
     }
     
     [Fact]
-    public void ForRequestThrowsIfBuildAlreadyCalled()
+    public async Task ForRequestThrowsIfBuildAlreadyCalled()
     {
         // Given
-        m_Builder.Build();
+        await m_Builder.Build();
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
@@ -523,14 +524,14 @@ public class TeePeeBuilderTests
     #region Build
 
     [Fact]
-    public void BuildDoesNotThrowOnMultipleCalls()
+    public async Task BuildDoesNotThrowOnMultipleCalls()
     {
         // Given
         m_Builder.ForRequest("http://test", HttpMethod.Get);
-        m_Builder.Build();
+        await m_Builder.Build();
             
         // When 
-        var ex = Record.Exception(() => m_Builder.Build());
+        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
             
         // Then
         Assert.Null(ex);
@@ -538,17 +539,17 @@ public class TeePeeBuilderTests
         
     [Theory]
     [MemberData(nameof(UrlAndMethodData))]
-    public void BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
+    public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
     {
         // Given
         m_Builder.ForRequest(url, method)
                  .TrackRequest();
         m_Builder.ForRequest(url, method);
             
-        m_Builder.Build();
+        await m_Builder.Build();
 
         // When 
-        var ex = Record.Exception(() => m_Builder.Build());
+        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
             
         // Then
         Assert.Null(ex);
