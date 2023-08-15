@@ -2,7 +2,7 @@
 
 # TeePee
 
-[NuGet Package](https://www.nuget.org/packages/TeePee/)
+NuGet: [![NuGet Downloads](https://img.shields.io/nuget/dt/TeePee?label=NuGet%20Downloads)](https://www.nuget.org/packages/TeePee/)
 
 A fluent API to configure HttpClients for unit testing.
 

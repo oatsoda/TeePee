@@ -2,7 +2,7 @@
 
 # TeePee.Refit
 
-[NuGet Package](https://www.nuget.org/packages/TeePee.Refit/)
+NuGet: [![NuGet Downloads](https://img.shields.io/nuget/dt/TeePee.Refit?label=NuGet%20Downloads)](https://www.nuget.org/packages/TeePee.Refit/)
 
 Add on adaptor for [TeePee](https://www.nuget.org/packages/TeePee/) when production code is using Refit.
 
