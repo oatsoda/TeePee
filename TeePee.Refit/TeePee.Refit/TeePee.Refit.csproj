@@ -14,12 +14,12 @@
   	<RepositoryType>git</RepositoryType>
   	<PackageIcon>teepee-icon.png</PackageIcon>
   	<Nullable>enable</Nullable>
-	<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  	<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
-    <PackageReference Include="TeePee" Version="2.0.1" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+    <PackageReference Include="TeePee" Version="3.0.1" />
   </ItemGroup>
   
   <ItemGroup>
