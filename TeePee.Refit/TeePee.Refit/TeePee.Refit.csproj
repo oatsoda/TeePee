@@ -14,7 +14,7 @@
   	<RepositoryType>git</RepositoryType>
   	<PackageIcon>teepee-icon.png</PackageIcon>
   	<Nullable>enable</Nullable>
-	<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  	<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   
   <ItemGroup>
