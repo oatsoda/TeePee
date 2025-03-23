@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 </Project>
