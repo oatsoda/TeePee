@@ -26,9 +26,9 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET 7'
+  displayName: 'Use .NET 9'
   inputs:
-    version: 7.x
+    version: 9.x
 
 - task: Cache@2
   displayName: 'NuGet Pipeline Cache'
