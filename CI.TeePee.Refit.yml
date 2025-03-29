@@ -58,4 +58,4 @@ steps:
   inputs:
     command: 'test'
     projects: 'TeePee.Refit/**/*[Tt]ests.csproj'
-    arguments: '-c $(buildConfiguration) --no-build'
+    arguments: '-c $(buildConfiguration) --no-build -- -report-trx'

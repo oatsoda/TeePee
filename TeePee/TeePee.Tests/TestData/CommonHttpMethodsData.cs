@@ -1,19 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Net.Http;
+using Xunit;
 
 namespace TeePee.Tests.TestData
 {
-    public class CommonHttpMethodsData : IEnumerable<object[]>
+    public class CommonHttpMethodsData : TheoryData<HttpMethod>
     {
-        public IEnumerator<object[]> GetEnumerator()
+        public CommonHttpMethodsData()
         {
-            yield return new object[] { HttpMethod.Get };
-            yield return new object[] { HttpMethod.Post };
-            yield return new object[] { HttpMethod.Put };
-            yield return new object[] { HttpMethod.Delete };
+            Add(HttpMethod.Get);
+            Add(HttpMethod.Post);
+            Add(HttpMethod.Put);
+            Add(HttpMethod.Delete);
         }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
