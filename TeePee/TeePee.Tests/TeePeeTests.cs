@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -61,16 +60,16 @@ public class TeePeeTests
 
     #region JSON Body
 
-    public class BodyMatchTestData : BaseData
+    public class BodyMatchTestData : TheoryData<string, Encoding, bool>
     {
-        public override IEnumerator<object[]> GetEnumerator()
+        public BodyMatchTestData()
         {
-            yield return new object[] { "text/plain", Encoding.UTF8, true };
-            yield return new object[] { "text/plain", Encoding.UTF8, false };
-            yield return new object[] { "application/json", Encoding.UTF8, true };
-            yield return new object[] { "application/json", Encoding.UTF8, false };
-            yield return new object[] { "text/plain", Encoding.ASCII, true };
-            yield return new object[] { "text/plain", Encoding.ASCII, false };
+            Add("text/plain", Encoding.UTF8, true);
+            Add("text/plain", Encoding.UTF8, false);
+            Add("application/json", Encoding.UTF8, true);
+            Add("application/json", Encoding.UTF8, false);
+            Add("text/plain", Encoding.ASCII, true);
+            Add("text/plain", Encoding.ASCII, false);
         }
     }
 
