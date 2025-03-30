@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
 using TeePee.Examples.WebApp.ExternalApi;
 using TeePee.Examples.WebApp.ExternalApi.Helpers;
 
@@ -34,7 +30,7 @@ namespace TeePee.Examples.WebApp.Controllers
             var httpClient = m_HttpClientFactory.CreateClient(HTTP_CLIENT_NAME);
             var httpResponseMessage = await httpClient.GetAsync("/path/resource?filter=those");
             var result = await httpResponseMessage.DeserialiseTo<ThirdPartyResponseModel>();
-            
+
             return Ok(result.Things.Single().Value);
         }
 

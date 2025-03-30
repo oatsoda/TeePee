@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Text;
 using TeePee.Internal;
 
@@ -17,7 +14,7 @@ namespace TeePee
         private object? m_ResponseBody;
         private HttpContent? m_ResponseBodyContent;
         private string? m_ResponseBodyMediaType;
-        private string? m_ResponseBodyEncoding; 
+        private string? m_ResponseBodyEncoding;
 
         private readonly Dictionary<string, string> m_ResponseHeaders = new();
 
@@ -37,11 +34,11 @@ namespace TeePee
             m_ResponseStatusCode = statusCode;
             return this;
         }
-        
+
         /// <summary>
         /// RESPONSE Respond with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
         /// </summary>
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding  = null)
+        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
         {
             if (m_ResponseBodyContent != null)
                 throw new InvalidOperationException("The response Body has already been set from HttpContent.");
@@ -51,7 +48,7 @@ namespace TeePee
             m_ResponseBodyEncoding = encoding?.WebName ?? Encoding.UTF8.WebName; // Json Body defaults to UTF8.
             return this;
         }
-        
+
         /// <summary>
         /// RESPONSE Respond with the given HttpContent Body. Use <c>WithBody</c> for JSON Body content.
         /// </summary>
@@ -64,7 +61,7 @@ namespace TeePee
             // ContentType and Encoding should be set on the HttpContent as required
             return this;
         }
-        
+
         /// <summary>
         /// RESPONSE Respond with the given Header Parameter on the response.
         /// </summary>
@@ -73,7 +70,7 @@ namespace TeePee
             m_ResponseHeaders.Add(name, value);
             return this;
         }
-        
+
         /// <summary>
         /// Define that the Request will then respond with a different response.
         /// </summary>
@@ -89,7 +86,7 @@ namespace TeePee
         {
             return m_RequestMatchBuilder.TrackRequest();
         }
-        
+
         #endregion
 
         #region Internal: Create Response

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TeePee.Extensions
+﻿namespace TeePee.Extensions
 {
     internal static class QueryStringExtensions
     {
@@ -8,7 +6,7 @@ namespace TeePee.Extensions
         {
             return url.Split('?')[0];
         }
-        
+
         internal static string RemoveQueryString(this Uri uri)
         {
             return uri.ToString().RemoveQueryString();

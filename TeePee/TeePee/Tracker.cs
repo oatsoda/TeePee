@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using TeePee.Internal;
+﻿using TeePee.Internal;
 
 namespace TeePee
 {
@@ -14,10 +10,10 @@ namespace TeePee
 
         private RequestMatchRule? m_RequestMatchRule;
 
-        public IReadOnlyList<(string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> MatchedCalls 
+        public IReadOnlyList<(string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> MatchedCalls
             => m_MatchedCalls.Select(c => (c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList();
 
-        public IReadOnlyList<(bool IsMatch, string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> AllCalls 
+        public IReadOnlyList<(bool IsMatch, string? RequestBody, HttpRequestMessage Request, HttpResponseMessage Response)> AllCalls
             => m_AllCalls.Select(c => (c.IsMatch, c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList();
 
         internal Tracker(TeePeeOptions options)
@@ -41,7 +37,7 @@ namespace TeePee
 
             if (asExpected)
                 return;
-            
+
             throw new MismatchedTrackerExpectedCalls(this, m_RequestMatchRule, times, m_MatchedCalls.Count, m_AllCalls);
         }
 
@@ -51,7 +47,7 @@ namespace TeePee
         {
             m_MatchedCalls.Add(recordedHttpCall);
         }
-        
+
         internal void AddHttpCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
         {
             m_AllCalls.Add(recordedHttpCall);

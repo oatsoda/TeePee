@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Json;
 
 namespace TeePee.Internal
@@ -9,13 +7,13 @@ namespace TeePee.Internal
     internal class Response
     {
         private readonly HttpStatusCode m_ResponseStatusCode;
-        
+
         private readonly TeePeeOptions m_Options;
 
         private readonly object? m_ResponseBody;
         private readonly HttpContent? m_ResponseBodyContent;
         private readonly string? m_ResponseBodyMediaType;
-        private readonly string? m_ResponseBodyEncoding; 
+        private readonly string? m_ResponseBodyEncoding;
 
         private readonly ReadOnlyDictionary<string, string> m_ResponseHeaders;
 
@@ -32,19 +30,19 @@ namespace TeePee.Internal
 
             m_ResponseHeaders = new(responseHeaders);
         }
-        
+
         internal HttpResponseMessage ToHttpResponseMessage()
         {
             var response = new HttpResponseMessage(m_ResponseStatusCode)
-                           {
-                               Content = BodyAsContent()
-                           };
+            {
+                Content = BodyAsContent()
+            };
             foreach (var (name, value) in m_ResponseHeaders)
                 response.Headers.Add(name, new[] { value });
 
             return response;
         }
-        
+
         private HttpContent? BodyAsContent()
         {
             if (m_ResponseBody == null && m_ResponseBodyContent == null)

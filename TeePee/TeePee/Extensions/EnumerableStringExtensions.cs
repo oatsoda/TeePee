@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TeePee.Extensions
+﻿namespace TeePee.Extensions
 {
     internal static class EnumerableStringExtensions
     {

@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading.Tasks;
 
 namespace TeePee.DependencyInjection
 {
@@ -14,7 +12,7 @@ namespace TeePee.DependencyInjection
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient(Options.DefaultName)
                              .AddHttpMessageHandler(_ => teePeeMessageHandler);
-            
+
             serviceCollection.AddTransient<T>();
 
             return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
@@ -38,7 +36,7 @@ namespace TeePee.DependencyInjection
                     // Use your own Named Client setup here
                     configureServices(serviceCollection);
                     serviceCollection.CheckNamedClientIsRegistered(teePee.HttpClientNamedInstance); // Explicit check that the Named client was registered in the callers own registration, else following code will add the handler :(
-                    serviceCollection.GetHttpClientBuilderFor(teePee.HttpClientNamedInstance) 
+                    serviceCollection.GetHttpClientBuilderFor(teePee.HttpClientNamedInstance)
                                      .AddHttpMessageHandler(_ => teePee.HttpHandler);
                 }
                 else
@@ -53,7 +51,7 @@ namespace TeePee.DependencyInjection
 
             return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
-        
+
         public static async Task<T> WithTypedClient<T, TClient>(TeePeeBuilder teePeeBuilder, Action<IServiceCollection>? configureServices = null) where T : class where TClient : class
         {
             var serviceCollection = new ServiceCollection();
@@ -77,13 +75,13 @@ namespace TeePee.DependencyInjection
 
             return serviceCollection.BuildServiceProvider().GetRequiredService<T>();
         }
-        
-        public static async Task<T> WithTypedClients<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection>? setup = null) where T : class 
+
+        public static async Task<T> WithTypedClients<T, TClient1, TClient2>(TeePeeBuilder<TClient1> teePeeBuilder1, TeePeeBuilder<TClient2> teePeeBuilder2, Action<IServiceCollection>? setup = null) where T : class
                                                                                                                                                                                                       where TClient1 : class
                                                                                                                                                                                                       where TClient2 : class
         {
             var serviceCollection = new ServiceCollection();
-            
+
             var teePeeMessageHandler1 = (await teePeeBuilder1.Build()).HttpHandler;
             var teePeeMessageHandler2 = (await teePeeBuilder2.Build()).HttpHandler;
 
