@@ -1,6 +1,6 @@
-using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
+using System.Net;
 
 namespace TeePee.Refit.Tests
 {
