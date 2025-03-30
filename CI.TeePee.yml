@@ -52,10 +52,10 @@ steps:
     command: 'build'
     projects: '$(solution)'
     arguments: '-c $(buildConfiguration) --no-restore'
-
+    
 - task: DotNetCoreCLI@2
   displayName: 'Unit Tests'
   inputs:
     command: 'test'
     projects: 'TeePee/**/*[Tt]ests.csproj'
-    arguments: '-c $(buildConfiguration) --no-build -- -report-trx'
+    arguments: '-c $(buildConfiguration) --no-build -- -results-directory $(Agent.TempDirectory)'

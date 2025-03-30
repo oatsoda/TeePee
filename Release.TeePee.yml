@@ -47,7 +47,7 @@ steps:
   inputs:
     command: 'test'
     projects: 'TeePee/**/*[Tt]ests.csproj'
-    arguments: '-c $(buildConfiguration) --no-build -- -report-trx'
+    arguments: '-c $(buildConfiguration) --no-build -- -results-directory $(Agent.TempDirectory)'
 
 # Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.
 - task: PowerShell@2
