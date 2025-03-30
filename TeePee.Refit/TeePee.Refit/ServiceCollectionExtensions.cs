@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Reflection;
 
 namespace TeePee.Refit
@@ -33,7 +31,7 @@ namespace TeePee.Refit
 
             // Reflection: Get the registered HttpClient Name as used in Refit AddRefitClient (internal UniqueName helper class)
             var httpClientFactoryName = GetRefitHttpFactoryName<TRefitInterface>();
-            
+
             // Add same-named HttpClient Name into same ServiceCollection which should allow us to append to existing options on that Http Named instance
             serviceCollection
                 .AddHttpClient(httpClientFactoryName)

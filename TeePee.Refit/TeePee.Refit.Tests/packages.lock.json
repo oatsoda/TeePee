@@ -208,8 +208,8 @@
       },
       "TeePee": {
         "type": "Transitive",
-        "resolved": "3.0.1",
-        "contentHash": "gwINyB6DWrbcx8/UtC/luO5y0S2VTXuYUmOTe7gLLsnhOgAIXlPnjk3dbelCnMNF1BGoepVMN+M6lDYT5o0lgw==",
+        "resolved": "3.0.2",
+        "contentHash": "mri/eFp1cSQoEKF4D8A51dKTos8TLa5/R6hZK6fuupou36fh5rtMdiDrqOOUSjYwGHXCRwpRTcUPcN9O4RL6Cg==",
         "dependencies": {
           "Microsoft.Extensions.Http": "9.0.3",
           "System.Net.Http.Json": "9.0.3",
@@ -279,7 +279,7 @@
         "type": "Project",
         "dependencies": {
           "Refit.HttpClientFactory": "[8.0.0, )",
-          "TeePee": "[3.0.1, )"
+          "TeePee": "[3.0.2, )"
         }
       }
     }
