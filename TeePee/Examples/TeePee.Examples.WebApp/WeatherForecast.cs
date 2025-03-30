@@ -1,5 +1,3 @@
-using System;
-
 namespace TeePee.Examples.WebApp
 {
     public class WeatherForecast
@@ -10,6 +8,6 @@ namespace TeePee.Examples.WebApp
 
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
-        public string Summary { get; set; }
+        public required string Summary { get; set; }
     }
 }

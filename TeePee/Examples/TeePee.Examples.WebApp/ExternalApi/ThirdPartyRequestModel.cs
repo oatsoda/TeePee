@@ -2,6 +2,6 @@
 {
     public class ThirdPartyRequestModel
     {
-        public string Caller { get; set; }
+        public required string Caller { get; set; }
     }
 }
