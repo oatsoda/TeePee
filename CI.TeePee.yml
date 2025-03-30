@@ -58,4 +58,4 @@ steps:
   inputs:
     command: 'test'
     projects: 'TeePee/**/*[Tt]ests.csproj'
-    arguments: '-c $(buildConfiguration) --no-build -- -results-directory $(Agent.TempDirectory)'
+    arguments: '-c $(buildConfiguration) --no-build -- -results-directory $(Agent.TempDirectory) -report-trx'
