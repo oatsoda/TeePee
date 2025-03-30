@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
-using Xunit;
 // ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests.TestData

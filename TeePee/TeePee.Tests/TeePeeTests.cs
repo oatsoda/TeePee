@@ -1,15 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using TeePee.Tests.TestData;
-using Xunit;
 // ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests;

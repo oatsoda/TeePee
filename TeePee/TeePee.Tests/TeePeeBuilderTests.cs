@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Xunit;
-
 namespace TeePee.Tests;
 
 /// <summary>
@@ -31,7 +25,7 @@ public class TeePeeBuilderTests
         Assert.IsType<ArgumentException>(ex);
         Assert.Contains("must be an absolute URI", ex.Message);
     }
-        
+
     [Theory]
     [InlineData("http://www.site.com/api/items")]
     [InlineData("https://site.com")]
@@ -67,7 +61,7 @@ public class TeePeeBuilderTests
         yield return new object[] { "https://site.net/api.items?filter", HttpMethod.Get };
         yield return new object[] { "https://www.site.com", HttpMethod.Get };
     }
-        
+
     [Theory]
     [MemberData(nameof(UrlAndMethodData))]
     public void ForRequestDoesNotThrowOnDuplicateUrlAndMethod(string url, HttpMethod method)
@@ -77,7 +71,7 @@ public class TeePeeBuilderTests
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest(url, method));
-            
+
         // Then
         Assert.Null(ex);
     }
@@ -92,12 +86,12 @@ public class TeePeeBuilderTests
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest(url, method));
-            
+
         // Then
         Assert.IsType<ArgumentException>(ex);
         Assert.Contains("already a request match for", ex.Message);
     }
-        
+
     public static IEnumerable<object[]> UrlAndMethodDifferentCombinations()
     {
         yield return new object[]
@@ -168,11 +162,11 @@ public class TeePeeBuilderTests
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest(secondUrl, secondMethod));
-            
+
         // Then
         Assert.Null(ex);
     }
-    
+
     [Fact]
     public async Task ForRequestThrowsIfBuildAlreadyCalled()
     {
@@ -181,7 +175,7 @@ public class TeePeeBuilderTests
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
-            
+
         // Then
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("Cannot add more request tracking", ex.Message);
@@ -205,7 +199,7 @@ public class TeePeeBuilderTests
         // Then
         Assert.IsType<ArgumentNullException>(ex);
     }
-    
+
     [Fact]
     public void ThatHasBodyThrowsIfWithHttpContentBodyAlreadyCalled()
     {
@@ -235,11 +229,11 @@ public class TeePeeBuilderTests
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("matching Body has already been added", ex.Message);
     }
-        
+
     #endregion
 
     #region ThatHasHttpContentBody
-    
+
     [Fact]
     public void ThatHasHttpContentBodyThrowsIfBodyNull()
     {
@@ -301,7 +295,7 @@ public class TeePeeBuilderTests
     #endregion
 
     #region ThatHasBodyContaining
-        
+
     [Fact]
     public void ThatHasBodyContainingThrowsIfBodyRuleNull()
     {
@@ -377,7 +371,7 @@ public class TeePeeBuilderTests
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("Url has already been configured to match with a QueryString", ex.Message);
     }
-        
+
     [Fact]
     public void ThatContainsQueryParamThrowsIfAnotherMatchContainingQueryParamAlreadyExists()
     {
@@ -392,7 +386,7 @@ public class TeePeeBuilderTests
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("request matches already exist with QueryString matching", ex.Message);
     }
-        
+
     [Fact]
     public void ThatContainsQueryParamThrowsIfAnotherMatchForUrlWithQueryStringAlreadyExists()
     {
@@ -407,17 +401,17 @@ public class TeePeeBuilderTests
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("request matches already exist with QueryString matching", ex.Message);
     }
-        
+
     [Fact]
     public void ThatContainsQueryParamThrowsIfDupeName()
     {
         // Given
         var requestBuilder = m_Builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
                                       .ThatContainsQueryParam("sort", "name");
-            
+
         // When
         var ex = Record.Exception(() => requestBuilder.ThatContainsQueryParam("sort", "name2"));
-            
+
         // Then
         Assert.IsType<ArgumentException>(ex);
         Assert.Contains("already been added", ex.Message);
@@ -426,26 +420,26 @@ public class TeePeeBuilderTests
     #endregion
 
     #region ThatContainsHeader
-        
+
     [Fact]
     public void ThatContainsHeaderhrowsIfDupeName()
     {
         // Given
         var requestBuilder = m_Builder.ForRequest("https://site.net/api/other", HttpMethod.Get)
                                       .ThatContainsHeader("Authorization", "Bearer x");
-            
+
         // When
         var ex = Record.Exception(() => requestBuilder.ThatContainsHeader("Authorization", "Bearer y"));
-            
+
         // Then
         Assert.IsType<ArgumentException>(ex);
         Assert.Contains("already been added", ex.Message);
     }
 
     #endregion
-    
+
     #region Responds
-    
+
     [Fact]
     public void RespondsThrowsIfCalledTwice()
     {
@@ -462,14 +456,14 @@ public class TeePeeBuilderTests
     }
 
     #region WithBody
-    
+
     [Fact]
     public void RespondsWithBodyThrowsIfRespondsWithHttpContentBodyAlreadyCalled()
     {
         // Given
         var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
         var responseBuilder = requestBuilder.Responds();
-        responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[]{ 255 }));
+        responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[] { 255 }));
 
         // When
         var ex = Record.Exception(() => responseBuilder.WithBody(new { A = "b" }));
@@ -480,9 +474,9 @@ public class TeePeeBuilderTests
     }
 
     #endregion
-    
+
     #region WithHttpContentBody
-    
+
     [Fact]
     public void RespondsWithHttpContentBodyThrowsIfRespondsWithBodyAlreadyCalled()
     {
@@ -492,7 +486,7 @@ public class TeePeeBuilderTests
         responseBuilder.WithBody(new { A = "b" });
 
         // When
-        var ex = Record.Exception(() => responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[]{ 255 })));
+        var ex = Record.Exception(() => responseBuilder.WithHttpContentBody(new ByteArrayContent(new byte[] { 255 })));
 
         // Then
         Assert.IsType<InvalidOperationException>(ex);
@@ -504,7 +498,7 @@ public class TeePeeBuilderTests
     #endregion
 
     #region TrackRequest
-    
+
     [Fact]
     public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsBuild()
     {
@@ -529,14 +523,14 @@ public class TeePeeBuilderTests
         // Given
         m_Builder.ForRequest("http://test", HttpMethod.Get);
         await m_Builder.Build();
-            
+
         // When 
         var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-            
+
         // Then
         Assert.Null(ex);
     }
-        
+
     [Theory]
     [MemberData(nameof(UrlAndMethodData))]
     public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
@@ -545,12 +539,12 @@ public class TeePeeBuilderTests
         m_Builder.ForRequest(url, method)
                  .TrackRequest();
         m_Builder.ForRequest(url, method);
-            
+
         await m_Builder.Build();
 
         // When 
         var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-            
+
         // Then
         Assert.Null(ex);
     }
