@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TeePee.Extensions
+﻿namespace TeePee.Extensions
 {
     internal static class StringExtensions
     {

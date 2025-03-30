@@ -1,34 +1,33 @@
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 // ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests.TestData
 {
-    public class NonJsonContentTypesData : BaseData
+    public class NonJsonContentTypesData : TheoryData<HttpContent>
     {
-        public override IEnumerator<object[]> GetEnumerator()
+        public NonJsonContentTypesData()
         {
-            yield return new object[] { new ByteArrayContent(new byte[]{ 65, 98, 48 }) };
-            yield return new object[] { new ByteArrayContent(new byte[]{ 65, 98, 48 })
-                                        {
-                                            Headers = { ContentType = new("img/jpeg") { CharSet = Encoding.UTF8.WebName } }
-                                        }
-                                      };
-            yield return new object[] { new StringContent("here's my content", Encoding.UTF8) };
-            yield return new object[] { new StringContent("here's my content", Encoding.ASCII) };
-            yield return new object[] { new MultipartFormDataContent
-                                        {
-                                            new StringContent("some string"),
-                                            new ByteArrayContent(new byte[]{ 65, 98, 48 })
-                                        } };
-            yield return new object[] { new FormUrlEncodedContent(
-                                                                  new Dictionary<string, string>
-                                                                  {
-                                                                      { "k1", "v1" },
-                                                                      { "k2", "v2" },
-                                                                  })
-                                      };
+            Add((HttpContent)new ByteArrayContent([65, 98, 48]));
+            Add((HttpContent)new ByteArrayContent([65, 98, 48])
+            {
+                Headers = { ContentType = new("img/jpeg") { CharSet = Encoding.UTF8.WebName } }
+            });
+
+            Add((HttpContent)new StringContent("here's my content", Encoding.UTF8));
+            Add((HttpContent)new StringContent("here's my content", Encoding.ASCII));
+
+            Add((HttpContent)new MultipartFormDataContent
+                                {
+                                    new StringContent("some string"),
+                                    new ByteArrayContent([65, 98, 48])
+                                });
+
+            Add((HttpContent)new FormUrlEncodedContent(
+                                new Dictionary<string, string>
+                                {
+                                    { "k1", "v1" },
+                                    { "k2", "v2" },
+                                }));
         }
     }
 }

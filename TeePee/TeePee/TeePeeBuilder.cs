@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Extensions.Logging;
 using System.Net;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using TeePee.Internal;
 
 namespace TeePee
@@ -15,19 +10,19 @@ namespace TeePee
         private readonly TeePeeOptions m_Options = new();
 
         private readonly List<RequestMatchBuilder> m_Requests = new();
-        
+
         private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
-        
+
         public string? HttpClientNamedInstance { get; }
-        
+
         public TeePeeBuilder() : this(null, null) { }
 
         public TeePeeBuilder(JsonSerializerOptions responseBodySerializeOptions) : this(opt => opt.ResponseBodySerializerOptions = responseBodySerializeOptions) { }
         public TeePeeBuilder(string httpClientNamedInstance) : this(null, httpClientNamedInstance) { }
-        
+
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
             if (setOptions != null)
@@ -35,14 +30,14 @@ namespace TeePee
 
             HttpClientNamedInstance = httpClientNamedInstance;
         }
-        
+
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
         {
             m_DefaultResponseStatusCode = responseStatusCode;
             m_DefaultResponseBody = responseBody;
             return this;
         }
-        
+
         /// <summary>
         /// Creates a new Request Match for the given URL and HTTP Method. Note rules around QueryStrings in URLs. 
         /// </summary>
@@ -83,7 +78,7 @@ namespace TeePee
         {
             return m_Requests.Any(r => r.MatchUrlWithQuery);
         }
-        
+
         internal bool HasMatchUrlWithQueryParams()
         {
             return m_Requests.Any(r => r.HasQueryParams);

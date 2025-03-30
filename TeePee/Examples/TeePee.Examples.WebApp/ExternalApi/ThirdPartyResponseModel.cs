@@ -2,7 +2,7 @@
 {
     public class ThirdPartyResponseModel
     {
-        public ThirdPartyResponseObj[] Things { get; set; }
+        public required ThirdPartyResponseObj[] Things { get; set; }
 
         public class ThirdPartyResponseObj
         {

@@ -1,15 +1,14 @@
-using System.Collections.Generic;
 using System.Text;
 
 namespace TeePee.Tests.TestData
 {
-    public class JsonContentTypesData : BaseData
+    public class JsonContentTypesData : TheoryData<string, Encoding>
     {
-        public override IEnumerator<object[]> GetEnumerator()
+        public JsonContentTypesData()
         {
-            yield return new object[] { "text/plain", Encoding.UTF8 };
-            yield return new object[] { "application/json", Encoding.UTF8 };
-            yield return new object[] { "text/plain", Encoding.ASCII };
+            Add("text/plain", Encoding.UTF8);
+            Add("application/json", Encoding.UTF8);
+            Add("text/plain", Encoding.ASCII);
         }
     }
 }

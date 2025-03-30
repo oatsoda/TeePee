@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace TeePee.Examples.WebApp.ExternalApi.Helpers
 {
@@ -9,7 +7,7 @@ namespace TeePee.Examples.WebApp.ExternalApi.Helpers
         public static async Task<T> DeserialiseTo<T>(this HttpResponseMessage httpResponseMessage)
         {
             var content = await httpResponseMessage.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(content);
+            return JsonSerializer.Deserialize<T>(content)!; // Will not deserialise to null
         }
     }
 }

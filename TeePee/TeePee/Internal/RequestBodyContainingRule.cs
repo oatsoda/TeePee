@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TeePee.Internal;
+﻿namespace TeePee.Internal;
 
 internal class RequestBodyContainingRule
 {

@@ -1,9 +1,7 @@
-using System;
-using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace TeePee.DependencyInjection
 {
@@ -54,7 +52,7 @@ namespace TeePee.DependencyInjection
             return (IHttpClientBuilder)Activator.CreateInstance(defaultHttpClientBuilderType, serviceCollection, httpClientNamedInstance);
         }
 
-        
+
         internal static void CheckNamedClientIsRegistered(this IServiceCollection serviceCollection, string httpClientNamedInstance)
         {
             var namedClientOptionsServices = serviceCollection.Select(s => s.ImplementationInstance as ConfigureNamedOptions<HttpClientFactoryOptions>)

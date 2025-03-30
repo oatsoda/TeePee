@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Net.Http;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Web;
 using TeePee.Extensions;
@@ -17,7 +13,7 @@ namespace TeePee.Internal
 
         internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
-        
+
         public string Url { get; }
         public HttpMethod Method { get; }
 
@@ -26,16 +22,16 @@ namespace TeePee.Internal
         public string? RequestBodyMediaType { get; }
         public string? RequestBodyEncoding { get; }
 
-        public ReadOnlyDictionary<string, string> QueryParams { get; } 
+        public ReadOnlyDictionary<string, string> QueryParams { get; }
         public ReadOnlyDictionary<string, string> Headers { get; }
 
         private bool BodyMatchIsSpecified => RequestBody != null || RequestBodyContainingRule != null;
         internal int SpecificityLevel => (BodyMatchIsSpecified ? 1 : 0) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, 
-                                  string url, HttpMethod method, 
-                                  bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding, 
-                                  IDictionary<string, string> queryParams, IDictionary<string, string> headers, 
+        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt,
+                                  string url, HttpMethod method,
+                                  bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding,
+                                  IDictionary<string, string> queryParams, IDictionary<string, string> headers,
                                   List<Response> responses, Tracker? tracker)
         {
             m_Options = options;
@@ -69,9 +65,9 @@ namespace TeePee.Internal
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
         {
             var httpRequestMessage = recordedHttpCall.HttpRequestMessage;
-            return IsMatchingUrl(httpRequestMessage) && 
-                   Method == httpRequestMessage.Method && 
-                   IsMatchingBody(recordedHttpCall.RequestBody, httpRequestMessage) && 
+            return IsMatchingUrl(httpRequestMessage) &&
+                   Method == httpRequestMessage.Method &&
+                   IsMatchingBody(recordedHttpCall.RequestBody, httpRequestMessage) &&
                    ContainsMatchingQueryParams(httpRequestMessage) &&
                    ContainsMatchingHeaders(httpRequestMessage);
         }
@@ -94,7 +90,7 @@ namespace TeePee.Internal
 
             if (requestBody == null)
                 return false;
-            
+
             if (RequestBody != null && !RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
                 return false;
 
@@ -113,7 +109,7 @@ namespace TeePee.Internal
 
             if (contentType == null)
                 return false;
-            
+
             if (RequestBodyEncoding != null && !contentType.CharSet.IsSameString(RequestBodyEncoding, m_Options.CaseSensitiveMatching))
                 return false;
 
@@ -122,7 +118,7 @@ namespace TeePee.Internal
 
             return true;
         }
-        
+
         private bool ContainsMatchingQueryParams(HttpRequestMessage httpRequestMessage)
         {
             if (QueryParams.Count == 0) // Ignored
@@ -131,7 +127,7 @@ namespace TeePee.Internal
             var requestQueryParams = HttpUtility.ParseQueryString(httpRequestMessage.RequestUri.Query);
             return QueryParams.All(q => q.Value.IsSameString(requestQueryParams[q.Key], m_Options.CaseSensitiveMatching));
         }
-        
+
         private bool ContainsMatchingHeaders(HttpRequestMessage httpRequestMessage)
         {
             if (Headers.Count == 0) // Ignored
@@ -155,7 +151,7 @@ namespace TeePee.Internal
             return m_Responses[m_CurrentResponse++].ToHttpResponseMessage();
         }
     }
-    
+
     public static class RequestMatchRuleListExtensions
     {
         internal static string Log(this IEnumerable<RequestMatchRule> matchRules, TeePeeOptions options)

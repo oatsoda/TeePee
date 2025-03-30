@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using TeePee.Extensions;
 using TeePee.Internal;
 
@@ -14,22 +10,22 @@ namespace TeePee
         public string? HttpClientNamedInstance { get; }
 
         public TeePeeMessageHandler HttpHandler { get; }
-        
+
         internal TeePee(string? httpClientNamedInstance, TeePeeOptions options, IReadOnlyList<RequestMatchRule> matchRules, HttpStatusCode unmatchedStatusCode, string? unmatchedBody, ILogger? logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
-            HttpHandler = new(options, 
+            HttpHandler = new(options,
                               matchRules,
                               () => new(unmatchedStatusCode)
-                                    {
-                                        Content = unmatchedBody == null
+                              {
+                                  Content = unmatchedBody == null
                                                       ? null
                                                       : new StringContent(unmatchedBody)
-                                    },
+                              },
                               logger
                              );
         }
-        
+
         /*
          * The CreateClient / Create HttpClientFactory only needed for Manual Injection
          */
@@ -53,8 +49,8 @@ namespace TeePee
 
             public HttpClient CreateClient()
             {
-                return m_BaseAddressForHttpClient == null 
-                           ? new(TeePee.HttpHandler) 
+                return m_BaseAddressForHttpClient == null
+                           ? new(TeePee.HttpHandler)
                            : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
             }
 
@@ -74,14 +70,14 @@ namespace TeePee
                 public HttpClient CreateClient(string name)
                 {
                     // Force callers to specify correct named instance
-                    return m_NamedInstance == name 
+                    return m_NamedInstance == name
                                ? m_HttpClient
                                : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
                 }
             }
         }
     }
-    
+
     /*
      * This stuff only needed for Manual Injection
      */
@@ -96,7 +92,7 @@ namespace TeePee
 
             return factory;
         }
-        
+
         internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
         {
             private readonly Dictionary<string, HttpClient> m_NamedClients = new();
