@@ -1,6 +1,6 @@
-﻿using System.Net;
+﻿using BenchmarkDotNet.Attributes;
+using System.Net;
 using System.Net.Http.Json;
-using BenchmarkDotNet.Attributes;
 
 namespace TeePee.Benchmarks;
 
@@ -9,11 +9,20 @@ public class ExecutionBenchmarks
 {
     private HttpClient? m_HttpClient;
 
+    public static readonly string[] FiveUrls = new[]
+    {
+        "https://one.com/test1",
+        "https://two.com/test2",
+        "https://thr.com/test3",
+        "https://fou.com/test4",
+        "https://fiv.com/test5"
+    };
+
     [GlobalSetup]
     public async Task GlobalSetup()
     {
         var builder = new TeePeeBuilder();
-        foreach (var url in Data.Urls)
+        foreach (var url in FiveUrls)
         {
             builder.ForRequest(url, HttpMethod.Post)
                    .ThatContainsQueryParam("a", "b")
@@ -31,7 +40,23 @@ public class ExecutionBenchmarks
     [Benchmark]
     public void FiveMismatches()
     {
-        foreach (var url in Data.Urls)
+        foreach (var url in FiveUrls)
             m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
+    }
+
+    [Benchmark]
+    public void FiveHundredMismatches()
+    {
+        for (int i = 0; i < 100; i++)
+            foreach (var url in FiveUrls)
+                m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
+    }
+
+    [Benchmark]
+    public void FiveThousandMismatches()
+    {
+        for (int i = 0; i < 1000; i++)
+            foreach (var url in FiveUrls)
+                m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
     }
 }

@@ -6,22 +6,43 @@ namespace TeePee.Benchmarks;
 [MemoryDiagnoser]
 public class BuilderBenchmarks
 {
+    private static void AddRule(TeePeeBuilder builder, int number)
+    {
+        builder
+            .ForRequest($"https://url{number}.com/test{number}", HttpMethod.Post)
+            .ThatContainsQueryParam("a", "b")
+            .ThatContainsHeader("h", "v")
+            .ThatHasBody(new { test = "123" })
+            .Responds()
+            .WithStatus(HttpStatusCode.Created)
+            .WithHeader("r", "v")
+            .WithBody(new { Id = "abc" });
+    }
+
     [Benchmark]
     public async Task FiveRulesBuild()
     {
         var builder = new TeePeeBuilder();
-        foreach (var url in Data.Urls)
-        {
-            builder.ForRequest(url, HttpMethod.Post)
-                   .ThatContainsQueryParam("a", "b")
-                   .ThatContainsHeader("h", "v")
-                   .ThatHasBody(new { test = "123" })
-                   .Responds()
-                   .WithStatus(HttpStatusCode.Created)
-                   .WithHeader("r", "v")
-                   .WithBody(new { Id = "abc" });
-        }
+        for (int i = 0; i < 5; i++)
+            AddRule(builder, i);
+        await builder.Build();
+    }
 
+    [Benchmark]
+    public async Task FiveHundredRulesBuild()
+    {
+        var builder = new TeePeeBuilder();
+        for (int i = 0; i < 500; i++)
+            AddRule(builder, i);
+        await builder.Build();
+    }
+
+    [Benchmark]
+    public async Task FiveThousandRulesBuild()
+    {
+        var builder = new TeePeeBuilder();
+        for (int i = 0; i < 5000; i++)
+            AddRule(builder, i);
         await builder.Build();
     }
 }
