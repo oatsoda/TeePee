@@ -16,4 +16,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Testing.Extensions.TrxReport" Version="1.7.3" />
+    <PackageReference Update="xunit.v3" Version="2.0.3" />
+  </ItemGroup>
+
 </Project>
