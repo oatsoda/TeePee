@@ -20,7 +20,7 @@ public class BuilderBenchmarks
     }
 
     [Benchmark]
-    public async Task FiveRulesBuild()
+    public async Task FiveRulesAddAndBuild()
     {
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 5; i++)
@@ -29,7 +29,7 @@ public class BuilderBenchmarks
     }
 
     [Benchmark]
-    public async Task FiveHundredRulesBuild()
+    public async Task FiveHundredRulesAddAndBuild()
     {
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 500; i++)
@@ -38,11 +38,49 @@ public class BuilderBenchmarks
     }
 
     [Benchmark]
-    public async Task FiveThousandRulesBuild()
+    public async Task FiveThousandRulesAddAndBuild()
     {
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 5000; i++)
             AddRule(builder, i);
         await builder.Build();
+    }
+
+    private readonly TeePeeBuilder m_FiveRulesBuilder = new();
+    private readonly TeePeeBuilder m_FiveHundredRulesBuilder = new();
+    private readonly TeePeeBuilder m_FiveThousandRulesBuilder = new();
+
+
+    [GlobalSetup]
+    public Task GlobalSetup()
+    {
+        for (int i = 0; i < 5; i++)
+            AddRule(m_FiveRulesBuilder, i);
+
+        for (int i = 0; i < 500; i++)
+            AddRule(m_FiveHundredRulesBuilder, i);
+
+        for (int i = 0; i < 5000; i++)
+            AddRule(m_FiveThousandRulesBuilder, i);
+
+        return Task.CompletedTask;
+    }
+
+    [Benchmark]
+    public async Task FiveRulesBuild()
+    {
+        await m_FiveRulesBuilder.Build();
+    }
+
+    [Benchmark]
+    public async Task FiveHundredRulesBuild()
+    {
+        await m_FiveHundredRulesBuilder.Build();
+    }
+
+    [Benchmark]
+    public async Task FiveThousandRulesBuild()
+    {
+        await m_FiveThousandRulesBuilder.Build();
     }
 }
