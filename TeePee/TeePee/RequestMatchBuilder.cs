@@ -21,7 +21,7 @@ namespace TeePee
         // Body match is either
         // a) An object instance which will be serialised when the TeePeeBuilder is built (i.e. before the SUT is executed).
         private object? m_RequestBody;
-        // b) A raw HttpContent object which will have its' content read when the TeePeeBuilder is built (i.e. before the SUT is executed).
+        // b) A raw HttpContent object which will have its content read when the TeePeeBuilder is built (i.e. before the SUT is executed).
         private HttpContent? m_RequestBodyContent;
         // c) A delegate rule expecting the type and rules about the values it contains, which will only be evaluated at execution time of the SUT.
         private RequestBodyContainingRule? m_RequestBodyContainingRule;

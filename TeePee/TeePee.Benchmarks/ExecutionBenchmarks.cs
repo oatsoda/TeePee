@@ -18,6 +18,8 @@ public class ExecutionBenchmarks
         "https://fiv.com/test5"
     };
 
+    private static JsonContent m_RequestBody = JsonContent.Create(new { test = "123" });
+
     [GlobalSetup]
     public async Task GlobalSetup()
     {
@@ -41,7 +43,7 @@ public class ExecutionBenchmarks
     public void FiveMismatches()
     {
         foreach (var url in FiveUrls)
-            m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
+            m_HttpClient!.PostAsync(url, m_RequestBody);
     }
 
     [Benchmark]
@@ -49,7 +51,7 @@ public class ExecutionBenchmarks
     {
         for (int i = 0; i < 100; i++)
             foreach (var url in FiveUrls)
-                m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
+                m_HttpClient!.PostAsync(url, m_RequestBody);
     }
 
     [Benchmark]
@@ -57,6 +59,6 @@ public class ExecutionBenchmarks
     {
         for (int i = 0; i < 1000; i++)
             foreach (var url in FiveUrls)
-                m_HttpClient!.PostAsync(url, JsonContent.Create(new { test = "123" }));
+                m_HttpClient!.PostAsync(url, m_RequestBody);
     }
 }

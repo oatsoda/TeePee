@@ -8,8 +8,8 @@ Intel Core i7-8750H CPU 2.20GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical 
 
 
 ```
-| Method                 | Mean         | Error      | StdDev     | Gen0      | Gen1    | Allocated  |
-|----------------------- |-------------:|-----------:|-----------:|----------:|--------:|-----------:|
-| FiveMismatches         |     9.857 μs |  0.0833 μs |  0.0739 μs |    3.3264 |  0.0153 |   15.31 KB |
-| FiveHundredMismatches  |   934.433 μs | 11.8259 μs |  9.8751 μs |  328.1250 |       - | 1531.25 KB |
-| FiveThousandMismatches | 9,243.704 μs | 86.8184 μs | 81.2100 μs | 3328.1250 | 15.6250 | 15312.5 KB |
+| Method                 | Mean         | Error       | StdDev      | Gen0      | Allocated  |
+|----------------------- |-------------:|------------:|------------:|----------:|-----------:|
+| FiveMismatches         |     6.520 μs |   0.0996 μs |   0.0832 μs |    2.2430 |   10.31 KB |
+| FiveHundredMismatches  |   605.344 μs |  11.5414 μs |  10.2311 μs |  223.6328 | 1031.25 KB |
+| FiveThousandMismatches | 6,155.409 μs | 117.1098 μs | 164.1715 μs | 2242.1875 | 10312.5 KB |
