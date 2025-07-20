@@ -16,9 +16,16 @@ namespace TeePee
         private string? m_ResponseBodyMediaType;
         private string? m_ResponseBodyEncoding;
 
-        private readonly Dictionary<string, string> m_ResponseHeaders = new();
+        private readonly Dictionary<string, string> m_ResponseHeaders = [];
 
-        internal ResponseBuilder? NextResponse;
+        internal ResponseBuilder? NextResponse { get; private set; }
+        internal int TraverseAndCountResponseChain()
+        {
+            if (NextResponse == null)
+                return 1;
+
+            return 1 + NextResponse.TraverseAndCountResponseChain();
+        }
 
         internal ResponseBuilder(RequestMatchBuilder requestMatchBuilder, TeePeeOptions options)
         {
@@ -102,7 +109,5 @@ namespace TeePee
         }
 
         #endregion
-
-
     }
 }

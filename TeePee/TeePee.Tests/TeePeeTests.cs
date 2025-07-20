@@ -38,17 +38,22 @@ public class TeePeeTests
     {
         m_TestOutputHelper = testOutputHelper;
         m_MockLogger = new();
-        m_MockLogger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
-                    .Callback(new InvocationAction(invocation =>
-                                                   {
-                                                       var logLevel = (LogLevel)invocation.Arguments[0];
-                                                       var state = invocation.Arguments[2];
-                                                       var exception = (Exception)invocation.Arguments[3];
-                                                       var formatter = invocation.Arguments[4];
-                                                       var invokeMethod = formatter.GetType().GetMethod("Invoke");
-                                                       var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
-                                                       testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
-                                                   }));
+        m_MockLogger
+            .Setup(l => l.IsEnabled(It.Is<LogLevel>(level => level >= LogLevel.Information)))
+            .Returns(true);
+
+        m_MockLogger
+            .Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
+            .Callback(new InvocationAction(invocation =>
+                {
+                    var logLevel = (LogLevel)invocation.Arguments[0];
+                    var state = invocation.Arguments[2];
+                    var exception = (Exception)invocation.Arguments[3];
+                    var formatter = invocation.Arguments[4];
+                    var invokeMethod = formatter.GetType().GetMethod("Invoke");
+                    var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
+                    testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
+                }));
     }
 
     #region Matches
@@ -519,7 +524,6 @@ public class TeePeeTests
         await SendRequest();
 
         // Then
-        Assert.Single(m_MockLogger.Invocations);
         m_MockLogger.Verify(l => l.Log(
                                        It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)),
                                        It.IsAny<EventId>(),
@@ -546,7 +550,6 @@ public class TeePeeTests
         await SendRequest();
 
         // Then
-        Assert.Single(m_MockLogger.Invocations);
         m_MockLogger.Verify(l => l.Log(
                                        It.Is<LogLevel>(level => level == LogLevel.Warning),
                                        It.IsAny<EventId>(),

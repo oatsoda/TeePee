@@ -29,11 +29,11 @@ namespace TeePee
         private string? m_RequestBodyMediaType;
         private string? m_RequestBodyEncoding;
 
-        private Dictionary<string, string> QueryParams { get; } = new();
-        private Dictionary<string, string> Headers { get; } = new();
+        private readonly Dictionary<string, string> m_QueryParams = new(4);
+        private readonly Dictionary<string, string> m_Headers = new(4);
 
         internal bool MatchUrlWithQuery { get; private set; }
-        internal bool HasQueryParams => QueryParams.Any();
+        internal bool HasQueryParams => m_QueryParams.Count > 0;
 
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod &&
                                                                            Url.IsSameUrl(url);
@@ -82,7 +82,7 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatHasHttpContentBody(HttpContent body)
         {
-            if (body == null!) // Force check for null even though nullable not allowing.
+            if (body == null) // Force check for null even though nullable not allowing.
                 throw new ArgumentNullException();
 
             if (m_RequestBody != null || m_RequestBodyContent != null || m_RequestBodyContainingRule != null)
@@ -124,7 +124,7 @@ namespace TeePee
             if (m_ParentTrackingBuilder.HasMatchUrlWithQuery())
                 throw new InvalidOperationException("You cannot use ContainingQueryParam as request matches already exist with QueryString matching.");
 
-            QueryParams.Add(name, value);
+            m_QueryParams.Add(name, value);
             return this;
         }
 
@@ -133,7 +133,7 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatContainsHeader(string name, string value)
         {
-            Headers.Add(name, value);
+            m_Headers.Add(name, value);
             return this;
         }
 
@@ -167,7 +167,7 @@ namespace TeePee
             return new(m_Options, m_CreatedAt,
                        Url, Method,
                        m_RequestBodyContent != null, serialisedRequestBody, m_RequestBodyContainingRule, m_RequestBodyMediaType, m_RequestBodyEncoding,
-                       QueryParams, Headers,
+                       m_QueryParams, m_Headers,
                        responses, m_Tracker);
         }
 
@@ -184,9 +184,12 @@ namespace TeePee
         private List<Response> CreateResponses()
         {
             var responseBuilder = m_ResponseBuilder;
-            var responses = responseBuilder == null
-                                ? new() { ResponseBuilder.DefaultResponse(m_Options) }
-                                : new List<Response>(5) { responseBuilder.ToHttpResponse() };
+
+            if (responseBuilder == null)
+                return [ResponseBuilder.DefaultResponse(m_Options)];
+
+            var responsesInChain = responseBuilder.TraverseAndCountResponseChain();
+            var responses = new List<Response>(responsesInChain) { responseBuilder.ToHttpResponse() };
 
             while (responseBuilder?.NextResponse != null)
             {
