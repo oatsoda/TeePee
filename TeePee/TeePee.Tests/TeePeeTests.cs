@@ -25,7 +25,7 @@ public class TeePeeTests
     private TeePeeBuilder m_TrackingBuilder = new();
 
     // Logger
-    private readonly Mock<ILogger<TeePee>> m_MockLogger;
+    private readonly Mock<ILogger<TeePee>> m_MockLogger = new();
 
     // Shortcut methods
     private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
@@ -37,7 +37,7 @@ public class TeePeeTests
     public TeePeeTests(ITestOutputHelper testOutputHelper)
     {
         m_TestOutputHelper = testOutputHelper;
-        m_MockLogger = new();
+
         m_MockLogger
             .Setup(l => l.IsEnabled(It.Is<LogLevel>(level => level >= LogLevel.Information)))
             .Returns(true);
@@ -525,16 +525,16 @@ public class TeePeeTests
 
         // Then
         m_MockLogger.Verify(l => l.Log(
-                                       It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)),
-                                       It.IsAny<EventId>(),
-                                       It.Is<It.IsAnyType>((o, t) =>
-                                                               o != null &&
-                                                               (o.ToString() ?? "").Contains($"{(isMatch ? "Matched" : "Unmatched")} Http request") &&
-                                                               (o.ToString() ?? "").Contains($"{m_HttpMethod} https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: {isMatch}]")
-                                                          ),
-                                       It.IsAny<Exception>(),
-                                       It.IsAny<Func<It.IsAnyType, Exception?, string>>())
-                            , Times.Once);
+            It.Is<LogLevel>(level => level == (isMatch ? LogLevel.Information : LogLevel.Warning)),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) =>
+                                    o != null &&
+                                    (o.ToString() ?? "").Contains($"{(isMatch ? "Matched" : "Unmatched")} Http request") &&
+                                    (o.ToString() ?? "").Contains($"{m_HttpMethod} https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: {isMatch}]")
+                                ),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
     }
 
     [Fact]
@@ -551,17 +551,17 @@ public class TeePeeTests
 
         // Then
         m_MockLogger.Verify(l => l.Log(
-                                       It.Is<LogLevel>(level => level == LogLevel.Warning),
-                                       It.IsAny<EventId>(),
-                                       It.Is<It.IsAnyType>((o, t) =>
-                                                               o != null &&
-                                                               (o.ToString() ?? "").Contains("Unmatched Http request") &&
-                                                               (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
-                                                               (o.ToString() ?? "").Contains("\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
-                                                          ),
-                                       It.IsAny<Exception>(),
-                                       It.IsAny<Func<It.IsAnyType, Exception?, string>>())
-                            , Times.Once);
+            It.Is<LogLevel>(level => level == LogLevel.Warning),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) =>
+                                    o != null &&
+                                    (o.ToString() ?? "").Contains("Unmatched Http request") &&
+                                    (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
+                                    (o.ToString() ?? "").Contains("\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
+                                ),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
     }
 
     #endregion
