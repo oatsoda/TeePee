@@ -69,7 +69,17 @@ namespace TeePee
         {
             var msgTimes = expectedTimes == null ? "at least once" : $"exactly {expectedTimes.Value} times";
             var msgNotMet = expectedTimes == null ? "never called" : $"called {actualTimes} times";
-            var msg = $"Expected {matchRule.Log(options.TruncateBodyOutputLength)} to be called {msgTimes} but was {msgNotMet}.\r\n\r\nTracking For:\r\n\r\n\t{matchRule.Log(options.TruncateBodyOutputLength)}\r\n\r\nAll Calls:\r\n\r\n{allRecordedHttpCalls.Log(options)}";
+            var msg = $"""
+Expected {matchRule.Log(options.TruncateBodyOutputLength)} to be called {msgTimes} but was {msgNotMet}.
+                
+Tracking For:
+                
+{"\t"}{matchRule.Log(options.TruncateBodyOutputLength)}
+                
+All Calls:
+                
+{string.Join("\r\n", allRecordedHttpCalls.Select(c => $"\t{c.Log(options)}"))}
+""";
             return msg;
         }
     }

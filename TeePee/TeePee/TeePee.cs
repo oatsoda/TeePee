@@ -11,19 +11,25 @@ namespace TeePee
 
         public TeePeeMessageHandler HttpHandler { get; }
 
-        internal TeePee(string? httpClientNamedInstance, TeePeeOptions options, IReadOnlyList<RequestMatchRule> matchRules, HttpStatusCode unmatchedStatusCode, string? unmatchedBody, ILogger? logger)
+        internal TeePee(string? httpClientNamedInstance,
+                        TeePeeOptions options,
+                        IReadOnlyList<RequestMatchRule> matchRules,
+                        HttpStatusCode unmatchedStatusCode,
+                        string? unmatchedBody,
+                        ILogger? logger)
         {
             HttpClientNamedInstance = httpClientNamedInstance;
-            HttpHandler = new(options,
-                              matchRules,
-                              () => new(unmatchedStatusCode)
-                              {
-                                  Content = unmatchedBody == null
-                                                      ? null
-                                                      : new StringContent(unmatchedBody)
-                              },
-                              logger
-                             );
+            HttpHandler = new(
+                options,
+                matchRules,
+                () => new(unmatchedStatusCode)
+                {
+                    Content = unmatchedBody == null
+                    ? null
+                    : new StringContent(unmatchedBody)
+                },
+                logger
+            );
         }
 
         /*
@@ -50,8 +56,8 @@ namespace TeePee
             public HttpClient CreateClient()
             {
                 return m_BaseAddressForHttpClient == null
-                           ? new(TeePee.HttpHandler)
-                           : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
+                    ? new(TeePee.HttpHandler)
+                    : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
             }
 
             public IHttpClientFactory CreateHttpClientFactory() => new WrappedHttpClientFactory(CreateClient(), TeePee.HttpClientNamedInstance);
@@ -71,8 +77,8 @@ namespace TeePee
                 {
                     // Force callers to specify correct named instance
                     return m_NamedInstance == name
-                               ? m_HttpClient
-                               : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
+                        ? m_HttpClient
+                        : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
                 }
             }
         }
@@ -95,7 +101,7 @@ namespace TeePee
 
         internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
         {
-            private readonly Dictionary<string, HttpClient> m_NamedClients = new();
+            private readonly Dictionary<string, HttpClient> m_NamedClients = [];
 
             internal void Add(string? namedInstance, HttpClient httpClient)
             {
@@ -107,8 +113,8 @@ namespace TeePee
             {
                 // Force callers to specify correct named instance
                 return name != null! && m_NamedClients.ContainsKey(name)
-                           ? m_NamedClients[name]
-                           : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
+                    ? m_NamedClients[name]
+                    : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
             }
         }
     }

@@ -45,41 +45,31 @@ namespace TeePee
 
             if (recordedHttpCall.IsMatch)
             {
-                m_Logger.LogInformation("Matched Http request: {request} [Response: {responseCode} {response}]",
-                                        recordedHttpCall.Log(m_Options),
-                                        (int)recordedHttpCall.HttpResponseMessage.StatusCode,
-                                        recordedHttpCall.HttpResponseMessage.StatusCode);
+                m_Logger.LogMatchedRequest(
+                    recordedHttpCall.Log(m_Options),
+                    (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                    recordedHttpCall.HttpResponseMessage.StatusCode);
                 return;
             }
 
-            if (!m_Options.ShowFullDetailsOnMatchFailure)
+            if (m_Options.ShowFullDetailsOnMatchFailure)
             {
-                m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}] [{num} rules configured]",
-                                    recordedHttpCall.Log(m_Options),
-                                    (int)recordedHttpCall.HttpResponseMessage.StatusCode,
-                                    recordedHttpCall.HttpResponseMessage.StatusCode,
-                                    m_ConfiguredRules.Count);
+                m_Logger.LogUnmatchedRequestWithFullDetails(
+                    recordedHttpCall.Log(m_Options),
+                    (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                    recordedHttpCall.HttpResponseMessage.StatusCode,
+                    m_ConfiguredRules.Log(m_Options));
                 return;
             }
 
-            m_Logger.LogWarning("Unmatched Http request: {request} [Response: {responseCode} {response}]\r\n\r\nConfigured Rules:\r\n\r\n{rules}",
-                                recordedHttpCall.Log(m_Options),
-                                (int)recordedHttpCall.HttpResponseMessage.StatusCode,
-                                recordedHttpCall.HttpResponseMessage.StatusCode,
-                                m_ConfiguredRules.Log(m_Options));
+            m_Logger.LogUnmatchedRequest(
+                recordedHttpCall.Log(m_Options),
+                (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                recordedHttpCall.HttpResponseMessage.StatusCode,
+                m_ConfiguredRules.Count);
         }
 
-        internal class IncomingHttpCall
-        {
-            public HttpRequestMessage HttpRequestMessage { get; }
-            public string? RequestBody { get; }
-
-            public IncomingHttpCall(HttpRequestMessage httpRequestMessage, string? requestBody)
-            {
-                HttpRequestMessage = httpRequestMessage;
-                RequestBody = requestBody;
-            }
-        }
+        internal record IncomingHttpCall(HttpRequestMessage HttpRequestMessage, string? RequestBody);
 
         internal class RecordedHttpCall
         {
@@ -118,11 +108,35 @@ namespace TeePee
         }
     }
 
-    public static class RecordedHttpCallListExtensions
+    internal static partial class RequestLoggingExtensions
     {
-        internal static string Log(this IEnumerable<TeePeeMessageHandler.RecordedHttpCall> recordedHttpCalls, TeePeeOptions options)
-        {
-            return string.Join("\r\n", recordedHttpCalls.Select(c => $"\t{c.Log(options)}"));
-        }
+        [LoggerMessage(
+            Message = "Matched Http request: {request} [Response: {responseCode} {responseCodeDescription}]",
+            Level = LogLevel.Information)]
+        internal static partial void LogMatchedRequest(
+            this ILogger logger,
+            string request,
+            int responseCode,
+            System.Net.HttpStatusCode responseCodeDescription);
+
+        [LoggerMessage(
+            Message = "Unmatched Http request: {request} [Response: {responseCode} {responseCodeDescription}] [{numberOfRulesConfigured} rules configured]",
+            Level = LogLevel.Warning)]
+        internal static partial void LogUnmatchedRequest(
+            this ILogger logger,
+            string request,
+            int responseCode,
+            System.Net.HttpStatusCode responseCodeDescription,
+            int numberOfRulesConfigured);
+
+        [LoggerMessage(
+            Message = "Unmatched Http request: {request} [Response: {responseCode} {responseCodeDescription}]\r\n\r\nConfigured Rules:\r\n\r\n{rulesConfigured}",
+            Level = LogLevel.Warning)]
+        internal static partial void LogUnmatchedRequestWithFullDetails(
+            this ILogger logger,
+            string request,
+            int responseCode,
+            System.Net.HttpStatusCode responseCodeDescription,
+            string rulesConfigured);
     }
 }
