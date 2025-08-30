@@ -8,7 +8,6 @@ trigger:
   paths:
     include:
       - TeePee/*
-      - TeePee.PR.yml
 
 pr: none
 

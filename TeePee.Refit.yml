@@ -8,7 +8,6 @@ trigger:
   paths:
     include:
       - TeePee.Refit/*
-      - TeePee.Refit.PR.yml
 
 pr: none
 

@@ -9,7 +9,7 @@ pr:
   paths:
     include:
       - TeePee/*
-      - CI.TeePee.yml
+      - TeePee.PR.yml
 
 pool:
   vmImage: "windows-latest"
