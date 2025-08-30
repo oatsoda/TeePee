@@ -18,7 +18,6 @@ variables:
   solution: "**/TeePee.Refit.sln"
   buildConfiguration: "Release"
   versionSuffix: "" #prefix with hyphen, e.g. -beta
-  autoPublishToNuGet: true
   NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
 
 stages:
