@@ -6,19 +6,21 @@ NuGet: [![NuGet Downloads](https://img.shields.io/nuget/dt/TeePee?label=NuGet%20
 
 A fluent API to configure HttpClients for unit testing.
 
-CI: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/CI.TeePee?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=4&branchName=main) \
-Release: [![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/Release.TeePee?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=5&branchName=main)
+[![Build Status](https://dev.azure.com/oatsoda/TeePee/_apis/build/status/TeePee?branchName=main)](https://dev.azure.com/oatsoda/TeePee/_build/latest?definitionId=5&branchName=main)
+
+# TeePee.Refit
+
+Also, [TeePee.Refit](/TeePee.Refit/) an add on adaptor when production code is using Refit.
 
 # Documentation
 
 ## Mocking
 
-Everything in TeePee starts by creating a `TeePeeBuilder`.  
+Everything in TeePee starts by creating a `TeePeeBuilder`.
 
 ```csharp
 var teePeeBuilder = new TeePeeBuilder();
 ```
-
 
 ### Matching requests
 
@@ -28,7 +30,7 @@ Add requests that you want to support by using the fluent API to specify as litt
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
              .ThatHasBody(new { Value = 12 })
              .ThatContainsQueryParam("filter", "those")
-             .ThatContainsHeader("ApiKey", "123abc-xyz987");             
+             .ThatContainsHeader("ApiKey", "123abc-xyz987");
 ```
 
 #### Query strings
@@ -48,7 +50,6 @@ teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
 
 You cannot combine both though. Once you specify `ContainingQueryParam` then incoming requests at execution-time will have their query string removed when attempting to match a rule which is using `ContainingQueryParam`.
 
-
 ### Returning responses
 
 The response to a matching request is set using the `Responds()` fluent method:
@@ -66,23 +67,19 @@ teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
 If you don't specify a Status Code in the response, the default is `204 NoContent`. (i.e. it matched, but you didn't tell it what status to return)
 If you don't call `Responds()` then the default response Status Code is `202 Accepted`. (i.e. it matched, but you didn't tell it to respond)
 
-
 ### Defaults for no matches & Strict Mode
 
-If there is no match for a request, the default is to response with a Status Code is `404 NotFound`.  (This is configurable using the `WithDefaultResponse` on `TeePeeBuilder`)
+If there is no match for a request, the default is to response with a Status Code is `404 NotFound`. (This is configurable using the `WithDefaultResponse` on `TeePeeBuilder`)
 
-
-
-## Unit Testing 
+## Unit Testing
 
 It's worth [making sure you fully understand](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-3.1#consumption-patterns) the various `HttpClientFactory` mechanisms for registering and resolving `HttpClient`s before reading this.
 
-
 ### Classicist/Detroit/Black Box vs Mockist/London/White Box
-TeePee is focused on the Classicist/Detroit/Black Box approach to unit testing.  It can be used for Mockist/London/White Box approaches, but be aware that due to the way `HttpClientFactory` is implemented, you may find there are limitations if you are planning to mock and inject your dependencies into your test subject manually.
 
+TeePee is focused on the Classicist/Detroit/Black Box approach to unit testing. It can be used for Mockist/London/White Box approaches, but be aware that due to the way `HttpClientFactory` is implemented, you may find there are limitations if you are planning to mock and inject your dependencies into your test subject manually.
 
-### Verifying 
+### Verifying
 
 When Black Box unit testing, it's recommended to be as passive with mocked dependencies as possible. This means, where possible, not asserting specific details about calls to the HttpClient but instead mocking the requests and responses and instead asserting the outcomes of the Subject Under Test.
 
@@ -93,17 +90,15 @@ In this case, you can set up a tracker using `TrackRequest()` to make simple ver
 ```csharp
 var requestTracker = teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Post)
                                   .TrackRequets();
-                                  
+
 // Execute SUT
 
-reququestTracker.WasCalled(1);                                  
+reququestTracker.WasCalled(1);
 ```
-
 
 ### Injection during Unit Tests
 
-As stated above, TeePee is more focused on the Classicist/Detroit/Black Box of testing approach and this allows unit test coverage of DI registrations for `HttpClientFactory`.  You can of course still manually inject should you wish to.
-
+As stated above, TeePee is more focused on the Classicist/Detroit/Black Box of testing approach and this allows unit test coverage of DI registrations for `HttpClientFactory`. You can of course still manually inject should you wish to.
 
 ### Manual Injection
 
@@ -111,7 +106,7 @@ Once you have finished setting up one or more requests in you `TeePeeBuilder` th
 
 #### Basic HttpClient
 
-Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
+Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages. You probably won't want to use this in your production code.
 
 ```csharp
 var teePee = await teePeeBuilder.Build();
@@ -151,7 +146,8 @@ var subjectUnderTest = new UserController(typedHttpClient);
 
 If you are wanting to specify the `BaseAddress` in your `HttpClient` and use Relative URLs in your Subject Under Test when calling the HttpClient, you can set TeePee up to ALSO configure this in your tests. (Note, this obviously means you are not covering this in your tests, it is just so that the HttpClient accepts Relative URLs.
 
-To do this, pass a dummy Base Address into the `Manual()` call. 
+To do this, pass a dummy Base Address into the `Manual()` call.
+
 ```csharp
 var teePeeBuilder = new TeePeeBuilder("GitHub");
 teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
@@ -159,18 +155,17 @@ teePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
              .WithStatusCode(HttpStatusCode.OK);
 
 var teePee = await teePeeBuilder.Build();
-var typedHttpClient = new MyTypedHttpClient(teePee.Manual("https://some.api").CreateClient());         
+var typedHttpClient = new MyTypedHttpClient(teePee.Manual("https://some.api").CreateClient());
 var subjectUnderTest = new UserController(typedHttpClient);
 ```
 
-
 ### Auto Injection
 
-Injecting automatically allows you to cover the startup DI registrations as part of your unit tests.  This is mostly done using the `Resolve` static class.
+Injecting automatically allows you to cover the startup DI registrations as part of your unit tests. This is mostly done using the `Resolve` static class.
 
 #### Basic HttpClient
 
-Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages.  You probably won't want to use this in your production code.
+Basic HttpClient usage is very limited and is only really meant for intermediate refactoring stages. You probably won't want to use this in your production code.
 
 ```csharp
 var subjectUnderTest = await Resolve.WithDefaultClient<UserController>(teePeeBuilder);
@@ -186,11 +181,11 @@ var teePeeBuilder = new TeePeeBuilder("GitHub");
 // Setup request matching...
 
 var subjectUnderTest = await Resolve.WithNamedClients<UserController>(
-                                services => 
+                                services =>
                                 {
                                    // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
                                    // Expect any intermediate dependencies to also be registered
-                                   services.AddHttpClient("GitHub, c => c.BaseAddress = "https://external.api");                             
+                                   services.AddHttpClient("GitHub, c => c.BaseAddress = "https://external.api");
                                 },
                                 teePeeBuilder);
 ```
@@ -205,17 +200,15 @@ var teePeeBuilder = new TeePeeBuilder();
 // Setup request matching...
 
 var subjectUnderTest = await Resolve.WithTypedClient<UserController, MyTypedHttpClient>(
-                                services => 
+                                services =>
                                 {
                                    // Call your production code/extension methods here - but for this example we're inlining it - see examples for further details
                                    // Expect any intermediate dependencies to also be registered
-                                   services.AddHttpClient<MyTypedHttpClient>(c => c.BaseAddress = "https://external.api");                             
+                                   services.AddHttpClient<MyTypedHttpClient>(c => c.BaseAddress = "https://external.api");
                                 },
                                 teePeeBuilder);
 ```
 
-
 ## Multiple HttpClient dependencies
 
 See [Examples](https://github.com/oatsoda/TeePee/tree/main/TeePee/Examples) for demonstrations of how to apply the above Manual or Auto injection when you have multiple HttpClient dependencies.
-
