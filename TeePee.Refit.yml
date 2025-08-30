@@ -1,4 +1,4 @@
-name: 3.0.7 #$(rev:.r)
+name: 3.0$(rev:.r)
 
 trigger:
   batch: true
