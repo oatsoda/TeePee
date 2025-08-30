@@ -88,7 +88,7 @@ stages:
                   inputs:
                     targetType: "inline"
                     script: |
-                      dotnet nuget push "$(Pipeline.Workspace)/TeePee-Package/*.nupkg" --api-key "$(nugetApiKey)" --source "https://api.nuget.org/v3/index.json"
+                      dotnet nuget push "$(Pipeline.Workspace)/*.nupkg" --api-key "$(nugetApiKey)" --source "https://api.nuget.org/v3/index.json"
 
                   # https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package-using-the-dotnet-cli#publish-with-dotnet-nuget-push
                   # https://github.com/NuGet/Home/issues/1234 - no option to push as unlisted, which could be useful to avoid approvals
