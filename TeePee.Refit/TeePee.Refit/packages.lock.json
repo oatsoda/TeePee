@@ -14,9 +14,9 @@
       },
       "TeePee": {
         "type": "Direct",
-        "requested": "[3.0.4, )",
-        "resolved": "3.0.4",
-        "contentHash": "EkiA6IzABaUm9ecCXp2cLp540jFWjFyjNwUxOMU/brh1IFvS8puNjaIKA3toJ0mnLGABXRBGKq5OGPhv8euQoA==",
+        "requested": "[3.0.5, )",
+        "resolved": "3.0.5",
+        "contentHash": "RPWHQ28LGTirORIIIpoIQZ4Ys+fwYn9HXH+DzDJxnRQCf2PcIqC+WE81Z/PsIDF1tpGLIhC0zRIhQQizCr5XlQ==",
         "dependencies": {
           "Microsoft.Extensions.Http": "9.0.7",
           "System.Net.Http.Json": "9.0.7",
