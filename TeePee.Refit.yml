@@ -77,6 +77,7 @@ stages:
 
   - stage: Deploy
     jobs:
+      # NOTE: Artifact download task may report 0.0MB as the file is nly approx 30KB.
       - deployment: Deploy
         environment: NuGet # Approval check on this environment
         strategy:
@@ -88,7 +89,7 @@ stages:
                   inputs:
                     targetType: "inline"
                     script: |
-                      dotnet nuget push "$(Pipeline.Workspace)/TeePee.Refit.Package/*.nupkg" --api-key "$(nugetApiKey)" --source "https://api.nuget.org/v3/index.json"
+                      dotnet nuget push "$(Pipeline.Workspace)/TeePee-Refit-Package/*.nupkg" --api-key "$(nugetApiKey)" --source "https://api.nuget.org/v3/index.json"
 
                   # https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package-using-the-dotnet-cli#publish-with-dotnet-nuget-push
                   # https://github.com/NuGet/Home/issues/1234 - no option to push as unlisted, which could be useful to avoid approvals
