@@ -19,6 +19,9 @@ namespace TeePee.Internal
 
         public Response(HttpStatusCode responseStatusCode, TeePeeOptions options, object? responseBody, HttpContent? responseBodyContent, string? responseBodyMediaType, string? responseBodyEncoding, IDictionary<string, string> responseHeaders)
         {
+            if (responseBodyEncoding != null && responseBodyMediaType == null)
+                throw new ArgumentNullException(nameof(responseBodyMediaType), "Response Body MediaType must be specified if Encoding is specified.");
+
             m_ResponseStatusCode = responseStatusCode;
 
             m_Options = options;
@@ -51,11 +54,16 @@ namespace TeePee.Internal
             if (m_ResponseBody == null)
                 return m_ResponseBodyContent; // Note: Can only be used once as Dispose will dispose it and we can't create another instance from this
 
-            var jsonContent = JsonContent.Create(m_ResponseBody, new(m_ResponseBodyMediaType), m_Options.ResponseBodySerializerOptions);
-            if (m_ResponseBodyEncoding != null)
-                jsonContent.Headers.ContentType.CharSet = m_ResponseBodyEncoding;
+            System.Net.Http.Headers.MediaTypeHeaderValue? contentType = null;
+            if (m_ResponseBodyMediaType != null)
+            {
+                contentType = new(m_ResponseBodyMediaType);
+            
+                if (m_ResponseBodyEncoding != null)
+                    contentType.CharSet = m_ResponseBodyEncoding;
+            }
 
-            return jsonContent;
+            return JsonContent.Create(m_ResponseBody, contentType, m_Options.ResponseBodySerializerOptions);
         }
     }
 }

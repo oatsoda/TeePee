@@ -30,8 +30,10 @@ namespace TeePee.DependencyInjection
             var method = type.GetMethod("GetTypeDisplayName", BindingFlags.Static | BindingFlags.Public, null, CallingConventions.Any, new[] { typeof(Type), typeof(bool), typeof(bool), typeof(bool), typeof(char) }, null);
             if (method == null)
                 throw new InvalidOperationException("Could not find method TypeNameHelper.GetTypeDisplayName in assemblies");
-            var httpClientNamedInstance = (string)method.Invoke(null, new[] { (object)typedClientType, false, false, true, '+' });
+            var httpClientNamedInstance = (string?)method.Invoke(null, new[] { (object)typedClientType, false, false, true, '+' });
 
+            if (string.IsNullOrEmpty(httpClientNamedInstance))
+                throw new InvalidOperationException("Could not determine HttpClientFactory Named Instance for Typed Client");
 
             // Reflection: Create an HttpClientBuilder using the same ServiceCollection and HttpClientFactoryName used within the Startup
             var builder = serviceCollection.GetHttpClientBuilderFor(httpClientNamedInstance);
@@ -49,7 +51,9 @@ namespace TeePee.DependencyInjection
             var defaultHttpClientBuilderType = Type.GetType("Microsoft.Extensions.DependencyInjection.DefaultHttpClientBuilder, Microsoft.Extensions.Http");
             if (defaultHttpClientBuilderType == null)
                 throw new InvalidOperationException("Could not find method DefaultHttpClientBuilder in assemblies");
-            return (IHttpClientBuilder)Activator.CreateInstance(defaultHttpClientBuilderType, serviceCollection, httpClientNamedInstance);
+            var httpClientBuilder = (IHttpClientBuilder?)Activator.CreateInstance(defaultHttpClientBuilderType, serviceCollection, httpClientNamedInstance);
+        
+            return httpClientBuilder ?? throw new InvalidOperationException("Could not create HttpClientBuilder instance via reflection.");
         }
 
 
