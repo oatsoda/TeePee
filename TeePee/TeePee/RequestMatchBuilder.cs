@@ -32,7 +32,7 @@ namespace TeePee
         private readonly Dictionary<string, string> m_QueryParams = new(4);
         private readonly Dictionary<string, string> m_Headers = new(4);
 
-        internal bool MatchUrlWithQuery { get; private set; }
+        internal bool MatchUrlWithQuery { get; }
         internal bool HasQueryParams => m_QueryParams.Count > 0;
 
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod &&
