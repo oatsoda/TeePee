@@ -1,4 +1,4 @@
-name: 3.0$(rev:.r)
+name: 4.0$(rev:.r)
 
 trigger:
   batch: true
@@ -28,9 +28,9 @@ stages:
         displayName: Build
         steps:
           - task: UseDotNet@2
-            displayName: "Use .NET 9"
+            displayName: "Use .NET 10"
             inputs:
-              version: 9.x
+              version: 10.x
 
           - task: Cache@2
             displayName: "NuGet Pipeline Cache"

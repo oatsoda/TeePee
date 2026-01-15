@@ -45,7 +45,7 @@ namespace TeePee
         /// <summary>
         /// RESPONSE Respond with the given JSON Body. MediaType and Encoding default to application/json / UTF8 respectively.
         /// </summary>
-        public ResponseBuilder WithBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null)
+        public ResponseBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding? encoding = null)
         {
             if (m_ResponseBodyContent != null)
                 throw new InvalidOperationException("The response Body has already been set from HttpContent.");

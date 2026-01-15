@@ -74,6 +74,10 @@ namespace TeePee.Internal
 
         private bool IsMatchingUrl(HttpRequestMessage httpRequestMessage)
         {
+            if (httpRequestMessage.RequestUri == null)
+                throw new ArgumentException("Request URI is null when trying to match Url.", nameof(httpRequestMessage));
+
+
             // If no params specified, match whole URL including QS
             if (QueryParams.Count == 0)
                 return Url.IsSameUrl(httpRequestMessage.RequestUri.ToString());
@@ -105,6 +109,9 @@ namespace TeePee.Internal
             if (RequestBodyEncoding == null && RequestBodyMediaType == null) // Ignored
                 return true;
 
+            if (httpRequestMessage.Content == null)
+                throw new ArgumentException("Request body content is null when trying to match on Content-Type headers.", nameof(httpRequestMessage));
+            
             var contentType = httpRequestMessage.Content.Headers.ContentType;
 
             if (contentType == null)
@@ -123,6 +130,9 @@ namespace TeePee.Internal
         {
             if (QueryParams.Count == 0) // Ignored
                 return true;
+
+            if (httpRequestMessage.RequestUri == null)
+                throw new ArgumentException("Request URI is null when trying to match on Query params.", nameof(httpRequestMessage));
 
             var requestQueryParams = HttpUtility.ParseQueryString(httpRequestMessage.RequestUri.Query);
             return QueryParams.All(q => q.Value.IsSameString(requestQueryParams[q.Key], m_Options.CaseSensitiveMatching));
