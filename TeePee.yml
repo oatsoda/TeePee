@@ -16,6 +16,8 @@ pool:
 
 variables:
   solution: "**/TeePee.sln"
+  projectToPack: "TeePee/TeePee/TeePee.csproj"
+  netstandardFramework: "netstandard2.1"
   buildConfiguration: "Release"
   versionSuffix: "" #prefix with hyphen, e.g. -beta
   NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
@@ -62,13 +64,27 @@ stages:
               projects: "TeePee/**/*[Tt]ests.csproj"
               arguments: "-c $(buildConfiguration) --no-build -- -results-directory $(Agent.TempDirectory) -report-trx"
 
+          - task: DotNetCoreCLI@2
+            displayName: "Restore netstandard"
+            inputs:
+              command: "restore"
+              projects: "$(projectToPack)"
+              arguments: "-c $(buildConfiguration) -f $(netstandardFramework)"
+
+          - task: DotNetCoreCLI@2
+            displayName: "Build netstandard"
+            inputs:
+              command: "build"
+              projects: "$(projectToPack)"
+              arguments: "-c $(buildConfiguration) -f $(netstandardFramework) --no-restore /p:Version=$(Build.BuildNumber)$(versionSuffix)"
+
           # Using direct dotnet command as I had Nupkg file name issues with DotNetCoreCLI pack task.
           - task: PowerShell@2
             displayName: Package NuGet
             inputs:
               targetType: "inline"
               script: |
-                dotnet pack TeePee/TeePee/TeePee.csproj -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
+                dotnet pack $(projectToPack) -c $(buildConfiguration) --no-build -o $(Build.ArtifactStagingDirectory) /p:Version=$(Build.BuildNumber)$(versionSuffix)
 
           - publish: $(Build.ArtifactStagingDirectory)
             displayName: Publish NuGet Package
