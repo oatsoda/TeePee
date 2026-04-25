@@ -10,12 +10,12 @@
       },
       "Microsoft.Testing.Extensions.TrxReport": {
         "type": "Direct",
-        "requested": "[1.8.3, )",
-        "resolved": "1.8.3",
-        "contentHash": "S9W4C3LQe+D+aE2xcrvXmWVi7bKmQUa/n0yuKA8OuOhgjMFROiCnQ0X1MtZGmJmF21An+0Gi4IGyn4qwIFc9CQ==",
+        "requested": "[1.9.1, )",
+        "resolved": "1.9.1",
+        "contentHash": "JssTbdxzI+uCUciUv7XbEtRHoJPNrIGZJ1p2nVPQHwVaFt3AClvDjHYyv81IYvYMVDtuIi+t+bjm2i8YnorZQA==",
         "dependencies": {
-          "Microsoft.Testing.Extensions.TrxReport.Abstractions": "1.8.3",
-          "Microsoft.Testing.Platform": "1.8.3"
+          "Microsoft.Testing.Extensions.TrxReport.Abstractions": "1.9.1",
+          "Microsoft.Testing.Platform": "1.9.1"
         }
       },
       "xunit.v3": {
