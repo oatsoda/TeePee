@@ -4,9 +4,9 @@
     "net10.0": {
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Direct",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "zOIurr59+kUf9vNcsUkCvKWZv+fPosUZXURZesYkJCvl0EzTc9F7maAO4Cd2WEV7ZJJ0AZrFQvuH6Npph9wdBw=="
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "Z6mfFEaFcwCfSboxJwOLfu7/31npCY9q70WUamHW/vRQhDvBKOT4Vf9YkZj5J6hLvJpb0oDEYfHunQZj0xxvKw=="
       },
       "Microsoft.Testing.Extensions.TrxReport": {
         "type": "Direct",
@@ -172,16 +172,16 @@
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "gXRmIy3Va0mwwr8usnqVRQFoFIJaJGlWTTXBlwxIkHB/xwXnq1Ybs1YNA2BM1O4G46JLLlGjg6YOwrTZusuY3Q=="
+        "resolved": "10.1.6",
+        "contentHash": "j82mHFcXJpiJiaLqQgiikmLAu+oYKcIM8ZafipX2s2b2soOS0OGN+Oc+BXkhsG8x6j2M1J23Eac3068yOKLPFA=="
       },
       "Refit.HttpClientFactory": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "dwtmrqHkhuwDmG9qE8+rNnv6YFo132G1Ma+GCXupZQsdQcMN4U1uYaxoJVanRIPdieQGkQRcdxjkFhwO1LuRoA==",
+        "resolved": "10.1.6",
+        "contentHash": "brVgMXHX2pp6pMji7tJijygbMwxccIy2vSsPurPmOZ7jSChBjYpiT9bBbJkBDc0hhnNyzvLkkbx0uiHhJuTTEQ==",
         "dependencies": {
-          "Microsoft.Extensions.Http": "8.0.1",
-          "Refit": "8.0.0"
+          "Microsoft.Extensions.Http": "9.0.3",
+          "Refit": "10.1.6"
         }
       },
       "TeePee": {
@@ -251,7 +251,7 @@
       "teepee.refit": {
         "type": "Project",
         "dependencies": {
-          "Refit.HttpClientFactory": "[8.0.0, )",
+          "Refit.HttpClientFactory": "[10.1.6, )",
           "TeePee": "[4.0.3, )"
         }
       }
