@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using TeePee.DependencyInjection;
 using TeePee.Examples.WebApp.Controllers;
-using Xunit;
 
-namespace TeePee.Examples.WebApp.Tests
+namespace TeePee.Examples.WebApp.Tests.TestScopedTests
 {
     public class HttpClientFactoryTypedUsageControllerTests
     {
@@ -23,15 +20,15 @@ namespace TeePee.Examples.WebApp.Tests
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
-                                     {
-                                         Things = new[]
+                           {
+                               Things = new[]
                                                   {
                                                       new
                                                       {
                                                           Value = 10
                                                       }
                                                   }
-                                     });
+                           });
 
             var controller = new HttpClientFactoryTypedUsageController(new ExampleTypedHttpClient((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateClient()));
 
@@ -87,15 +84,15 @@ namespace TeePee.Examples.WebApp.Tests
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
-                                     {
-                                         Things = new[]
+                           {
+                               Things = new[]
                                                   {
                                                       new
                                                       {
                                                           Value = 10
                                                       }
                                                   }
-                                     });
+                           });
 
             var controller = await Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
                                                                                                                    sc =>

@@ -1,22 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using TeePee.DependencyInjection;
 using TeePee.Examples.WebApp.Controllers;
-using Xunit;
 
-namespace TeePee.Examples.WebApp.Tests
+namespace TeePee.Examples.WebApp.Tests.TestScopedTests
 {
-    public class HttpClientFactoryNamedUsageControllerTests
+    // Basic usage of HttpClientFactory (i.e. non-named or type clients is only really meant as a refactoring step)
+    public class HttpClientFactoryBasicUsageControllerTests
     {
-        private readonly TeePeeBuilder m_TeePeeBuilder = new(_NAMED_HTTP_CLIENT);
-        private const string _NAMED_HTTP_CLIENT = "ThirdPartyApi";
+        private readonly TeePeeBuilder m_TeePeeBuilder = new();
 
         #region Manual Injection
 
         [Fact]
-        public async Task ManualInjection_RecommendedPassiveMocking()
+        public async Task RecommendedPassiveMocking()
         {
             // Given
             m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
@@ -24,17 +21,17 @@ namespace TeePee.Examples.WebApp.Tests
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
-                                     {
-                                         Things = new[]
+                           {
+                               Things = new[]
                                                   {
                                                       new
                                                       {
                                                           Value = 10
                                                       }
                                                   }
-                                     });
+                           });
 
-            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndAct();
@@ -47,7 +44,7 @@ namespace TeePee.Examples.WebApp.Tests
         }
 
         [Fact]
-        public async Task ManualInjection_MockAndVerify()
+        public async Task MockAndVerify()
         {
             // Given
             var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
@@ -57,7 +54,7 @@ namespace TeePee.Examples.WebApp.Tests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
 
             // When
             var result = await controller.FireAndForget();
@@ -71,35 +68,28 @@ namespace TeePee.Examples.WebApp.Tests
 
         #endregion
 
-        #region Auto Injection
+        #region Auto Injection 
 
         [Fact]
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
+            m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
                            .ThatContainsQueryParam("filter", "those")
                            .Responds()
                            .WithStatus(HttpStatusCode.OK)
                            .WithBody(new
-                                     {
-                                         Things = new[]
+                           {
+                               Things = new[]
                                                   {
                                                       new
                                                       {
                                                           Value = 10
                                                       }
                                                   }
-                                     });
+                           });
 
-            var controller = await Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
-                                                                                             {
-                                                                                                 var configuration = UnitTestConfig.LoadUnitTestConfig();
-
-                                                                                                 // Call your production code, which sets up the Typed Client, here
-                                                                                                 sc.AddNamedHttpClients(configuration);
-                                                                                             },
-                                                                                             m_TeePeeBuilder);
+            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndAct();
@@ -115,21 +105,14 @@ namespace TeePee.Examples.WebApp.Tests
         public async Task AutoInjection_MockAndVerify()
         {
             // Given
-            var requestTracker = m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
+            var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
                                                 .ThatContainsQueryParam("filter", "other")
                                                 .ThatHasBody(new { Caller = "ThisCaller" })
                                                 .Responds()
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = await Resolve.WithNamedClients<HttpClientFactoryNamedUsageController>(sc =>
-                                                                                             {
-                                                                                                 var configuration = UnitTestConfig.LoadUnitTestConfig();
-
-                                                                                                 // Call your production code, which sets up the Typed Client, here
-                                                                                                 sc.AddNamedHttpClients(configuration);
-                                                                                             },
-                                                                                             m_TeePeeBuilder);
+            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
 
             // When
             var result = await controller.FireAndForget();
