@@ -111,6 +111,8 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
     {
         private readonly IServiceCollection m_Services;
 
+        private IServiceProvider? m_ServiceProvider;
+
         private IServiceScope? m_Scope;
 
         public BaseFixture()
@@ -125,8 +127,18 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 
         public void SetTestScope()
         {
-            Reset();
-            m_Scope = m_Services.BuildServiceProvider().CreateScope();
+            if (m_Scope == null)
+            {
+                // First test execution
+                m_ServiceProvider = m_Services.BuildServiceProvider();
+            }
+            else
+            {
+                m_Scope.Dispose();
+                Reset();
+            }
+
+            m_Scope = m_ServiceProvider!.CreateScope();
         }
 
         protected abstract IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration);
