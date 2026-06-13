@@ -94,8 +94,9 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 
             // This overrides the Factory with TeePee's factory for the named client.
             // But there may be times when the SUT doesn't directly use the Factory, and instead a Singleton dependency
-            // does, meaining this scoped override will not work.
-                .AddScoped<IHttpClientFactory>(_ => TeePeeBuilder.Build().GetAwaiter().GetResult().Manual("https://some.api").CreateHttpClientFactory());
+            // does, meaining this scoped override will not work. If we set the Factory as Singleton explicitly
+            // it should prove that replacing the Builder in Reset does not work.
+                .AddSingleton<IHttpClientFactory>(_ => TeePeeBuilder.Build().GetAwaiter().GetResult().Manual("https://some.api").CreateHttpClientFactory());
 
             return services;
         }
