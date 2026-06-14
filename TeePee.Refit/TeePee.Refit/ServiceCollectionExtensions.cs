@@ -18,5 +18,29 @@ namespace TeePee.Refit
 
             return serviceCollection;
         }
+
+        public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
+            where TRefitInterface : class
+        {
+            // Get Delegating Handler to inject into the Http pipeline
+            TeePeeMessageHandler? requestHandler = null;
+
+            TeePeeMessageHandler DeferredCreation()
+            {
+                if (requestHandler != null)
+                    return requestHandler;
+
+                requestHandler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+                return requestHandler;
+            }
+
+            serviceCollection.AddTransient(_ => DeferredCreation());
+
+            serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
+                .AddHttpMessageHandler(_ => DeferredCreation())
+                ;
+
+            return serviceCollection;
+        }
     }
 }

@@ -43,4 +43,5 @@ namespace TeePee.Refit.Tests
             Assert.Equal("User's Name", user.Name);
         }
     }
+
 }
