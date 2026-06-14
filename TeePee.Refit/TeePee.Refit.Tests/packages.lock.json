@@ -243,14 +243,6 @@
           "Refit": "10.1.6"
         }
       },
-      "TeePee": {
-        "type": "Transitive",
-        "resolved": "4.1.2",
-        "contentHash": "Alq8qoemQRzfk88gwT1d+8ZzatmyKky1smIY7PZV1m3nE2d273ttg+XYzbVzxyfIkYUbul3UxvKAIbqoShNV6Q==",
-        "dependencies": {
-          "Microsoft.Extensions.Http": "10.0.7"
-        }
-      },
       "xunit.analyzers": {
         "type": "Transitive",
         "resolved": "1.27.0",
@@ -318,11 +310,17 @@
           "xunit.v3.runner.common": "[3.2.2]"
         }
       },
+      "teepee": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.Http": "[10.0.7, )"
+        }
+      },
       "teepee.refit": {
         "type": "Project",
         "dependencies": {
           "Refit.HttpClientFactory": "[10.1.6, )",
-          "TeePee": "[4.1.2, )"
+          "TeePee": "[1.0.0, )"
         }
       }
     }
