@@ -1,3 +1,12 @@
+# TODO
+- Move state out of Tracker and RequestMatchRule.
+    - Tracker.SetRequestMatchRule would be "Set Execution State Instance"
+	- RequestMatchRule becomes immutable
+- Figure out / decide which way to separate the Handler/HttpClient from the rules and state.
+    - Either Builder.BuildInto, or maybe Handler is created up-front and you call Reset() or Init()/Config().
+
+------
+
 # TeePee Handler Reuse — Design Notes
 
 ## Q: If I wanted to make the HttpHandler live beyond one usage of a TeePee, what sort of design changes would I need to make?
