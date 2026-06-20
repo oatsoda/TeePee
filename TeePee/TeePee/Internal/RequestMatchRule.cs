@@ -60,6 +60,8 @@ namespace TeePee.Internal
             m_Responses = responses;
             Tracker = tracker;
             Tracker?.SetRequestMatchRule(this);
+            // TEMP: Where should this go?
+            Tracker?.SetTrackingState(new HttpTrackingState());
         }
 
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
@@ -111,7 +113,7 @@ namespace TeePee.Internal
 
             if (httpRequestMessage.Content == null)
                 throw new ArgumentException("Request body content is null when trying to match on Content-Type headers.", nameof(httpRequestMessage));
-            
+
             var contentType = httpRequestMessage.Content.Headers.ContentType;
 
             if (contentType == null)

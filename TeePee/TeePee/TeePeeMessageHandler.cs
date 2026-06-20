@@ -35,7 +35,7 @@ namespace TeePee
         private void RecordRequest(RecordedHttpCall recordedHttpCall)
         {
             foreach (var ruleWithTracker in m_ConfiguredRules.Where(r => r.Tracker != null))
-                ruleWithTracker.Tracker!.AddHttpCall(recordedHttpCall);
+                ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
 
             if (!recordedHttpCall.IsMatch && m_Options.Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(m_Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{m_ConfiguredRules.Count} rules configured]");
@@ -97,7 +97,7 @@ namespace TeePee
                     HttpResponseMessage.RequestMessage = HttpRequestMessage;
 
                     MatchRule = matchedRule;
-                    MatchRule.Tracker?.AddMatchedCall(this);
+                    MatchRule.Tracker?.TrackingState.AddMatchedCall(this);
                 }
             }
 
@@ -105,6 +105,25 @@ namespace TeePee
             {
                 return $"{HttpRequestMessage.Method} {HttpRequestMessage.RequestUri} [H: {HttpRequestMessage.Headers.ToDictionary(h => h.Key, h => h.Value).Flat()}] [CE: {HttpRequestMessage.Content?.Headers?.ContentType?.CharSet}] [CT: {HttpRequestMessage.Content?.Headers?.ContentType?.MediaType}] [B: {RequestBody?.Trunc(options.TruncateBodyOutputLength)}] [Matched: {MatchRule != null}]";
             }
+        }
+    }
+
+    internal class HttpTrackingState
+    {
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_MatchedCalls = [];
+        private readonly List<TeePeeMessageHandler.RecordedHttpCall> m_AllCalls = [];
+
+        internal IReadOnlyList<TeePeeMessageHandler.RecordedHttpCall> MatchedCalls => m_MatchedCalls;
+        internal IReadOnlyList<TeePeeMessageHandler.RecordedHttpCall> AllCalls => m_AllCalls;
+
+        internal void AddMatchedCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        {
+            m_MatchedCalls.Add(recordedHttpCall);
+        }
+
+        internal void AddHttpCall(TeePeeMessageHandler.RecordedHttpCall recordedHttpCall)
+        {
+            m_AllCalls.Add(recordedHttpCall);
         }
     }
 
