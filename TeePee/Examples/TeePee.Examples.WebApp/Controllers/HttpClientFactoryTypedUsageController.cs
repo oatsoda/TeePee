@@ -22,7 +22,7 @@ namespace TeePee.Examples.WebApp.Controllers
         /// Example showing most common usage of HttpClient - making a call and using the result.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("fire")]
         public async Task<IActionResult> FireAndAct()
         {
             var result = await m_Dependency.GetSingleValue();
@@ -33,7 +33,7 @@ namespace TeePee.Examples.WebApp.Controllers
         /// Example of less common fire and forget calls to HttpClient - tests cannot use controller method result to determine outcome.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("fire-and-forget")]
         public async Task<IActionResult> FireAndForget()
         {
             await m_Dependency.Put();
