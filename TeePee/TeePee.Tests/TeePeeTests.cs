@@ -24,7 +24,7 @@ public class TeePeeTests
     private HttpMethod m_HttpMethod = HttpMethod.Get;
 
     // Logger
-    private readonly Mock<ILogger<TeePee>> m_MockLogger = new();
+    private readonly Mock<ILogger> m_MockLogger = new();
 
     // Instance of Tracking Builder for each test
     private TeePeeBuilder m_TrackingBuilder;

@@ -14,7 +14,7 @@ namespace TeePee
             m_AttachedBuilder = builder;
         }
 
-        private async Task<TeePee> GetCongfiguration() => await m_AttachedBuilder.GetConfiguration();
+        private async Task<TeePee> GetCongfiguration() => await m_AttachedBuilder.GetCurrentRules();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

@@ -17,7 +17,7 @@ namespace TeePee
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
-        private TeePee? m_AttachedTeePee;
+        private TeePee? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
 
         public TeePeeBuilder() : this(null, null) { }
 
@@ -69,19 +69,11 @@ namespace TeePee
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
 
-            //if (m_AttachedTeePee == null)
-            //{
             m_AttachedTeePee = new(requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
-            //}
-            //else
-            //{
-            //    m_AttachedTeePee.Reset(requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
-            //}
-
             return m_AttachedTeePee;
         }
 
-        internal async Task<TeePee> GetConfiguration()
+        internal async Task<TeePee> GetCurrentRules()
         {
             if (m_IsBuilt)
             {
