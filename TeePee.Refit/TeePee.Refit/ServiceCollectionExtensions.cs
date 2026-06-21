@@ -5,19 +5,19 @@ namespace TeePee.Refit
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePee teePee)
-            where TRefitInterface : class
-        {
-            // Get Delegating Handler to inject into the Http pipeline
-            var requestHandler = teePee.HttpHandler;
-            serviceCollection.AddTransient(_ => requestHandler);
+        //public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
+        //    where TRefitInterface : class
+        //{
+        //    // Get Delegating Handler to inject into the Http pipeline
+        //    var requestHandler = new TeePeeMessageHandler(teeP);
+        //    serviceCollection.AddTransient(_ => requestHandler);
 
-            serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
-                .AddHttpMessageHandler(_ => requestHandler)
-                ;
+        //    serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
+        //        .AddHttpMessageHandler(_ => requestHandler)
+        //        ;
 
-            return serviceCollection;
-        }
+        //    return serviceCollection;
+        //}
 
         public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
             where TRefitInterface : class
@@ -30,7 +30,7 @@ namespace TeePee.Refit
                 if (requestHandler != null)
                     return requestHandler;
 
-                requestHandler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+                requestHandler = new TeePeeMessageHandler(teePeeBuilder);
                 return requestHandler;
             }
 

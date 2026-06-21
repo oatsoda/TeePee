@@ -1,25 +1,26 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace TeePee
 {
     public class TeePeeOptions
-    {        
+    {
         // ReSharper disable once MemberCanBePrivate.Global
         public static JsonSerializerOptions DefaultSerializeOptions { get; } = new()
-                                                                               {
-                                                                                   PropertyNamingPolicy = null,
-                                                                                   Converters =
+        {
+            PropertyNamingPolicy = null,
+            Converters =
                                                                                    {
                                                                                        new JsonStringEnumConverter()
                                                                                    }
-                                                                               };
+        };
 
         /// <summary>
         /// The <see cref="JsonSerializerOptions"/> to use when creating the Response JSON Body from the defined response body object.
         /// </summary>
         public JsonSerializerOptions ResponseBodySerializerOptions { get; set; } = DefaultSerializeOptions;
-        
+
         /// <summary>
         /// The <see cref="JsonSerializerOptions"/> to use when creating the expected Request JSON - to match with - from the defined request body object.
         /// </summary>
@@ -49,5 +50,7 @@ namespace TeePee
         /// The BuilderMode for TeePee. See <see cref="TeePeeBuilderMode"/>. Default is AllowMultipleUrlRules.
         /// </summary>
         public TeePeeBuilderMode BuilderMode { get; set; } = TeePeeBuilderMode.AllowMultipleUrlRules;
+
+        public ILogger? Logger { get; set; }
     }
 }

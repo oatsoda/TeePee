@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.Json;
@@ -10,7 +9,7 @@ namespace TeePee
 {
     public class TeePeeBuilder
     {
-        private readonly TeePeeOptions m_Options = new();
+        internal TeePeeOptions Options { get; set; } = new();
 
         private readonly List<RequestMatchBuilder> m_Requests = new();
 
@@ -18,20 +17,15 @@ namespace TeePee
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
-
-        //public string? HttpClientNamedInstance { get; }
+        private TeePee? m_AttachedTeePee;
 
         public TeePeeBuilder() : this(null, null) { }
 
         public TeePeeBuilder(JsonSerializerOptions responseBodySerializeOptions) : this(opt => opt.ResponseBodySerializerOptions = responseBodySerializeOptions) { }
-        //public TeePeeBuilder(string httpClientNamedInstance) : this(null, httpClientNamedInstance) { }
 
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
-            if (setOptions != null)
-                setOptions(m_Options);
-
-            //HttpClientNamedInstance = httpClientNamedInstance;
+            setOptions?.Invoke(Options);
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -54,14 +48,13 @@ namespace TeePee
             if (m_IsBuilt)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been built.");
 
-            var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
-            // Note: This assumes valid before adding
-            m_Requests.Add(builder);
+            var builder = new RequestMatchBuilder(this, Options, url, httpMethod);
+            m_Requests.Add(builder); // Note: This assumes valid before adding
             return builder;
         }
 
         // TODO: This should be internal, but public only for Manual cases, so could explicitly create Manual method? Or change the return of this?
-        public async Task<TeePee> Build(ILogger<TeePee>? logger = null)
+        private async Task<TeePee> Build()
         {
             m_IsBuilt = true;
             var requestMatchRules = new List<RequestMatchRule>(m_Requests.Count);
@@ -75,7 +68,33 @@ namespace TeePee
                                           .OrderByDescending(m => m.SpecificityLevel)
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
-            return new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+
+            //if (m_AttachedTeePee == null)
+            //{
+            m_AttachedTeePee = new(requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            //}
+            //else
+            //{
+            //    m_AttachedTeePee.Reset(requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            //}
+
+            return m_AttachedTeePee;
+        }
+
+        internal async Task<TeePee> GetConfiguration()
+        {
+            if (m_IsBuilt)
+            {
+                return m_AttachedTeePee!;
+            }
+
+            return await Build();
+        }
+
+        public void Reset()
+        {
+            m_Requests.Clear();
+            m_IsBuilt = false;
         }
 
         internal bool HasMatchUrlWithQuery()
@@ -101,6 +120,11 @@ namespace TeePee
             return AttachToNamedClient(services, teePeeBuilder, Options.DefaultName);
         }
 
+        public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
+        {
+            return AttachToNamedClient(services, teePeeBuilder, typeof(TClient).Name!);
+        }
+
         public static IServiceCollection AttachToNamedClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
         {
             // We expect this to be called only once per Builder? Per-Fixture is expected; Per-Test, would you
@@ -120,37 +144,39 @@ namespace TeePee
                     // resolve handler from the builder's IServiceProvider and add it to the pipeline
                     //var handler = (DelegatingHandler)builder.Services.GetRequiredService<THandler>();
 
-                    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+                    //var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+                    var handler = new TeePeeMessageHandler(teePeeBuilder);
+
+                    // Add a per-pipeline wrapper (must be new and have InnerHandler == null here)
+                    // so when the pipeline is disposed the wrapper ignores disposing the inner handler.
+                    builder.AdditionalHandlers.Add(new NonDisposableDelegatingHandler());
+
+                    // Add the actual TeePee handler (also must be a freshly created DelegatingHandler)
                     builder.AdditionalHandlers.Add(handler);
+                    // TODO: Should we dispose somewhere? Maybe Builder should be disposed on Fixture dispose?
                 });
             });
 
             return services;
         }
 
-        public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
+        public sealed class NonDisposableDelegatingHandler : DelegatingHandler
         {
-            return AttachToNamedClient(services, teePeeBuilder, typeof(TClient).Name!);
+            public NonDisposableDelegatingHandler()
+            {
+            }
+
+            // Intentionally suppress disposing the inner handler.
+            protected override void Dispose(bool disposing)
+            {
+                // No-op: do NOT call base.Dispose(disposing) so InnerHandler is not disposed here.
+            }
         }
 
-        //public static HttpClient CreateClient(this TeePeeBuilder teePeeBuilder, string? baseAddressForHttpClient = null)
-        //{
-        //    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
-
-        //    return baseAddressForHttpClient == null
-        //        ? new(handler)
-        //        : new HttpClient(handler) { BaseAddress = new Uri(baseAddressForHttpClient) };
-        //}
-
-        //// TODO: Multiple
-        //public static IHttpClientFactory CreateHttpClientFactory(this TeePeeBuilder teePeeBuilder, string clientName, string? baseAddressForHttpClient = null)
-        //{
-        //    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
-
-        //    return baseAddressForHttpClient == null
-        //        ? new(handler)
-        //        : new HttpClient(handler) { BaseAddress = new Uri(baseAddressForHttpClient) };
-        //}
+        public static TeePee.ManualTeePee Manual(this TeePeeBuilder teePeeBuilder, string? baseAddressForHttpClient = null)
+        {
+            return new(teePeeBuilder, baseAddressForHttpClient);
+        }
     }
 
     //public class TeePeeBuilder<TClient> : TeePeeBuilder

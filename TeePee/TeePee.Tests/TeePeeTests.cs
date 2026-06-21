@@ -10,7 +10,9 @@ using TeePee.Tests.TestData;
 namespace TeePee.Tests;
 
 /// <summary>
-/// Tests to ensure the Handler is behaving correctly.
+/// Tests to ensure the Handler is behaving correctly.  
+/// TODO: Test Class name is not obvious. Also there is a Manual section at the bottom, but Manual is used to CreateClient in most tests
+/// so this might all need re-working
 /// </summary>
 public class TeePeeTests
 {
@@ -21,11 +23,11 @@ public class TeePeeTests
     private string m_Url = "https://www.test.co.uk/api/items";
     private HttpMethod m_HttpMethod = HttpMethod.Get;
 
-    // Instance of Tracking Builder for each test
-    private TeePeeBuilder m_TrackingBuilder = new();
-
     // Logger
     private readonly Mock<ILogger<TeePee>> m_MockLogger = new();
+
+    // Instance of Tracking Builder for each test
+    private TeePeeBuilder m_TrackingBuilder;
 
     // Shortcut methods
     private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
@@ -33,11 +35,11 @@ public class TeePeeTests
     private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
     private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new(httpMethod, url);
 
-    private Task<HttpResponseMessage> SendRequest(HttpClient httpClient) => httpClient.SendAsync(RequestMessage());
+    //private Task<HttpResponseMessage> SendRequest(HttpClient httpClient) => httpClient.SendAsync(RequestMessage());
     //private Task<HttpResponseMessage> SendRequest(HttpClient httpClient) => SendRequest(httpClient, RequestMessage());
     //private async Task<HttpResponseMessage> SendRequest(HttpClient httpClient, HttpRequestMessage httpRequestMessage)  => await httpClient.SendAsync(httpRequestMessage);
 
-    private async Task<HttpClient> CreateHttpClient() => (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
+    private Task<HttpClient> CreateHttpClient() => Task.FromResult(m_TrackingBuilder.Manual().CreateClient());
 
     public TeePeeTests(ITestOutputHelper testOutputHelper)
     {
@@ -59,6 +61,8 @@ public class TeePeeTests
                     var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
                     testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
                 }));
+
+        m_TrackingBuilder = new(opt => opt.Logger = m_MockLogger.Object);
     }
 
     #region Matches
@@ -542,10 +546,11 @@ public class TeePeeTests
     public async Task DoesNotLogMessageIfNoLogger()
     {
         // Given
+        m_TrackingBuilder = new TeePeeBuilder(); // Not setting Logger in Options.
         RequestMatchBuilder();
 
         // When
-        await (await m_TrackingBuilder.Build()).Manual().CreateClient().SendAsync(RequestMessage(), CancellationToken);
+        await m_TrackingBuilder.Manual().CreateClient().SendAsync(RequestMessage(), CancellationToken);
 
         // Then
         Assert.Empty(m_MockLogger.Invocations);
@@ -584,7 +589,11 @@ public class TeePeeTests
     public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled()
     {
         // Given
-        m_TrackingBuilder = new(opt => opt.ShowFullDetailsOnMatchFailure = true);
+        m_TrackingBuilder = new(opt =>
+        {
+            opt.Logger = m_MockLogger.Object;
+            opt.ShowFullDetailsOnMatchFailure = true;
+        });
         RequestMatchBuilder();
         m_HttpMethod = HttpMethod.Options;
         m_TrackingBuilder.ForRequest("https://www.test.co.uk/api/items2", HttpMethod.Head);
@@ -663,14 +672,15 @@ public class TeePeeTests
         Assert.Null(ex);
     }
 
-    // TODO: Test name needs improving
+    // TODO: What does this prove now?
     [Fact]
-    public async Task TrackerHasCorrectCallsIfMultipleInstancesOfTeePee()
+    public async Task TrackerHasCorrectCallsIfBuilderIsReset()
     {
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
         var httpClient = await CreateHttpClient();
         await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        m_TrackingBuilder.Reset();
 
         // When
         httpClient = await CreateHttpClient();
@@ -995,7 +1005,7 @@ public class TeePeeTests
            .Responds()
            .WithStatus(HttpStatusCode.Ambiguous);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
         var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
@@ -1016,7 +1026,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
 
-        var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        var client = m_TrackingBuilder.Manual().CreateClient();
         await client.SendAsync(RequestMessage(), CancellationToken);
         await client.SendAsync(RequestMessage(), CancellationToken);
 
@@ -1039,7 +1049,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
 
         var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
@@ -1065,7 +1075,7 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.MisdirectedRequest);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
 
         var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
@@ -1091,7 +1101,7 @@ public class TeePeeTests
            .WithStatus(HttpStatusCode.Ambiguous)
            .ThenResponds();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
         await client.SendAsync(RequestMessage(), CancellationToken);
 
         // When
@@ -1113,7 +1123,7 @@ public class TeePeeTests
                     .ThenResponds()
                     .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
         await client.SendAsync(RequestMessage(), CancellationToken);
         await client.SendAsync(RequestMessage(), CancellationToken);
 
@@ -1145,7 +1155,7 @@ public class TeePeeTests
                            .WithStatus(HttpStatusCode.Accepted)
                            .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = m_TrackingBuilder.Manual().CreateClient();
         await client.SendAsync(RequestMessage(), CancellationToken);
 
         // When
@@ -1172,7 +1182,7 @@ public class TeePeeTests
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
 
-        var httpClientFactory = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateHttpClientFactory(configuredName);
+        var httpClientFactory = m_TrackingBuilder.Manual().CreateHttpClientFactory(configuredName);
 
         // When
         await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage(), CancellationToken);
@@ -1191,7 +1201,7 @@ public class TeePeeTests
         // Given
         RequestMatchBuilder();
 
-        var httpClientFactory = (await m_TrackingBuilder.Build()).Manual().CreateHttpClientFactory(configuredName);
+        var httpClientFactory = m_TrackingBuilder.Manual().CreateHttpClientFactory(configuredName);
 
         // When
         var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
@@ -1206,7 +1216,7 @@ public class TeePeeTests
     {
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
-        var httpClient = (await m_TrackingBuilder.Build()).Manual("https://www.test.co.uk/").CreateClient();
+        var httpClient = m_TrackingBuilder.Manual("https://www.test.co.uk/").CreateClient();
 
         // When
         await httpClient.SendAsync(RequestMessage(m_HttpMethod, "api/items"), CancellationToken);

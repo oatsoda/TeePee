@@ -51,7 +51,7 @@ namespace TeePee.Refit.Tests
 
     public class EndToEndTestsFixture : BaseFixture<ExampleControllerUnderTest>
     {
-        public TeePeeBuilder TeePeeBuilder { get; private set; } = new();
+        public TeePeeBuilder TeePeeBuilder { get; } = new();
 
         protected override IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
@@ -62,7 +62,7 @@ namespace TeePee.Refit.Tests
 
         protected override void Reset()
         {
-            TeePeeBuilder = new();
+            TeePeeBuilder.Reset();
         }
     }
 

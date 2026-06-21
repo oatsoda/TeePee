@@ -60,7 +60,7 @@ namespace TeePee.Internal
             m_Responses = responses;
             Tracker = tracker;
             Tracker?.SetRequestMatchRule(this);
-            // TEMP: Where should this go?
+            // TEMP: Where should this go? It is duplicated in Handler Reset()
             Tracker?.SetTrackingState(new HttpTrackingState());
         }
 

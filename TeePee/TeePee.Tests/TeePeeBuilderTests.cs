@@ -6,6 +6,8 @@ namespace TeePee.Tests;
 /// </summary>
 public class TeePeeBuilderTests
 {
+    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
     private TeePeeBuilder m_Builder = new();
 
     #region ForRequest
@@ -171,7 +173,7 @@ public class TeePeeBuilderTests
     public async Task ForRequestThrowsIfBuildAlreadyCalled()
     {
         // Given
-        await m_Builder.Build();
+        await m_Builder.Manual().CreateClient().SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://site.net/arbitrary"), CancellationToken);
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
@@ -517,37 +519,39 @@ public class TeePeeBuilderTests
 
     #region Build
 
-    [Fact]
-    public async Task BuildDoesNotThrowOnMultipleCalls()
-    {
-        // Given
-        m_Builder.ForRequest("http://test", HttpMethod.Get);
-        await m_Builder.Build();
+    // TODO: How would this behaviour manifest now? We allow re-use, so is that already tested?
 
-        // When 
-        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
+    //[Fact]
+    //public async Task BuildDoesNotThrowOnMultipleCalls()
+    //{
+    //    // Given
+    //    m_Builder.ForRequest("http://test", HttpMethod.Get);
+    //    await m_Builder.Build();
 
-        // Then
-        Assert.Null(ex);
-    }
+    //    // When 
+    //    var ex = await Record.ExceptionAsync(() => m_Builder.Build());
 
-    [Theory]
-    [MemberData(nameof(UrlAndMethodData))]
-    public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
-    {
-        // Given
-        m_Builder.ForRequest(url, method)
-                 .TrackRequest();
-        m_Builder.ForRequest(url, method);
+    //    // Then
+    //    Assert.Null(ex);
+    //}
 
-        await m_Builder.Build();
+    //[Theory]
+    //[MemberData(nameof(UrlAndMethodData))]
+    //public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
+    //{
+    //    // Given
+    //    m_Builder.ForRequest(url, method)
+    //             .TrackRequest();
+    //    m_Builder.ForRequest(url, method);
 
-        // When 
-        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
+    //    await m_Builder.Build();
 
-        // Then
-        Assert.Null(ex);
-    }
+    //    // When 
+    //    var ex = await Record.ExceptionAsync(() => m_Builder.Build());
+
+    //    // Then
+    //    Assert.Null(ex);
+    //}
 
     #endregion
 }

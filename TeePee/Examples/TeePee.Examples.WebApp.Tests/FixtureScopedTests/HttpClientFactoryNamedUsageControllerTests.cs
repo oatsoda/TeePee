@@ -107,8 +107,7 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 
         protected override void Reset()
         {
-            // HACK for now - because the factory is used by a scoped service. If it were used by a singleton, this would not work.
-            TeePeeBuilder = new TeePeeBuilder();
+            TeePeeBuilder.Reset();
         }
     }
 

@@ -47,7 +47,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                   }
                            });
 
-            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
 
             // When
             var result = await controller.FireAndAct();
@@ -70,7 +70,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryNamedUsageController((await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
 
             // When
             var result = await controller.FireAndForget();

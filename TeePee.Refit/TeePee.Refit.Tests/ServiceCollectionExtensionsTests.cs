@@ -34,7 +34,7 @@ namespace TeePee.Refit.Tests
             // When
 
             // ** Subject Under Test
-            services.AttachToRefitInterface<IApiService>(await builder.Build());
+            services.AttachToRefitInterface<IApiService>(builder);
 
             // ** Simulate Production Code
             var user = await services.BuildServiceProvider().GetRequiredService<IApiService>().GetUser("abc-123");
