@@ -1,24 +1,23 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Net;
-using TeePee.Extensions;
 using TeePee.Internal;
 
 namespace TeePee
 {
     public class TeePee
     {
-        public string? HttpClientNamedInstance { get; }
+        //public string? HttpClientNamedInstance { get; }
 
         public TeePeeMessageHandler HttpHandler { get; }
 
-        internal TeePee(string? httpClientNamedInstance,
+        internal TeePee(//string? httpClientNamedInstance,
                         TeePeeOptions options,
                         IReadOnlyList<RequestMatchRule> matchRules,
                         HttpStatusCode unmatchedStatusCode,
                         string? unmatchedBody,
                         ILogger? logger)
         {
-            HttpClientNamedInstance = httpClientNamedInstance;
+            //HttpClientNamedInstance = httpClientNamedInstance;
             HttpHandler = new(
                 options,
                 matchRules,
@@ -60,7 +59,7 @@ namespace TeePee
                     : new HttpClient(TeePee.HttpHandler) { BaseAddress = m_BaseAddressForHttpClient };
             }
 
-            public IHttpClientFactory CreateHttpClientFactory() => new WrappedHttpClientFactory(CreateClient(), TeePee.HttpClientNamedInstance);
+            public IHttpClientFactory CreateHttpClientFactory(string? clientName) => new WrappedHttpClientFactory(CreateClient(), clientName);
 
             private class WrappedHttpClientFactory : IHttpClientFactory
             {
@@ -88,34 +87,34 @@ namespace TeePee
      * This stuff only needed for Manual Injection
      */
 
-    public static class ManualTeePeeBuilderExtensions
-    {
-        public static IHttpClientFactory ToHttpClientFactory(this IEnumerable<TeePee.ManualTeePee> teePees)
-        {
-            var factory = new TeePeeNamedClientsHttpClientFactory();
-            foreach (var teePee in teePees)
-                factory.Add(teePee.TeePee.HttpClientNamedInstance, teePee.CreateClient());
+    //public static class ManualTeePeeBuilderExtensions
+    //{
+    //    public static IHttpClientFactory ToHttpClientFactory(this IEnumerable<TeePee.ManualTeePee> teePees)
+    //    {
+    //        var factory = new TeePeeNamedClientsHttpClientFactory();
+    //        foreach (var teePee in teePees)
+    //            factory.Add(teePee.TeePee.HttpClientNamedInstance, teePee.CreateClient());
 
-            return factory;
-        }
+    //        return factory;
+    //    }
 
-        internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
-        {
-            private readonly Dictionary<string, HttpClient> m_NamedClients = [];
+    //    internal class TeePeeNamedClientsHttpClientFactory : IHttpClientFactory
+    //    {
+    //        private readonly Dictionary<string, HttpClient> m_NamedClients = [];
 
-            internal void Add(string? namedInstance, HttpClient httpClient)
-            {
-                namedInstance ??= Microsoft.Extensions.Options.Options.DefaultName;
-                m_NamedClients.Add(namedInstance, httpClient);
-            }
+    //        internal void Add(string? namedInstance, HttpClient httpClient)
+    //        {
+    //            namedInstance ??= Microsoft.Extensions.Options.Options.DefaultName;
+    //            m_NamedClients.Add(namedInstance, httpClient);
+    //        }
 
-            public HttpClient CreateClient(string name)
-            {
-                // Force callers to specify correct named instance
-                return name != null! && m_NamedClients.ContainsKey(name)
-                    ? m_NamedClients[name]
-                    : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
-            }
-        }
-    }
+    //        public HttpClient CreateClient(string name)
+    //        {
+    //            // Force callers to specify correct named instance
+    //            return name != null! && m_NamedClients.ContainsKey(name)
+    //                ? m_NamedClients[name]
+    //                : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {m_NamedClients.Keys.Select(k => $"'{k}'").Flat()}.");
+    //        }
+    //    }
+    //}
 }

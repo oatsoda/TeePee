@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using TeePee.DependencyInjection;
 using TeePee.Examples.WebApp.Controllers;
 
 namespace TeePee.Examples.WebApp.Tests.TestScopedTests
@@ -8,6 +8,22 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
     public class HttpClientFactoryTypedUsageControllerTests
     {
         private readonly TeePeeBuilder m_TeePeeBuilder = new();
+
+
+        private readonly IServiceCollection m_AutoInjectionServiceCollection;
+
+        public HttpClientFactoryTypedUsageControllerTests()
+        {
+            var unitTestConfig = UnitTestConfig.LoadUnitTestConfig();
+            m_AutoInjectionServiceCollection = new ServiceCollection()
+                // Production Code
+                .AddExampleWebAppDependencies(unitTestConfig)
+                // Have to register Controller explicitly
+                .AddSingleton<HttpClientFactoryTypedUsageController>()
+                // Test Overrides
+                .AttachToTypedClient<ExampleTypedHttpClient>(m_TeePeeBuilder)
+                ;
+        }
 
         #region Manual Injection
 
@@ -94,15 +110,8 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                   }
                            });
 
-            var controller = await Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
-                                                                                                                   sc =>
-                                                                                                                   {
-                                                                                                                       /* Example of using prod Setup code */
-                                                                                                                       var configuration = UnitTestConfig.LoadUnitTestConfig();
-
-                                                                                                                       // Call your production code, which sets up the Typed Client, here
-                                                                                                                       sc.AddTypedHttpClients(configuration);
-                                                                                                                   });
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryTypedUsageController>();
 
             // When
             var result = await controller.FireAndAct();
@@ -125,14 +134,8 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = await Resolve.WithTypedClient<HttpClientFactoryTypedUsageController, ExampleTypedHttpClient>(m_TeePeeBuilder,
-                                                                                                                    sc =>
-                                                                                                                    {
-                                                                                                                        var configuration = UnitTestConfig.LoadUnitTestConfig();
-
-                                                                                                                        // Call your production code, which sets up the Typed Client, here
-                                                                                                                        sc.AddTypedHttpClients(configuration);
-                                                                                                                    });
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryTypedUsageController>();
 
             // When
             var result = await controller.FireAndForget();

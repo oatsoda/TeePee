@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using TeePee.DependencyInjection;
+//using TeePee.DependencyInjection;
 using TeePee.Examples.WebApp.Controllers;
 
 namespace TeePee.Examples.WebApp.Tests.TestScopedTests
@@ -9,6 +10,21 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
     public class HttpClientFactoryBasicUsageControllerTests
     {
         private readonly TeePeeBuilder m_TeePeeBuilder = new();
+
+        private readonly IServiceCollection m_AutoInjectionServiceCollection;
+
+        public HttpClientFactoryBasicUsageControllerTests()
+        {
+            var unitTestConfig = UnitTestConfig.LoadUnitTestConfig();
+            m_AutoInjectionServiceCollection = new ServiceCollection()
+                // Production Code
+                .AddExampleWebAppDependencies(unitTestConfig)
+                // Have to register Controller explicitly
+                .AddSingleton<HttpClientFactoryBasicUsageController>()
+                // Test Overrides
+                .AttachToDefaultClient(m_TeePeeBuilder)
+                ;
+        }
 
         #region Manual Injection
 
@@ -31,7 +47,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                   }
                            });
 
-            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory(""));
 
             // When
             var result = await controller.FireAndAct();
@@ -54,7 +70,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory());
+            var controller = new HttpClientFactoryBasicUsageController((await m_TeePeeBuilder.Build()).Manual().CreateHttpClientFactory(""));
 
             // When
             var result = await controller.FireAndForget();
@@ -89,7 +105,8 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                   }
                            });
 
-            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryBasicUsageController>();
 
             // When
             var result = await controller.FireAndAct();
@@ -112,7 +129,8 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                                                 .WithStatus(HttpStatusCode.Created)
                                                 .TrackRequest();
 
-            var controller = await Resolve.WithDefaultClient<HttpClientFactoryBasicUsageController>(m_TeePeeBuilder);
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryBasicUsageController>();
 
             // When
             var result = await controller.FireAndForget();

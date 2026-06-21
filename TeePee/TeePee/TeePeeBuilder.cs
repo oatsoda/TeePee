@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.Json;
 using TeePee.Internal;
@@ -16,19 +19,19 @@ namespace TeePee
 
         private bool m_IsBuilt;
 
-        public string? HttpClientNamedInstance { get; }
+        //public string? HttpClientNamedInstance { get; }
 
         public TeePeeBuilder() : this(null, null) { }
 
         public TeePeeBuilder(JsonSerializerOptions responseBodySerializeOptions) : this(opt => opt.ResponseBodySerializerOptions = responseBodySerializeOptions) { }
-        public TeePeeBuilder(string httpClientNamedInstance) : this(null, httpClientNamedInstance) { }
+        //public TeePeeBuilder(string httpClientNamedInstance) : this(null, httpClientNamedInstance) { }
 
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
             if (setOptions != null)
                 setOptions(m_Options);
 
-            HttpClientNamedInstance = httpClientNamedInstance;
+            //HttpClientNamedInstance = httpClientNamedInstance;
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -57,6 +60,7 @@ namespace TeePee
             return builder;
         }
 
+        // TODO: This should be internal, but public only for Manual cases, so could explicitly create Manual method? Or change the return of this?
         public async Task<TeePee> Build(ILogger<TeePee>? logger = null)
         {
             m_IsBuilt = true;
@@ -71,7 +75,7 @@ namespace TeePee
                                           .OrderByDescending(m => m.SpecificityLevel)
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
-            return new(HttpClientNamedInstance, m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
+            return new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody, logger);
         }
 
         internal bool HasMatchUrlWithQuery()
@@ -90,8 +94,67 @@ namespace TeePee
         }
     }
 
-    public class TeePeeBuilder<TClient> : TeePeeBuilder
+    public static class ResolveExtensions
     {
-        public Type TypedClientType => typeof(TClient);
+        public static IServiceCollection AttachToDefaultClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
+        {
+            return AttachToNamedClient(services, teePeeBuilder, Options.DefaultName);
+        }
+
+        public static IServiceCollection AttachToNamedClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
+        {
+            // We expect this to be called only once per Builder? Per-Fixture is expected; Per-Test, would you
+            // be using DI? Maybe but a new Bulder + Service Collection would be created per test - so isolated.
+            // So YES, the Builder would expect to be "attached" only once and not expect a TeePeeMessageHandler to already exist.
+
+            // TODO: So I would need to enforce NOT being able to call this twice?
+
+            // register the test handler in DI - DO I NEED TO? Will be problematic with multiple TeePeeBuilders for multiple named/typed clients in SUT.
+            //services.AddTransient<THandler>();
+
+            // inject the handler into the existing named client configuration
+            services.Configure<HttpClientFactoryOptions>(clientName, options =>
+            {
+                options.HttpMessageHandlerBuilderActions.Add(builder =>
+                {
+                    // resolve handler from the builder's IServiceProvider and add it to the pipeline
+                    //var handler = (DelegatingHandler)builder.Services.GetRequiredService<THandler>();
+
+                    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+                    builder.AdditionalHandlers.Add(handler);
+                });
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
+        {
+            return AttachToNamedClient(services, teePeeBuilder, typeof(TClient).Name!);
+        }
+
+        //public static HttpClient CreateClient(this TeePeeBuilder teePeeBuilder, string? baseAddressForHttpClient = null)
+        //{
+        //    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+
+        //    return baseAddressForHttpClient == null
+        //        ? new(handler)
+        //        : new HttpClient(handler) { BaseAddress = new Uri(baseAddressForHttpClient) };
+        //}
+
+        //// TODO: Multiple
+        //public static IHttpClientFactory CreateHttpClientFactory(this TeePeeBuilder teePeeBuilder, string clientName, string? baseAddressForHttpClient = null)
+        //{
+        //    var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
+
+        //    return baseAddressForHttpClient == null
+        //        ? new(handler)
+        //        : new HttpClient(handler) { BaseAddress = new Uri(baseAddressForHttpClient) };
+        //}
     }
+
+    //public class TeePeeBuilder<TClient> : TeePeeBuilder
+    //{
+    //    public Type TypedClientType => typeof(TClient);
+    //}
 }

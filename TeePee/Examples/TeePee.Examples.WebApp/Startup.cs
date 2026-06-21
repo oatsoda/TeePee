@@ -16,9 +16,7 @@ namespace TeePee.Examples.WebApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddHttpClient();
-            services.AddNamedHttpClients(Configuration);
-            services.AddTypedHttpClients(Configuration);
+            services.AddExampleWebAppDependencies(Configuration);
 
             // Swagger
             services.AddSwaggerGen(c =>
@@ -64,6 +62,14 @@ namespace TeePee.Examples.WebApp
 
     public static class StartupDependencyExtensions
     {
+        public static IServiceCollection AddExampleWebAppDependencies(this IServiceCollection services, IConfiguration configuration)
+        {
+            return services
+                .AddHttpClient()
+                .AddNamedHttpClients(configuration)
+                .AddTypedHttpClients(configuration);
+        }
+
         // Separate out startup registrations so that your unit tests can setup the same dependencies
 
         public static IServiceCollection AddNamedHttpClients(this IServiceCollection services, IConfiguration configuration)

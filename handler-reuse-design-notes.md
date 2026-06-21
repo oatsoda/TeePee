@@ -81,3 +81,56 @@ tracker.WasCalled(1);
 ```
 
 The existing `Build()` → `Manual().CreateClient()` path stays unchanged for the common single-test case. `BuildInto()` is the new path for the fixture scenario.
+
+
+------
+
+Scenarios:
+
+1. Production DI code is used and already adds one (or more) of:
+   - AddHttpClient() "Default" Basic Usage - SUT will inject IHttpClientFactory and will be called via CreateClient("")
+   - AddHttpClient("Name") Named Usage - SUT will inject IHttpClientFactory and will be called via CreateClient("Name")
+   - AddHttpClient<T> Typed Usage - SUT will inject T which in turn will have an HttpClient injected into it. T is a Transient registration.
+
+If using Per-Test based Test Setup I could:
+   - builder.Build().AttachToHttpClient(Default / "Name") - I think if Name was incorrect/mismatched-with-production then you'd just miss out on mocking.
+   - builder.Build().AttachToHttpClient<TypedClient>() - I think if TypedClient was incorrect/mismatched-with-production then you'd just miss out on mocking.
+
+If using Per-Fixture based Test Setup then I need to do the same as Per-Test but somewhere a reset needs to take place? Or do you call 
+Build/Attach again and _find the TeePee handler_ and replace the rules?
+
+So do I need Build() ? If you always have to do Attach after? It wouldn't make sense to have Build() in the Fixture. But it could make sense
+to have Attach in the Fixture as this is boilerplate. So the implies it's the other way around?
+   - builder().AttachTo...() 
+ 
+So in Per-Fixture based Test Setup, it just needs a way to reset? Could this be done somehow in the DI reg when attaching? i.e. under the same DI scope? No
+that wouldn't make sense as we don't know if SUT uses multiple scopes. It would need to be a Reset() that the Test class calls?
+
+
+2. Not using Production DI code, so some SUT will require either:
+   - An IHttpClientFactory to be injected into it and expecting the "Default" Basic Client to be availble.
+   - An IHttpClientFactory to be injected into it and expecting on or more "Named" Clients available.
+   - One or more HttpClient to be injected into a Typed Client
+
+Is this just the same as above, but AttachTo would not expect to match, therefore registering for the HttpClient for the first time? Hmm, I guess that depends
+on the following note; the Configure options approach presumably requries the production DI?
+
+NO: Because assumption is manual injection is being used, so it would require the IHttpClientFactoryor HttpClient to be created at test-time. In
+which case, is this compatible with a Per-Fixture based Test Setup? Well I suppose you could still have a shared builder, but you wouldn't attach
+it to anything, you would just create a new Factory or Client in each test, which means it would automatically be isolated, right?
+
+
+NOTE: I think there are better ways to chain onto Production code. Either:
+    - AddHttpClient(Options.DefaultName or "Name") should give the builder and allow appending new setup.
+    - AddHttpClient(typeof(TClient).FullName) should give the builder and allow appending new setup.
+    - OR
+ 
+ services.Configure<HttpClientFactoryOptions>(clientName, options =>
+        {
+            options.HttpMessageHandlerBuilderActions.Add(builder =>
+            {
+                // resolve handler from the builder's IServiceProvider and add it to the pipeline
+                var handler = (DelegatingHandler)builder.Services.GetRequiredService<THandler>();
+                builder.AdditionalHandlers.Add(handler);
+            });
+        });
