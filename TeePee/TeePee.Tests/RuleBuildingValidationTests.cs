@@ -4,7 +4,7 @@ namespace TeePee.Tests;
 /// Tests to ensure validation and state of the Builder are correct.
 /// Actual usage of this data is done in the TeePee tests where Http requests are made and assertions concluded.
 /// </summary>
-public class TeePeeBuilderTests
+public class RuleBuildingValidationTests
 {
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
@@ -170,10 +170,10 @@ public class TeePeeBuilderTests
     }
 
     [Fact]
-    public async Task ForRequestThrowsIfBuildAlreadyCalled()
+    public async Task ForRequestThrowsIfBuilderAlreadyUsed()
     {
         // Given
-        await m_Builder.Manual().CreateClient().SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://site.net/arbitrary"), CancellationToken);
+        await m_Builder.Manual().CreateClient().GetAsync("https://site.net/arbitrary", CancellationToken);
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
@@ -502,7 +502,7 @@ public class TeePeeBuilderTests
     #region TrackRequest
 
     [Fact]
-    public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsBuild()
+    public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsUsed()
     {
         // Given
         var tracker = m_Builder.ForRequest("http://test", HttpMethod.Get).TrackRequest();
@@ -515,11 +515,28 @@ public class TeePeeBuilderTests
         Assert.Contains("Ensure that you built the TeePeeBuilder", ex.Message);
     }
 
+    // Hmmm...this test shouldn't be here I think - the TeePeeTests are really "Usage" tests.
+    [Fact]
+    public async Task TrackerStateIsMaintainedEvenIfMultipleUsesOfBuilder()
+    {
+        // Given
+        var tracker = m_Builder.ForRequest("http://test", HttpMethod.Get).TrackRequest();
+
+        await m_Builder.Manual().CreateClient().GetAsync("http://test", CancellationToken);
+
+        // When
+        await m_Builder.Manual().CreateClient().GetAsync("http://test", CancellationToken);
+
+        // Then
+        tracker.WasCalled(2);
+    }
+
     #endregion
 
-    #region Build
+    #region Reset
 
-    // TODO: How would this behaviour manifest now? We allow re-use, so is that already tested?
+
+    // How would this behaviour manifest now? We allow re-use, so is that already tested?
 
     //[Fact]
     //public async Task BuildDoesNotThrowOnMultipleCalls()

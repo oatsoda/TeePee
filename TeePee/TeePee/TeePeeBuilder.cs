@@ -46,14 +46,13 @@ namespace TeePee
         public RequestMatchBuilder ForRequest(string url, HttpMethod httpMethod)
         {
             if (m_IsBuilt)
-                throw new InvalidOperationException("Cannot add more request tracking after builder has been built.");
+                throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
 
             var builder = new RequestMatchBuilder(this, Options, url, httpMethod);
             m_Requests.Add(builder); // Note: This assumes valid before adding
             return builder;
         }
 
-        // TODO: This should be internal, but public only for Manual cases, so could explicitly create Manual method? Or change the return of this?
         private async Task<TeePee> Build()
         {
             m_IsBuilt = true;
@@ -165,6 +164,10 @@ namespace TeePee
             }
         }
 
+        /// <summary>
+        /// For situations where you want to manually inject HttpClient or HttpClientFactory into your test subjects. Otherwise
+        /// use the <see type="IServiceCollection">IServiceCollection</see> Attach... extensions to use real DI.
+        /// </summary>
         public static TeePee.ManualTeePee Manual(this TeePeeBuilder teePeeBuilder, string? baseAddressForHttpClient = null)
         {
             return new(teePeeBuilder, baseAddressForHttpClient);

@@ -11,9 +11,9 @@ namespace TeePee
         {
             PropertyNamingPolicy = null,
             Converters =
-                                                                                   {
-                                                                                       new JsonStringEnumConverter()
-                                                                                   }
+            {
+                new JsonStringEnumConverter()
+            }
         };
 
         /// <summary>
@@ -51,6 +51,9 @@ namespace TeePee
         /// </summary>
         public TeePeeBuilderMode BuilderMode { get; set; } = TeePeeBuilderMode.AllowMultipleUrlRules;
 
+        /// <summary>
+        /// Optional logger to capture details of matches and failures
+        /// </summary>
         public ILogger? Logger { get; set; }
     }
 }
