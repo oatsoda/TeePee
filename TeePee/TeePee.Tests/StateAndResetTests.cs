@@ -1,5 +1,8 @@
 namespace TeePee.Tests;
 
+/// <summary>
+/// Tests to ensure that re-use and Reset scenarios behave correctly.
+/// </summary>
 public class StateAndResetTests
 {
     private readonly HttpRequestMessage m_MatchingHttpRequest;

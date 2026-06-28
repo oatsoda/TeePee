@@ -2,7 +2,7 @@ namespace TeePee.Tests;
 
 /// <summary>
 /// Tests to ensure validation and state of the Builder are correct.
-/// Actual usage of this data is done in the TeePee tests where Http requests are made and assertions concluded.
+/// Actual usage of this data is done in the Rule Usage tests where Http requests are made and assertions concluded.
 /// </summary>
 public class RuleBuildingValidationTests
 {
