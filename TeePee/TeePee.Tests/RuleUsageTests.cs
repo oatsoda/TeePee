@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TeePee.Tests.TestData;
-// ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests;
 
@@ -14,7 +13,6 @@ namespace TeePee.Tests;
 /// </summary>
 public class RuleUsageTests
 {
-    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
     private readonly ITestOutputHelper m_TestOutputHelper;
 
     // URL and Method used for each test
@@ -100,7 +98,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -122,7 +120,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -149,7 +147,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -176,7 +174,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -198,7 +196,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -220,7 +218,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -248,7 +246,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -272,7 +270,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -295,7 +293,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -321,7 +319,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -343,7 +341,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(RequestMessage(m_HttpMethod, m_Url), CancellationToken);
+        await httpClient.SendAsync(RequestMessage(m_HttpMethod, m_Url), TestCt);
 
         // Then
         verify.WasCalled();
@@ -364,7 +362,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -385,7 +383,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -413,7 +411,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -436,7 +434,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -455,7 +453,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -505,7 +503,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verifyUrlOnly.WasNotCalled();
@@ -530,7 +528,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verifyUrlOne.WasNotCalled();
@@ -550,7 +548,7 @@ public class RuleUsageTests
         using var client = await CreateHttpClient();
 
         // When
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Empty(m_MockLogger.Invocations);
@@ -569,7 +567,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         m_MockLogger.Verify(l => l.Log(
@@ -601,7 +599,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         m_MockLogger.Verify(l => l.Log(
@@ -638,7 +636,7 @@ public class RuleUsageTests
         for (var i = 0; i < callTimes; i++)
         {
             var httpRequestMessage = RequestMessage(requestCorrectMatch ? HttpMethod.Get : HttpMethod.Put, m_Url);
-            await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+            await httpClient.SendAsync(httpRequestMessage, TestCt);
         }
 
         // When
@@ -662,7 +660,7 @@ public class RuleUsageTests
         var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
 
         var httpClient = await CreateHttpClient();
-        await httpClient.SendAsync(httpRequestMessage, CancellationToken);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // When
         void Verify() => verify.WasNotCalled();
@@ -679,12 +677,12 @@ public class RuleUsageTests
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
         var httpClient = await CreateHttpClient();
-        await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        await httpClient.SendAsync(RequestMessage(), TestCt);
         m_Builder.Reset();
 
         // When
         httpClient = await CreateHttpClient();
-        await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         //Assert.Equal(1, verify.AllCalls.Count);
@@ -708,7 +706,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var ex = await Record.ExceptionAsync(async () => await httpClient.SendAsync(RequestMessage(), CancellationToken));
+        var ex = await Record.ExceptionAsync(async () => await httpClient.SendAsync(RequestMessage(), TestCt));
 
         // Then
         Assert.NotNull(ex);
@@ -726,7 +724,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -746,13 +744,13 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
         Assert.NotNull(response.Content);
-        var body = await response.Content.ReadAsStringAsync(CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("--bad-gateway--", body);
         Assert.Empty(response.Headers);
     }
@@ -768,7 +766,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -788,7 +786,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -807,7 +805,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -827,11 +825,11 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(bodyObject), responseBody);
         Assert.Equal("application/json", response.Content.Headers.ContentType!.MediaType);
         Assert.Equal("utf-8", response.Content.Headers.ContentType.CharSet);
@@ -849,11 +847,11 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
         Assert.Equal(mediaType, response.Content.Headers.ContentType!.MediaType);
         Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
@@ -870,7 +868,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // The
         Assert.NotNull(response);
@@ -890,13 +888,13 @@ public class RuleUsageTests
 
         var httpClient = await CreateHttpClient();
 
-        var firstResponse = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await httpClient.SendAsync(RequestMessage(), TestCt);
         firstResponse.Dispose();
 
-        var secondResponse = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var responseBody = await secondResponse.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await secondResponse.Content.ReadAsStringAsync(TestCt);
 
         // Then
         Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
@@ -917,11 +915,11 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(new { Test = 23 }, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
     }
 
@@ -937,7 +935,7 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -958,11 +956,11 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("{\"Nullable\":null,\"Case\":\"value\",\"EnumVal\":\"Off\"}", responseBody);
     }
 
@@ -979,11 +977,11 @@ public class RuleUsageTests
         var httpClient = await CreateHttpClient();
 
         // When
-        var response = await httpClient.SendAsync(RequestMessage(), CancellationToken);
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("{\"case\":\"value\",\"enumVal\":3}", responseBody);
     }
 
@@ -1007,11 +1005,11 @@ public class RuleUsageTests
            .WithStatus(HttpStatusCode.Ambiguous);
 
         using var client = await CreateHttpClient();
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.Ambiguous, secondResponse.StatusCode);
@@ -1028,11 +1026,11 @@ public class RuleUsageTests
            .WithStatus(HttpStatusCode.ExpectationFailed);
 
         using var client = await CreateHttpClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var thirdResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var thirdResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.ExpectationFailed, thirdResponse.StatusCode);
@@ -1052,11 +1050,11 @@ public class RuleUsageTests
 
         using var client = await CreateHttpClient();
 
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
@@ -1078,14 +1076,14 @@ public class RuleUsageTests
 
         using var client = await CreateHttpClient();
 
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
 
         // When
-        var thirdResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var thirdResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.MisdirectedRequest, thirdResponse.StatusCode);
@@ -1104,10 +1102,10 @@ public class RuleUsageTests
 
         using var client = await CreateHttpClient();
 
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.NoContent, secondResponse.StatusCode);
@@ -1126,11 +1124,11 @@ public class RuleUsageTests
                     .TrackRequest();
 
         using var client = await CreateHttpClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(3, verify.AllCalls.Count);
@@ -1158,10 +1156,10 @@ public class RuleUsageTests
                            .TrackRequest();
 
         using var client = await CreateHttpClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Same(firstTracker, secondTracker);

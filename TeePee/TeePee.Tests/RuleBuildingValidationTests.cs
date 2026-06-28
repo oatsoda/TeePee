@@ -6,8 +6,6 @@ namespace TeePee.Tests;
 /// </summary>
 public class RuleBuildingValidationTests
 {
-    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
-
     private TeePeeBuilder m_Builder = new();
 
     #region ForRequest
@@ -173,7 +171,7 @@ public class RuleBuildingValidationTests
     public async Task ForRequestThrowsIfBuilderAlreadyUsed()
     {
         // Given
-        await m_Builder.Manual().CreateClient().GetAsync("https://site.net/arbitrary", CancellationToken);
+        await m_Builder.Manual().CreateClient().GetAsync("https://site.net/arbitrary", TestCt);
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
@@ -514,61 +512,6 @@ public class RuleBuildingValidationTests
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("Ensure that you built the TeePeeBuilder", ex.Message);
     }
-
-    // Hmmm...this test shouldn't be here I think - the TeePeeTests are really "Usage" tests.
-    [Fact]
-    public async Task TrackerStateIsMaintainedEvenIfMultipleUsesOfBuilder()
-    {
-        // Given
-        var tracker = m_Builder.ForRequest("http://test", HttpMethod.Get).TrackRequest();
-
-        await m_Builder.Manual().CreateClient().GetAsync("http://test", CancellationToken);
-
-        // When
-        await m_Builder.Manual().CreateClient().GetAsync("http://test", CancellationToken);
-
-        // Then
-        tracker.WasCalled(2);
-    }
-
-    #endregion
-
-    #region Reset
-
-
-    // How would this behaviour manifest now? We allow re-use, so is that already tested?
-
-    //[Fact]
-    //public async Task BuildDoesNotThrowOnMultipleCalls()
-    //{
-    //    // Given
-    //    m_Builder.ForRequest("http://test", HttpMethod.Get);
-    //    await m_Builder.Build();
-
-    //    // When 
-    //    var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-
-    //    // Then
-    //    Assert.Null(ex);
-    //}
-
-    //[Theory]
-    //[MemberData(nameof(UrlAndMethodData))]
-    //public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
-    //{
-    //    // Given
-    //    m_Builder.ForRequest(url, method)
-    //             .TrackRequest();
-    //    m_Builder.ForRequest(url, method);
-
-    //    await m_Builder.Build();
-
-    //    // When 
-    //    var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-
-    //    // Then
-    //    Assert.Null(ex);
-    //}
 
     #endregion
 }

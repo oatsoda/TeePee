@@ -5,8 +5,6 @@ namespace TeePee.Tests;
 /// </summary>
 public class ManualUsageTests
 {
-    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
-
     private readonly HttpRequestMessage m_MatchingHttpRequest;
     private readonly Tracker m_MatchingTracker;
 
@@ -32,7 +30,7 @@ public class ManualUsageTests
         var httpClientFactory = m_Builder.Manual().CreateHttpClientFactory(configuredName);
 
         // When
-        await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, CancellationToken);
+        await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
@@ -68,7 +66,7 @@ public class ManualUsageTests
         var relativePathRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
         // When
-        await httpClient.SendAsync(relativePathRequest, CancellationToken);
+        await httpClient.SendAsync(relativePathRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
@@ -87,7 +85,7 @@ public class ManualUsageTests
         var relativePathRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
         // When
-        await httpClientFactory.CreateClient().SendAsync(relativePathRequest, CancellationToken);
+        await httpClientFactory.CreateClient().SendAsync(relativePathRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();

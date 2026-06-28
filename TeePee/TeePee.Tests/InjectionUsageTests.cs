@@ -3,12 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace TeePee.Tests;
 
 /// <summary>
-/// Tests for behaviours specific to Manual() usages.
+/// Tests for behaviours attaching TeePee to already registered HttpClient setups via DI.
 /// </summary>
 public class InjectionUsageTests
 {
-    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
-
     private ServiceCollection m_Services;
 
     private readonly HttpRequestMessage m_MatchingHttpRequest;
@@ -30,6 +28,8 @@ public class InjectionUsageTests
             .TrackRequest();
     }
 
+    #region Default Client
+
     [Fact]
     public async Task AttachToDefaultClient_InterceptsRequests()
     {
@@ -38,7 +38,7 @@ public class InjectionUsageTests
         var httpClientFactory = m_Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
 
         // When
-        await httpClientFactory.CreateClient().SendAsync(m_MatchingHttpRequest, CancellationToken);
+        await httpClientFactory.CreateClient().SendAsync(m_MatchingHttpRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
@@ -59,11 +59,15 @@ public class InjectionUsageTests
         var relativePathRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
         // When
-        await httpClientFactory.CreateClient().SendAsync(relativePathRequest, CancellationToken);
+        await httpClientFactory.CreateClient().SendAsync(relativePathRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
     }
+
+    #endregion
+
+    #region Named Client
 
     [Theory]
     [InlineData("a", "a")]
@@ -76,7 +80,7 @@ public class InjectionUsageTests
         var httpClientFactory = m_Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
 
         // When
-        await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, CancellationToken);
+        await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
@@ -94,7 +98,7 @@ public class InjectionUsageTests
         var httpClientFactory = m_Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
 
         // When
-        var ex = await Record.ExceptionAsync(async () => await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, CancellationToken));
+        var ex = await Record.ExceptionAsync(async () => await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, TestCt));
 
         // Then
         Assert.IsType<HttpRequestException>(ex);
@@ -132,11 +136,15 @@ public class InjectionUsageTests
         var relativePathRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
         // When
-        await httpClientFactory.CreateClient("some-name").SendAsync(relativePathRequest, CancellationToken);
+        await httpClientFactory.CreateClient("some-name").SendAsync(relativePathRequest, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled();
     }
+
+    #endregion
+
+    #region Typed Client
 
     [Fact]
     public async Task AttachToTypedClient_InterceptsRequests()
@@ -185,4 +193,6 @@ public class InjectionUsageTests
             await httpClient.GetAsync("/api/items");
         }
     }
+
+    #endregion
 }

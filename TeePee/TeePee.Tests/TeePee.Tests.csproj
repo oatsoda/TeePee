@@ -15,4 +15,8 @@
     <ProjectReference Include="..\TeePee\TeePee.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="TeePee.Tests.TestCancellation" Static="True" />
+  </ItemGroup>
+
 </Project>
