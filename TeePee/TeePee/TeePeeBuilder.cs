@@ -108,16 +108,27 @@ namespace TeePee
     {
         public static IServiceCollection AttachToDefaultClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
         {
-            return AttachToNamedClient(services, teePeeBuilder, Options.DefaultName);
+            return AttachToNamedClientInternal(services, teePeeBuilder, Options.DefaultName);
         }
 
         public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
         {
-            return AttachToNamedClient(services, teePeeBuilder, typeof(TClient).Name!);
+            return AttachToNamedClientInternal(services, teePeeBuilder, typeof(TClient).Name!);
         }
 
         public static IServiceCollection AttachToNamedClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
         {
+            if (string.IsNullOrWhiteSpace(clientName))
+            {
+                throw new ArgumentException("Cannot attached to a Named client without a Name.");
+            }
+
+            return AttachToNamedClientInternal(services, teePeeBuilder, clientName);
+        }
+
+        public static IServiceCollection AttachToNamedClientInternal(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
+        {
+
             // We expect this to be called only once per Builder? Per-Fixture is expected; Per-Test, would you
             // be using DI? Maybe but a new Bulder + Service Collection would be created per test - so isolated.
             // So YES, the Builder would expect to be "attached" only once and not expect a TeePeeMessageHandler to already exist.

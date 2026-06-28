@@ -1,5 +1,3 @@
-// ReSharper disable UseUtf8StringLiteral
-
 namespace TeePee.Tests;
 
 /// <summary>
@@ -76,6 +74,24 @@ public class ManualUsageTests
         m_MatchingTracker.WasCalled();
     }
 
+
+    [Theory]
+    [InlineData("https://testing.com", "api/items")]
+    [InlineData("https://testing.com/", "api/items")]
+    [InlineData("https://testing.com/", "/api/items")]
+    [InlineData("https://testing.com", "/api/items")]
+    public async Task ManualCreateClientFactoryMatchesRelativePathsIfBaseUrlSupplied(string baseUrl, string requestUrl)
+    {
+        // Given
+        var httpClientFactory = m_Builder.Manual(baseUrl).CreateHttpClientFactory("");
+        var relativePathRequest = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+        // When
+        await httpClientFactory.CreateClient().SendAsync(relativePathRequest, CancellationToken);
+
+        // Then
+        m_MatchingTracker.WasCalled();
+    }
 
     // TODO: Fix up multiple named clients stuff
     //[Theory]
