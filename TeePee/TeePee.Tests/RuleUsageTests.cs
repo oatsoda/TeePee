@@ -31,10 +31,6 @@ public class RuleUsageTests
     private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
     private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new(httpMethod, url);
 
-    //private Task<HttpResponseMessage> SendRequest(HttpClient httpClient) => httpClient.SendAsync(RequestMessage());
-    //private Task<HttpResponseMessage> SendRequest(HttpClient httpClient) => SendRequest(httpClient, RequestMessage());
-    //private async Task<HttpResponseMessage> SendRequest(HttpClient httpClient, HttpRequestMessage httpRequestMessage)  => await httpClient.SendAsync(httpRequestMessage);
-
     // NOTE: Using Manual() as SUT is the resultant HttpClient, not the injection.
     private Task<HttpClient> CreateHttpClient() => Task.FromResult(m_Builder.Manual().CreateClient());
 
