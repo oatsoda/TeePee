@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Refit;
 
 namespace TeePee.Tests;
 
@@ -231,4 +232,98 @@ public class StateAndResetTests
     }
 
     #endregion
+
+    #region Refit Tests
+
+    // Although core TeePee does not have a dependency on Refit, it's important core doesn't break Refit and
+    // this needs to be found before core TeePee is released and TeePee.Refit gets the updated package.
+
+    [Fact]
+    public async Task RetainsState_AcrossMultipleRefitUsesOfBuilder()
+    {
+        // Given
+        m_Services.AddRefitClient<RefitUsage.IApiService>();
+        m_Services.AttachToRefitInterface<RefitUsage.IApiService>(m_Builder);
+        var serviceProvider = m_Services.BuildServiceProvider();
+        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
+
+        // When
+        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
+
+        // Then
+        m_MatchingTracker.WasCalled(2);
+    }
+
+    [Fact]
+    public async Task Reset_ClearsState_AcrossMultipleRefitUsesOfBuilder()
+    {
+        // Given
+        m_Services.AddRefitClient<RefitUsage.IApiService>();
+        m_Services.AttachToRefitInterface<RefitUsage.IApiService>(m_Builder);
+        var serviceProvider = m_Services.BuildServiceProvider();
+
+        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
+        m_Builder.Reset();
+
+        // When
+        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
+
+        // Then
+        m_MatchingTracker.WasCalled(1);
+    }
+
+    [Fact]
+    public async Task Reset_ClearsState_ForSameRefitUseOfBuilder()
+    {
+        // Given
+        m_Services.AddRefitClient<RefitUsage.IApiService>();
+        m_Services.AttachToRefitInterface<RefitUsage.IApiService>(m_Builder);
+        var serviceProvider = m_Services.BuildServiceProvider();
+        var apiService = serviceProvider.GetRequiredService<RefitUsage.IApiService>();
+
+        await apiService.Call();
+        m_Builder.Reset();
+
+        // When
+        await apiService.Call();
+
+        // Then
+        m_MatchingTracker.WasCalled(1);
+    }
+
+    #endregion
+}
+
+public static class RefitUsage
+{
+    public interface IApiService
+    {
+        [Get("/call")]
+        Task Call();
+    }
+
+    public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
+        where TRefitInterface : class
+    {
+        // Get Delegating Handler to inject into the Http pipeline
+        TeePeeMessageHandler? requestHandler = null;
+
+        TeePeeMessageHandler DeferredCreation()
+        {
+            if (requestHandler != null)
+                return requestHandler;
+
+            requestHandler = new TeePeeMessageHandler(teePeeBuilder);
+            return requestHandler;
+        }
+
+        serviceCollection.AddTransient(_ => DeferredCreation());
+
+        serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://unit.test"))
+            .AddHttpMessageHandler(_ => DeferredCreation())
+            ;
+
+        return serviceCollection;
+    }
 }
