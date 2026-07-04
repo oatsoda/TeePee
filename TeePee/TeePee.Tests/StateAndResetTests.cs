@@ -133,7 +133,7 @@ public class StateAndResetTests
         m_Builder.Reset();
 
         // When
-        await m_Builder.Manual().CreateClient().SendAsync(m_MatchingHttpRequestTwo, TestCt);
+        await createClient(httpClientFactory).SendAsync(m_MatchingHttpRequestTwo, TestCt);
 
         // Then
         m_MatchingTracker.WasCalled(1);
@@ -299,7 +299,7 @@ public static class RefitUsage
     public interface IApiService
     {
         [Get("/call")]
-        Task Call();
+        Task<HttpResponseMessage> Call();
     }
 
     public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
