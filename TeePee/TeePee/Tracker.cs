@@ -10,15 +10,15 @@ namespace TeePee
         private HttpTrackingState? m_TrackingState;
 
         internal HttpTrackingState TrackingState => m_TrackingState
-            ?? throw new InvalidOperationException($"Tracker was not attached to a Tracking State");
+            ?? throw new InvalidOperationException("Tracker was not attached to a Tracking State");
 
         public IReadOnlyList<MatchedCall> MatchedCalls
             => TrackingState.MatchedCalls.Select(c => new MatchedCall(c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList()
-                 ?? throw new InvalidOperationException($"Tracker was not attached to a Tracking State");
+                 ?? throw new InvalidOperationException("Tracker was not attached to a Tracking State");
 
         public IReadOnlyList<Call> AllCalls
             => TrackingState.AllCalls.Select(c => new Call(c.IsMatch, c.RequestBody, c.HttpRequestMessage, c.HttpResponseMessage)).ToList()
-                ?? throw new InvalidOperationException($"Tracker was not attached to a Tracking State");
+                ?? throw new InvalidOperationException("Tracker was not attached to a Tracking State");
 
         internal Tracker(TeePeeOptions options)
         {
@@ -41,7 +41,7 @@ namespace TeePee
                 throw new InvalidOperationException($"Tracker was not attached to a Request Match. Ensure that you built the {nameof(TeePeeBuilder)} instance.");
 
             if (m_TrackingState == null)
-                throw new InvalidOperationException($"Tracker was not attached to a Tracking State");
+                throw new InvalidOperationException("Tracker was not attached to a Tracking State");
 
             var asExpected = times == null
                                  ? m_TrackingState.MatchedCalls.Count > 0
