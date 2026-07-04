@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using TeePee.Examples.WebApp.Controllers;
+using TeePee.UsageExtensions;
 
 namespace TeePee.Examples.WebApp.Tests.TestScopedTests
 {

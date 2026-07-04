@@ -1,9 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
-using Microsoft.Extensions.Options;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
-using TeePee.Internal;
+using TeePee.Built;
 
 namespace TeePee
 {
@@ -17,7 +14,7 @@ namespace TeePee
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
-        private TeePee? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
+        private TeePeeSeeded? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
 
         public TeePeeBuilder() : this(null, null) { }
 
@@ -53,7 +50,7 @@ namespace TeePee
             return builder;
         }
 
-        private async Task<TeePee> Build()
+        private async Task<TeePeeSeeded> Build()
         {
             m_IsBuilt = true;
             var requestMatchRules = new List<RequestMatchRule>(m_Requests.Count);
@@ -72,7 +69,7 @@ namespace TeePee
             return m_AttachedTeePee;
         }
 
-        internal async Task<TeePee> GetCurrentRules()
+        internal async Task<TeePeeSeeded> GetCurrentRules()
         {
             if (m_IsBuilt)
             {
@@ -103,97 +100,4 @@ namespace TeePee
             return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
         }
     }
-
-    public static class ResolveExtensions
-    {
-        public static IServiceCollection AttachToDefaultClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
-        {
-            return AttachToNamedClientInternal(services, teePeeBuilder, Options.DefaultName);
-        }
-
-        public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
-        {
-            return AttachToNamedClientInternal(services, teePeeBuilder, typeof(TClient).Name!);
-        }
-
-        public static IServiceCollection AttachToNamedClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
-        {
-            if (string.IsNullOrWhiteSpace(clientName))
-            {
-                throw new ArgumentException("Cannot attached to a Named client without a Name.");
-            }
-
-            return AttachToNamedClientInternal(services, teePeeBuilder, clientName);
-        }
-
-        public static IServiceCollection AttachToNamedClientInternal(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
-        {
-
-            // We expect this to be called only once per Builder? Per-Fixture is expected; Per-Test, would you
-            // be using DI? Maybe but a new Bulder + Service Collection would be created per test - so isolated.
-            // So YES, the Builder would expect to be "attached" only once and not expect a TeePeeMessageHandler to already exist.
-
-            // TODO: So I would need to enforce NOT being able to call this twice?
-
-            // register the test handler in DI - DO I NEED TO? Will be problematic with multiple TeePeeBuilders for multiple named/typed clients in SUT.
-            //services.AddTransient<THandler>();
-
-            // inject the handler into the existing named client configuration
-            services.Configure<HttpClientFactoryOptions>(clientName, options =>
-            {
-                options.HttpMessageHandlerBuilderActions.Add(builder =>
-                {
-                    // resolve handler from the builder's IServiceProvider and add it to the pipeline
-                    //var handler = (DelegatingHandler)builder.Services.GetRequiredService<THandler>();
-
-                    //var handler = teePeeBuilder.Build().GetAwaiter().GetResult().HttpHandler;
-                    var handler = new TeePeeMessageHandler(teePeeBuilder);
-
-                    // Add a per-pipeline wrapper (must be new and have InnerHandler == null here)
-                    // so when the pipeline is disposed the wrapper ignores disposing the inner handler.
-                    builder.AdditionalHandlers.Add(new NonDisposableDelegatingHandler());
-
-                    // Add the actual TeePee handler (also must be a freshly created DelegatingHandler)
-                    builder.AdditionalHandlers.Add(handler);
-                    // TODO: Should we dispose somewhere? Maybe Builder should be disposed on Fixture dispose?
-                });
-            });
-
-            return services;
-        }
-
-        public sealed class NonDisposableDelegatingHandler : DelegatingHandler
-        {
-            public NonDisposableDelegatingHandler()
-            {
-            }
-
-            // Intentionally suppress disposing the inner handler.
-            protected override void Dispose(bool disposing)
-            {
-                // No-op: do NOT call base.Dispose(disposing) so InnerHandler is not disposed here.
-            }
-        }
-
-        /// <summary>
-        /// For situations where you want to manually inject HttpClient or HttpClientFactory into your test subjects. Otherwise
-        /// use the <see type="IServiceCollection">IServiceCollection</see> Attach... extensions to use real DI.
-        /// </summary>
-        public static TeePee.ManualTeePee Manual(this TeePeeBuilder teePeeBuilder, string? baseAddressForHttpClient = null)
-        {
-            return new(teePeeBuilder, baseAddressForHttpClient);
-        }
-
-        internal static IHttpClientBuilder AddSingletonTeePeeMessageHandler(this IHttpClientBuilder httpClientBuilder, TeePeeBuilder teePeeBuilder)
-        {
-            // Always return same instance of hanlder, so keep a reference here. Not thread-safe though.
-            TeePeeMessageHandler? requestHandler = null;
-            return httpClientBuilder.AddHttpMessageHandler(_ => requestHandler ??= new TeePeeMessageHandler(teePeeBuilder));
-        }
-    }
-
-    //public class TeePeeBuilder<TClient> : TeePeeBuilder
-    //{
-    //    public Type TypedClientType => typeof(TClient);
-    //}
 }

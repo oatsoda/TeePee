@@ -1,3 +1,5 @@
+using TeePee.UsageExtensions;
+
 namespace TeePee.Tests;
 
 /// <summary>

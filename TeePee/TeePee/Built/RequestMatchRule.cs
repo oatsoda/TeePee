@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Web;
 using TeePee.Extensions;
 
-namespace TeePee.Internal
+namespace TeePee.Built
 {
     internal class RequestMatchRule
     {

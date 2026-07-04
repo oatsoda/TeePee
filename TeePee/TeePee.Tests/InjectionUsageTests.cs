@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using TeePee.UsageExtensions;
 
 namespace TeePee.Tests;
 

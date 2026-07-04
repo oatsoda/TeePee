@@ -1,20 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
 using TeePee.Extensions;
-using TeePee.Internal;
 
-namespace TeePee
+namespace TeePee.Built
 {
-    public class TeePeeMessageHandler : DelegatingHandler
+    internal class TeePeeMessageHandler : DelegatingHandler
     {
         private readonly TeePeeBuilder m_AttachedBuilder;
 
-        // TODO: Had to make Public for TeePee.Refit
-        public TeePeeMessageHandler(TeePeeBuilder builder)
+        internal TeePeeMessageHandler(TeePeeBuilder builder)
         {
             m_AttachedBuilder = builder;
         }
 
-        private async Task<TeePee> GetCongfiguration() => await m_AttachedBuilder.GetCurrentRules();
+        private async Task<TeePeeSeeded> GetCongfiguration() => await m_AttachedBuilder.GetCurrentRules();
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -38,7 +36,7 @@ namespace TeePee
             return recordedHttpCall.HttpResponseMessage;
         }
 
-        private void RecordRequest(TeePee teePee, RecordedHttpCall recordedHttpCall)
+        private void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
         {
             foreach (var ruleWithTracker in teePee.MatchRules.Where(r => r.Tracker != null))
                 ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
@@ -74,17 +72,6 @@ namespace TeePee
                 recordedHttpCall.HttpResponseMessage.StatusCode,
                 teePee.MatchRules.Count);
         }
-
-        //internal void Reset(
-        //    IReadOnlyList<RequestMatchRule> requestMatchRules,
-        //    Func<HttpResponseMessage> defaultResponse)
-        //{
-        //    m_ConfiguredRules = requestMatchRules;
-        //    m_DefaultResponse = defaultResponse;
-
-        //    foreach (var ruleWithTracker in m_ConfiguredRules.Where(r => r.Tracker != null))
-        //        ruleWithTracker.Tracker!.SetTrackingState(new HttpTrackingState());
-        //}
 
         internal record IncomingHttpCall(HttpRequestMessage HttpRequestMessage, string? RequestBody);
 

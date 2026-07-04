@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Refit;
+using TeePee.UsageExtensions;
 
 namespace TeePee.Refit
 {

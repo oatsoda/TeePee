@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Text;
-using TeePee.Internal;
+using TeePee.Built;
 
 namespace TeePee
 {
