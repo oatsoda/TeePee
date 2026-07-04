@@ -66,6 +66,20 @@ public class InjectionUsageTests
         m_MatchingTracker.WasCalled();
     }
 
+    [Fact]
+    public async Task AttachToDefaultClient_Throws_IfAlreadyAttachedToDefaultClient()
+    {
+        // Given
+        m_Services.AttachToDefaultClient(m_Builder);
+
+        // When
+        var ex = Record.Exception(() => m_Services.AttachToDefaultClient(m_Builder));
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("Already attached to Default Client", ex.Message);
+    }
+
     #endregion
 
     #region Named Client
@@ -143,6 +157,21 @@ public class InjectionUsageTests
         m_MatchingTracker.WasCalled();
     }
 
+    [Fact]
+    public async Task AttachToNamedClient_Throws_IfAlreadyAttachedToSameNamedClient()
+    {
+        // Given
+        const string clientName = "myClient";
+        m_Services.AttachToNamedClient(m_Builder, clientName);
+
+        // When
+        var ex = Record.Exception(() => m_Services.AttachToNamedClient(m_Builder, clientName));
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains($"Already attached to Named Client '{clientName}'", ex.Message);
+    }
+
     #endregion
 
     #region Typed Client
@@ -177,6 +206,20 @@ public class InjectionUsageTests
 
         // Then
         m_MatchingTracker.WasCalled();
+    }
+
+    [Fact]
+    public async Task AttachToTypedClient_Throws_IfAlreadyAttachedToSameTypedClient()
+    {
+        // Given
+        m_Services.AttachToTypedClient<AbsolutePathTypedHttpClient>(m_Builder);
+
+        // When
+        var ex = Record.Exception(() => m_Services.AttachToTypedClient<AbsolutePathTypedHttpClient>(m_Builder));
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains($"Already attached to Typed Client '{typeof(AbsolutePathTypedHttpClient).Name}'", ex.Message);
     }
 
     public class AbsolutePathTypedHttpClient(HttpClient httpClient)
