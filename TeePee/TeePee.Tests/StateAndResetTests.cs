@@ -305,24 +305,10 @@ public static class RefitUsage
     public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
         where TRefitInterface : class
     {
-        // Get Delegating Handler to inject into the Http pipeline
-        TeePeeMessageHandler? requestHandler = null;
-
-        TeePeeMessageHandler DeferredCreation()
-        {
-            if (requestHandler != null)
-                return requestHandler;
-
-            requestHandler = new TeePeeMessageHandler(teePeeBuilder);
-            return requestHandler;
-        }
-
-        serviceCollection.AddTransient(_ => DeferredCreation());
-
-        serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
+        serviceCollection
+            .AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
             .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://unit.test"))
-            .AddHttpMessageHandler(_ => DeferredCreation())
-            ;
+            .AddSingletonTeePeeMessageHandler(teePeeBuilder);
 
         return serviceCollection;
     }
