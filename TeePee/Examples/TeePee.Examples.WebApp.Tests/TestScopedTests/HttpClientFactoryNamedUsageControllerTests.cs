@@ -33,20 +33,21 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
         public async Task ManualInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Get)
-                           .ThatContainsQueryParam("filter", "those")
-                           .Responds()
-                           .WithStatus(HttpStatusCode.OK)
-                           .WithBody(new
-                           {
-                               Things = new[]
-                                                  {
-                                                      new
-                                                      {
-                                                          Value = 10
-                                                      }
-                                                  }
-                           });
+            m_TeePeeBuilder
+                .ForRequest("https://some.api/path/resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 10
+                        }
+                    }
+                });
 
             var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
 
@@ -64,12 +65,13 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
         public async Task ManualInjection_MockAndVerify()
         {
             // Given
-            var requestTracker = m_TeePeeBuilder.ForRequest("https://some.api/path/resource", HttpMethod.Put)
-                                                .ThatContainsQueryParam("filter", "other")
-                                                .ThatHasBody(new { Caller = "ThisCaller" })
-                                                .Responds()
-                                                .WithStatus(HttpStatusCode.Created)
-                                                .TrackRequest();
+            var requestTracker = m_TeePeeBuilder
+                .ForRequest("https://some.api/path/resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
             var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
 
@@ -91,20 +93,21 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
         public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
-            m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
-                           .ThatContainsQueryParam("filter", "those")
-                           .Responds()
-                           .WithStatus(HttpStatusCode.OK)
-                           .WithBody(new
-                           {
-                               Things = new[]
-                                                  {
-                                                      new
-                                                      {
-                                                          Value = 10
-                                                      }
-                                                  }
-                           });
+            m_TeePeeBuilder
+                .ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 10
+                        }
+                    }
+                });
 
 
             var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
@@ -124,12 +127,13 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
         public async Task AutoInjection_MockAndVerify()
         {
             // Given
-            var requestTracker = m_TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
-                                                .ThatContainsQueryParam("filter", "other")
-                                                .ThatHasBody(new { Caller = "ThisCaller" })
-                                                .Responds()
-                                                .WithStatus(HttpStatusCode.Created)
-                                                .TrackRequest();
+            var requestTracker = m_TeePeeBuilder
+                .ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
             var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
                 .GetRequiredService<HttpClientFactoryNamedUsageController>();

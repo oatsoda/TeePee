@@ -21,20 +21,21 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
         public async Task FixturedServiceResolution_RecommendedPassiveMocking()
         {
             // Given
-            m_Fixture.TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
-                           .ThatContainsQueryParam("filter", "those")
-                           .Responds()
-                           .WithStatus(HttpStatusCode.OK)
-                           .WithBody(new
-                           {
-                               Things = new[]
-                                {
-                                    new
-                                    {
-                                        Value = 10
-                                    }
-                                }
-                           });
+            m_Fixture.TeePeeBuilder
+                .ForRequest("https://unittest.example.named/path/resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 10
+                        }
+                    }
+                });
 
             var controller = m_Fixture.GetSUT();
 
@@ -52,12 +53,13 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
         public async Task FixturedServiceResolution_MockAndVerify()
         {
             // Given
-            var requestTracker = m_Fixture.TeePeeBuilder.ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
-                                                .ThatContainsQueryParam("filter", "other")
-                                                .ThatHasBody(new { Caller = "ThisCaller" })
-                                                .Responds()
-                                                .WithStatus(HttpStatusCode.Created)
-                                                .TrackRequest();
+            var requestTracker = m_Fixture.TeePeeBuilder
+                .ForRequest("https://unittest.example.named/path/resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
             var controller = m_Fixture.GetSUT();
 
@@ -74,36 +76,17 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 
     public class HttpClientFactoryNamedUsageControllerFixture : BaseFixture<HttpClientFactoryNamedUsageController>
     {
-        private const string _NAMED_HTTP_CLIENT = "ThirdPartyApi";
+        private const string _EXPECTED_NAMED_HTTP_CLIENT = "ThirdPartyApi";
 
-        public TeePeeBuilder TeePeeBuilder { get; private set; } = new();
-
-        public HttpClientFactoryNamedUsageControllerFixture()
-        {
-        }
+        public TeePeeBuilder TeePeeBuilder { get; } = new();
 
         protected override IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            // Need to register IHttpClientFactory here
-            // and need to ensure it is configured to respond only for the expected named client.
-            // await m_TeePeeBuilder.Build()).Manual("https://some.api").CreateHttpClientFactory()
-
-            services
-
-            // This is actual production code registrations.
+            return services
+                // This is actual production code registrations.
                 .AddNamedHttpClients(configuration)
-
-            // Test code
-                .AttachToNamedClient(TeePeeBuilder, _NAMED_HTTP_CLIENT);
-
-            // OLD:
-            // This overrides the Factory with TeePee's factory for the named client.
-            // But there may be times when the SUT doesn't directly use the Factory, and instead a Singleton dependency
-            // does, meaining this scoped override will not work. If we set the Factory as Singleton explicitly
-            // it should prove that replacing the Builder in Reset does not work.
-            //    .AddSingleton<IHttpClientFactory>(_ => TeePeeBuilder.Build().GetAwaiter().GetResult().Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
-
-            return services;
+                // Test code
+                .AttachToNamedClient(TeePeeBuilder, _EXPECTED_NAMED_HTTP_CLIENT);
         }
 
         protected override void Reset()
