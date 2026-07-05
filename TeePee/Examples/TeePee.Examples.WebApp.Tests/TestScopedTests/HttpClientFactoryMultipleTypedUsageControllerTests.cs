@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using TeePee.Examples.WebApp.Controllers;
-using TeePee.UsageExtensions;
 
 namespace TeePee.Examples.WebApp.Tests.TestScopedTests
 {
@@ -27,89 +26,97 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                 ;
         }
 
-        //#region Manual Injection
+        #region Manual Injection
 
-        //[Fact]
-        //public async Task ManualInjection_RecommendedPassiveMocking()
-        //{
-        //    // Given
-        //    m_TeePeeBuilderOne.ForRequest("https://some.api/path/resource", HttpMethod.Get)
-        //                      .ThatContainsQueryParam("filter", "those")
-        //                      .Responds()
-        //                      .WithStatus(HttpStatusCode.OK)
-        //                      .WithBody(new
-        //                      {
-        //                          Things = new[]
-        //                                             {
-        //                                                 new
-        //                                                 {
-        //                                                     Value = 10
-        //                                                 }
-        //                                             }
-        //                      });
+        [Fact]
+        public async Task ManualInjection_RecommendedPassiveMocking()
+        {
+            // Given
+            m_TeePeeBuilderOne
+                .ForRequest("https://some.api/path/resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 10
+                        }
+                    }
+                });
 
-        //    m_TeePeeBuilderTwo.ForRequest("https://other.api/path/other-resource", HttpMethod.Get)
-        //                      .ThatContainsQueryParam("filter", "those")
-        //                      .Responds()
-        //                      .WithStatus(HttpStatusCode.OK)
-        //                      .WithBody(new
-        //                      {
-        //                          Things = new[]
-        //                                             {
-        //                                                 new
-        //                                                 {
-        //                                                     Value = 30
-        //                                                 }
-        //                                             }
-        //                      });
+            m_TeePeeBuilderTwo
+                .ForRequest("https://other.api/path/other-resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 30
+                        }
+                    }
+                });
 
 
-        //    var controller = new HttpClientFactoryMultipleTypedUsageController(new((await m_TeePeeBuilderOne.Build()).Manual("https://some.api").CreateClient()),
-        //                                                                       new((await m_TeePeeBuilderTwo.Build()).Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(
+                new(m_TeePeeBuilderOne.Manual("https://some.api").CreateClient()),
+                new(m_TeePeeBuilderTwo.Manual("https://other.api").CreateClient())
+                );
 
-        //    // When
-        //    var result = await controller.FireAndAct();
+            // When
+            var result = await controller.FireAndAct();
 
-        //    // Then
-        //    Assert.NotNull(result);
-        //    var okResult = Assert.IsType<OkObjectResult>(result);
-        //    var resultValue = Assert.IsType<int>(okResult.Value);
-        //    Assert.Equal(40, resultValue);
-        //}
+            // Then
+            Assert.NotNull(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(40, resultValue);
+        }
 
-        //[Fact]
-        //public async Task ManualInjection_MockAndVerify()
-        //{
-        //    // Given
-        //    var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://some.api/path/resource", HttpMethod.Put)
-        //                                              .ThatContainsQueryParam("filter", "other")
-        //                                              .ThatHasBody(new { Caller = "ThisCaller" })
-        //                                              .Responds()
-        //                                              .WithStatus(HttpStatusCode.Created)
-        //                                              .TrackRequest();
+        [Fact]
+        public async Task ManualInjection_MockAndVerify()
+        {
+            // Given
+            var requestTrackerOne = m_TeePeeBuilderOne
+                .ForRequest("https://some.api/path/resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
-        //    var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://other.api/path/other-resource", HttpMethod.Put)
-        //                                              .ThatContainsQueryParam("filter", "other")
-        //                                              .ThatHasBody(new { Caller = "ThisCaller" })
-        //                                              .Responds()
-        //                                              .WithStatus(HttpStatusCode.Created)
-        //                                              .TrackRequest();
+            var requestTrackerTwo = m_TeePeeBuilderTwo
+                .ForRequest("https://other.api/path/other-resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
-        //    var controller = new HttpClientFactoryMultipleTypedUsageController(new((await m_TeePeeBuilderOne.Build()).Manual("https://some.api").CreateClient()),
-        //                                                                       new((await m_TeePeeBuilderTwo.Build()).Manual("https://other.api").CreateClient()));
+            var controller = new HttpClientFactoryMultipleTypedUsageController(
+                new(m_TeePeeBuilderOne.Manual("https://some.api").CreateClient()),
+                new(m_TeePeeBuilderTwo.Manual("https://other.api").CreateClient())
+                );
 
-        //    // When
-        //    var result = await controller.FireAndForget();
+            // When
+            var result = await controller.FireAndForget();
 
-        //    // Then
-        //    Assert.NotNull(result);
-        //    Assert.IsType<OkResult>(result);
+            // Then
+            Assert.NotNull(result);
+            Assert.IsType<OkResult>(result);
 
-        //    requestTrackerOne.WasCalled(1);
-        //    requestTrackerTwo.WasCalled(1);
-        //}
+            requestTrackerOne.WasCalled(1);
+            requestTrackerTwo.WasCalled(1);
+        }
 
-        //#endregion
+        #endregion
 
         #region Auto Injection
 

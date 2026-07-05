@@ -1,5 +1,3 @@
-using TeePee.UsageExtensions;
-
 namespace TeePee.Tests;
 
 /// <summary>
@@ -23,10 +21,10 @@ public class ManualUsageTests
     }
 
     [Theory]
-    [InlineData(null, "")]
     [InlineData("", "")]
+    [InlineData(" ", " ")]
     [InlineData("myClient", "myClient")]
-    public async Task ManualCreateHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string requestedName)
+    public async Task ManualCreateHttpClientFactoryMatchesIfNamedClientMatches(string configuredName, string requestedName)
     {
         // Given
         var httpClientFactory = m_Builder.Manual().CreateHttpClientFactory(configuredName);
@@ -39,11 +37,11 @@ public class ManualUsageTests
     }
 
     [Theory]
-    [InlineData(null, null)]
-    [InlineData("", null)]
+    [InlineData("", " ")]
     [InlineData("myClient", "wrongClient")]
-    [InlineData(null, "wrongClient")]
-    public async Task ManualCreateHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
+    [InlineData("", "wrongClient")]
+    [InlineData(" ", "")]
+    public async Task ManualCreateHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string configuredName, string? requestedName)
     {
         // Given
         var httpClientFactory = m_Builder.Manual().CreateHttpClientFactory(configuredName);

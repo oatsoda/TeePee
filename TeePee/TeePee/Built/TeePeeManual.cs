@@ -11,6 +11,9 @@
             m_BaseAddressForHttpClient = baseAddressForHttpClient == null ? null : new Uri(baseAddressForHttpClient);
         }
 
+        /// <summary>
+        /// Manually creates the HttpClient so you can pass it in to a subject-under-test.
+        /// </summary>
         public HttpClient CreateClient()
         {
             var handler = new TeePeeMessageHandler(m_Builder);
@@ -19,26 +22,38 @@
                 : new HttpClient(handler) { BaseAddress = m_BaseAddressForHttpClient };
         }
 
-        public IHttpClientFactory CreateHttpClientFactory(string? clientName) => new WrappedHttpClientFactory(CreateClient(), clientName);
+        /// <summary>
+        /// Manually creates an IHttpClientFactory which will resolve an HttpClient for the given Name, so you can pass it
+        /// in to a subject-under-test.
+        /// </summary>
+        /// <param name="clientName">The Expected Name of the HttpClient. If your SUT is not passing this name, then IHttpClientFactory
+        /// will throw during execution.</param>
+        public IHttpClientFactory CreateHttpClientFactory(string clientName) => new TeePeeFakeHttpClientFactory(clientName, CreateClient());
+    }
 
-        private class WrappedHttpClientFactory : IHttpClientFactory
+    public class TeePeeFakeHttpClientFactory : IHttpClientFactory
+    {
+        private readonly Dictionary<string, HttpClient> m_HttpClients = [];
+
+        internal TeePeeFakeHttpClientFactory(string clientName, HttpClient httpClient)
         {
-            private readonly HttpClient m_HttpClient;
-            private readonly string m_NamedInstance;
+            m_HttpClients.Add(clientName, httpClient);
+        }
 
-            internal WrappedHttpClientFactory(HttpClient httpClient, string? namedInstance)
+        internal TeePeeFakeHttpClientFactory((string ClientName, HttpClient HttpClient)[] clientInfo)
+        {
+            foreach (var info in clientInfo)
             {
-                m_HttpClient = httpClient;
-                m_NamedInstance = namedInstance ?? Microsoft.Extensions.Options.Options.DefaultName; // Default value used by actual HttpClientFactoryExtensions.CreateClient();
+                m_HttpClients.Add(info.ClientName, info.HttpClient);
             }
+        }
 
-            public HttpClient CreateClient(string name)
-            {
-                // Force callers to specify correct named instance
-                return m_NamedInstance == name
-                    ? m_HttpClient
-                    : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{m_NamedInstance}'.");
-            }
+        public HttpClient CreateClient(string name)
+        {
+            // Force callers to specify correct named instance
+            return m_HttpClients.TryGetValue(name, out var httpClient)
+                ? httpClient
+                : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{string.Join(", ", m_HttpClients.Keys)}'.");
         }
     }
 }
