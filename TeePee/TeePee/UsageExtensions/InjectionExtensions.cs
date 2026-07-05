@@ -59,7 +59,7 @@ namespace TeePee
 
             clientNames.Add(clientName);
 
-            // inject the handler into the existing named client configuration
+            // Inject the handler into the existing named client configuration
             services.Configure<HttpClientFactoryOptions>(clientName, options =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
@@ -72,7 +72,6 @@ namespace TeePee
 
                     // Add the actual TeePee handler (also must be a freshly created DelegatingHandler)
                     builder.AdditionalHandlers.Add(handler);
-                    // TODO: Should we dispose somewhere? Maybe Builder should be disposed on Fixture dispose?
                 });
             });
 
