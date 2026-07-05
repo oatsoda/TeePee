@@ -1,9 +1,31 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using TeePee.Examples.WebApp.Controllers;
+using TeePee.UsageExtensions;
+
 namespace TeePee.Examples.WebApp.Tests.TestScopedTests
 {
     public class HttpClientFactoryMultipleTypedUsageControllerTests
     {
-        //private readonly TeePeeBuilder<ExampleTypedHttpClient> m_TeePeeBuilderOne = new();
-        //private readonly TeePeeBuilder<AnotherExampleTypedHttpClient> m_TeePeeBuilderTwo = new();
+        private readonly TeePeeBuilder m_TeePeeBuilderOne = new();
+        private readonly TeePeeBuilder m_TeePeeBuilderTwo = new();
+
+        private readonly IServiceCollection m_AutoInjectionServiceCollection;
+
+        public HttpClientFactoryMultipleTypedUsageControllerTests()
+        {
+            var unitTestConfig = UnitTestConfig.LoadUnitTestConfig();
+            m_AutoInjectionServiceCollection = new ServiceCollection()
+                // Production Code
+                .AddExampleWebAppDependencies(unitTestConfig)
+                // Have to register Controller explicitly
+                .AddSingleton<HttpClientFactoryMultipleTypedUsageController>()
+                // Test Overrides
+                .AttachToTypedClient<ExampleTypedHttpClient>(m_TeePeeBuilderOne)
+                .AttachToTypedClient<AnotherExampleTypedHttpClient>(m_TeePeeBuilderTwo)
+                ;
+        }
 
         //#region Manual Injection
 
@@ -97,94 +119,88 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
          * the Type of those Typed Http Clients so that it can attach and intercept.
          */
 
-        //[Fact]
-        //public async Task AutoInjection_RecommendedPassiveMocking()
-        //{
-        //    // Given
-        //    m_TeePeeBuilderOne.ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Get)
-        //                      .ThatContainsQueryParam("filter", "those")
-        //                      .Responds()
-        //                      .WithStatus(HttpStatusCode.OK)
-        //                      .WithBody(new
-        //                      {
-        //                          Things = new[]
-        //                                             {
-        //                                                 new
-        //                                                 {
-        //                                                     Value = 10
-        //                                                 }
-        //                                             }
-        //                      });
+        [Fact]
+        public async Task AutoInjection_RecommendedPassiveMocking()
+        {
+            // Given
+            m_TeePeeBuilderOne
+                .ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 10
+                        }
+                    }
+                });
 
-        //    m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Get)
-        //                      .ThatContainsQueryParam("filter", "those")
-        //                      .Responds()
-        //                      .WithStatus(HttpStatusCode.OK)
-        //                      .WithBody(new
-        //                      {
-        //                          Things = new[]
-        //                                             {
-        //                                                 new
-        //                                                 {
-        //                                                     Value = 30
-        //                                                 }
-        //                                             }
-        //                      });
+            m_TeePeeBuilderTwo
+                .ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Get)
+                .ThatContainsQueryParam("filter", "those")
+                .Responds()
+                .WithStatus(HttpStatusCode.OK)
+                .WithBody(new
+                {
+                    Things = new[]
+                    {
+                        new
+                        {
+                            Value = 30
+                        }
+                    }
+                });
 
-        //    var controller = await Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
-        //                                                                                                                                                                                            {
-        //                                                                                                                                                                                                var configuration = UnitTestConfig.LoadUnitTestConfig();
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryMultipleTypedUsageController>();
 
-        //                                                                                                                                                                                                // Call your production code, which sets up the Typed Client, here
-        //                                                                                                                                                                                                sc.AddTypedHttpClients(configuration);
-        //                                                                                                                                                                                            });
+            // When
+            var result = await controller.FireAndAct();
 
-        //    // When
-        //    var result = await controller.FireAndAct();
+            // Then
+            Assert.NotNull(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var resultValue = Assert.IsType<int>(okResult.Value);
+            Assert.Equal(40, resultValue);
+        }
 
-        //    // Then
-        //    Assert.NotNull(result);
-        //    var okResult = Assert.IsType<OkObjectResult>(result);
-        //    var resultValue = Assert.IsType<int>(okResult.Value);
-        //    Assert.Equal(40, resultValue);
-        //}
+        [Fact]
+        public async Task AutoInjection_MockAndVerify()
+        {
+            // Given
+            var requestTrackerOne = m_TeePeeBuilderOne
+                .ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
-        //[Fact]
-        //public async Task AutoInjection_MockAndVerify()
-        //{
-        //    // Given
-        //    var requestTrackerOne = m_TeePeeBuilderOne.ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Put)
-        //                                              .ThatContainsQueryParam("filter", "other")
-        //                                              .ThatHasBody(new { Caller = "ThisCaller" })
-        //                                              .Responds()
-        //                                              .WithStatus(HttpStatusCode.Created)
-        //                                              .TrackRequest();
+            var requestTrackerTwo = m_TeePeeBuilderTwo
+                .ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Put)
+                .ThatContainsQueryParam("filter", "other")
+                .ThatHasBody(new { Caller = "ThisCaller" })
+                .Responds()
+                .WithStatus(HttpStatusCode.Created)
+                .TrackRequest();
 
-        //    var requestTrackerTwo = m_TeePeeBuilderTwo.ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Put)
-        //                                              .ThatContainsQueryParam("filter", "other")
-        //                                              .ThatHasBody(new { Caller = "ThisCaller" })
-        //                                              .Responds()
-        //                                              .WithStatus(HttpStatusCode.Created)
-        //                                              .TrackRequest();
+            var controller = m_AutoInjectionServiceCollection.BuildServiceProvider()
+                .GetRequiredService<HttpClientFactoryMultipleTypedUsageController>();
 
-        //    var controller = await Resolve.WithTypedClients<HttpClientFactoryMultipleTypedUsageController, ExampleTypedHttpClient, AnotherExampleTypedHttpClient>(m_TeePeeBuilderOne, m_TeePeeBuilderTwo, sc =>
-        //                                                                                                                                                                                            {
-        //                                                                                                                                                                                                var configuration = UnitTestConfig.LoadUnitTestConfig();
+            // When
+            var result = await controller.FireAndForget();
 
-        //                                                                                                                                                                                                // Call your production code, which sets up the Typed Client, here
-        //                                                                                                                                                                                                sc.AddTypedHttpClients(configuration);
-        //                                                                                                                                                                                            });
+            // Then
+            Assert.NotNull(result);
+            Assert.IsType<OkResult>(result);
 
-        //    // When
-        //    var result = await controller.FireAndForget();
-
-        //    // Then
-        //    Assert.NotNull(result);
-        //    Assert.IsType<OkResult>(result);
-
-        //    requestTrackerOne.WasCalled(1);
-        //    requestTrackerTwo.WasCalled(1);
-        //}
+            requestTrackerOne.WasCalled(1);
+            requestTrackerTwo.WasCalled(1);
+        }
 
         #endregion
     }

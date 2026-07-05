@@ -9,8 +9,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
     public class HttpClientFactoryNamedUsageControllerTests
     {
         private readonly TeePeeBuilder m_TeePeeBuilder = new();
-        private const string _NAMED_HTTP_CLIENT = "ThirdPartyApi";
-
+        private const string _EXPECTED_NAMED_HTTP_CLIENT = "ThirdPartyApi";
 
         private readonly IServiceCollection m_AutoInjectionServiceCollection;
 
@@ -23,7 +22,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                 // Have to register Controller explicitly
                 .AddSingleton<HttpClientFactoryNamedUsageController>()
                 // Test Overrides
-                .AttachToNamedClient(m_TeePeeBuilder, _NAMED_HTTP_CLIENT)
+                .AttachToNamedClient(m_TeePeeBuilder, _EXPECTED_NAMED_HTTP_CLIENT)
                 ;
         }
 
@@ -49,7 +48,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                     }
                 });
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_EXPECTED_NAMED_HTTP_CLIENT));
 
             // When
             var result = await controller.FireAndAct();
@@ -73,7 +72,7 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
                 .WithStatus(HttpStatusCode.Created)
                 .TrackRequest();
 
-            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_NAMED_HTTP_CLIENT));
+            var controller = new HttpClientFactoryNamedUsageController(m_TeePeeBuilder.Manual("https://some.api").CreateHttpClientFactory(_EXPECTED_NAMED_HTTP_CLIENT));
 
             // When
             var result = await controller.FireAndForget();

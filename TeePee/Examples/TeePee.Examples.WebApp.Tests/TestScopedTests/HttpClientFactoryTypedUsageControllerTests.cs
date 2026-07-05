@@ -10,7 +10,6 @@ namespace TeePee.Examples.WebApp.Tests.TestScopedTests
     {
         private readonly TeePeeBuilder m_TeePeeBuilder = new();
 
-
         private readonly IServiceCollection m_AutoInjectionServiceCollection;
 
         public HttpClientFactoryTypedUsageControllerTests()
