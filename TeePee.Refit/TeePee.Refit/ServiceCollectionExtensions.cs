@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Refit;
-//using TeePee.UsageExtensions;
+using TeePee.UsageExtensions;
 
 namespace TeePee.Refit
 {
@@ -9,12 +9,9 @@ namespace TeePee.Refit
         public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
             where TRefitInterface : class
         {
-            var temp = teePeeBuilder.Build().GetAwaiter().GetResult();
-
             serviceCollection
                 .AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
-                .AddHttpMessageHandler(_ => temp.HttpHandler)
-                ;//.AddSingletonTeePeeMessageHandler(teePeeBuilder);
+                .AddSingletonTeePeeMessageHandler(teePeeBuilder);
 
             return serviceCollection;
         }

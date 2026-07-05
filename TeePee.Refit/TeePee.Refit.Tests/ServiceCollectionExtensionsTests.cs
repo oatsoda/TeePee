@@ -44,12 +44,12 @@ namespace TeePee.Refit.Tests
             Assert.Equal("User's Name", user.Name);
 
             // And When
-            //builder.Reset();
-            //var ex = await Record.ExceptionAsync(async () => await client.GetUser("abc-123"));
+            builder.Reset();
+            var ex = await Record.ExceptionAsync(async () => await client.GetUser("abc-123"));
 
             // Then
-            //Assert.NotNull(ex);
-            //Assert.IsType<ApiException>(ex);
+            Assert.NotNull(ex);
+            Assert.IsType<ApiException>(ex);
         }
     }
 
