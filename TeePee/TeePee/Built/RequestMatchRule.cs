@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Web;
 using TeePee.Extensions;
 
-namespace TeePee.Internal
+namespace TeePee.Built
 {
     internal class RequestMatchRule
     {
@@ -59,7 +59,7 @@ namespace TeePee.Internal
 
             m_Responses = responses;
             Tracker = tracker;
-            Tracker?.SetRequestMatchRule(this);
+            Tracker?.SetStateForExecution(this, new HttpTrackingState());
         }
 
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
@@ -111,7 +111,7 @@ namespace TeePee.Internal
 
             if (httpRequestMessage.Content == null)
                 throw new ArgumentException("Request body content is null when trying to match on Content-Type headers.", nameof(httpRequestMessage));
-            
+
             var contentType = httpRequestMessage.Content.Headers.ContentType;
 
             if (contentType == null)
@@ -164,7 +164,7 @@ namespace TeePee.Internal
 
     public static class RequestMatchRuleListExtensions
     {
-        internal static string Log(this IEnumerable<RequestMatchRule> matchRules, TeePeeOptions options)
+        internal static string Log(this IEnumerable<RequestMatchRule> matchRules, ITeePeeOptions options)
         {
             return string.Join("\r\n", matchRules.Select(c => $"\t{c.Log(options.TruncateBodyOutputLength)}"));
         }

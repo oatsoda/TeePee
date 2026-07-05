@@ -15,5 +15,5 @@ Setup your mocking with the `TeePeeBuilder` as usual, and then attach to the Ref
 ```csharp
 var teePeeBuilder = new TeePeeBuilder(); // Set up http mocking
 
-services.AttachToRefitInterface<IMyRefitInterface>(teePeeBuilder.Build());
+services.AttachToRefitInterface<IMyRefitInterface>(teePeeBuilder);
 ```

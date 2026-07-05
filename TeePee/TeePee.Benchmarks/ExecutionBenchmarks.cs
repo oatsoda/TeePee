@@ -18,7 +18,7 @@ public class ExecutionBenchmarks
         "https://fiv.com/test5"
     };
 
-    private static JsonContent m_RequestBody = JsonContent.Create(new { test = "123" });
+    private static readonly JsonContent m_RequestBody = JsonContent.Create(new { test = "123" });
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -36,7 +36,7 @@ public class ExecutionBenchmarks
                    .WithBody(new { Id = "abc" });
         }
 
-        m_HttpClient = (await builder.Build()).Manual().CreateClient();
+        m_HttpClient = builder.Manual().CreateClient();
     }
 
     [Benchmark]

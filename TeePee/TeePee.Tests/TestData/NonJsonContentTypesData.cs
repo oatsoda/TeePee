@@ -1,5 +1,4 @@
 using System.Text;
-// ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests.TestData
 {

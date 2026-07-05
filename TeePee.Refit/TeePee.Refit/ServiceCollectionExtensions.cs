@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Refit;
+//using TeePee.UsageExtensions;
 
 namespace TeePee.Refit
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePee teePee)
+        public static IServiceCollection AttachToRefitInterface<TRefitInterface>(this IServiceCollection serviceCollection, TeePeeBuilder teePeeBuilder)
             where TRefitInterface : class
         {
-            // Get Delegating Handler to inject into the Http pipeline
-            var requestHandler = teePee.HttpHandler;
-            serviceCollection.AddTransient(_ => requestHandler);
+            var temp = teePeeBuilder.Build().GetAwaiter().GetResult();
 
-            serviceCollection.AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
-                .AddHttpMessageHandler(_ => requestHandler)
-                ;
+            serviceCollection
+                .AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
+                .AddHttpMessageHandler(_ => temp.HttpHandler)
+                ;//.AddSingletonTeePeeMessageHandler(teePeeBuilder);
 
             return serviceCollection;
         }

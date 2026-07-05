@@ -1,3 +1,4 @@
+using Microsoft.OpenApi;
 using TeePee.Examples.WebApp.Controllers;
 
 namespace TeePee.Examples.WebApp
@@ -15,7 +16,18 @@ namespace TeePee.Examples.WebApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddTypedHttpClients(Configuration);
+            services.AddExampleWebAppDependencies(Configuration);
+
+            // Swagger
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "TeePee Examples WebApp API",
+                    Version = "v1",
+                    Description = "Example endpoints for TeePee"
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -23,6 +35,17 @@ namespace TeePee.Examples.WebApp
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
+
+            // Enable middleware to serve generated Swagger as JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TeePee Examples WebApp API v1");
+                // Serve the UI at the app's root (optional)
+                // c.RoutePrefix = string.Empty;
+            });
 
             app.UseHttpsRedirection();
 
@@ -39,6 +62,14 @@ namespace TeePee.Examples.WebApp
 
     public static class StartupDependencyExtensions
     {
+        public static IServiceCollection AddExampleWebAppDependencies(this IServiceCollection services, IConfiguration configuration)
+        {
+            return services
+                .AddHttpClient()
+                .AddNamedHttpClients(configuration)
+                .AddTypedHttpClients(configuration);
+        }
+
         // Separate out startup registrations so that your unit tests can setup the same dependencies
 
         public static IServiceCollection AddNamedHttpClients(this IServiceCollection services, IConfiguration configuration)

@@ -34,13 +34,23 @@ namespace TeePee.Refit.Tests
             // When
 
             // ** Subject Under Test
-            services.AttachToRefitInterface<IApiService>(await builder.Build());
+            services.AttachToRefitInterface<IApiService>(builder);
 
             // ** Simulate Production Code
-            var user = await services.BuildServiceProvider().GetRequiredService<IApiService>().GetUser("abc-123");
+            var client = services.BuildServiceProvider().GetRequiredService<IApiService>();
+            var user = await client.GetUser("abc-123");
 
             // Then
             Assert.Equal("User's Name", user.Name);
+
+            // And When
+            //builder.Reset();
+            //var ex = await Record.ExceptionAsync(async () => await client.GetUser("abc-123"));
+
+            // Then
+            //Assert.NotNull(ex);
+            //Assert.IsType<ApiException>(ex);
         }
     }
+
 }

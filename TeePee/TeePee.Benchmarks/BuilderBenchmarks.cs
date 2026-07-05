@@ -25,7 +25,7 @@ public class BuilderBenchmarks
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 5; i++)
             AddRule(builder, i);
-        await builder.Build();
+        await builder.GetCurrentRules();
     }
 
     [Benchmark]
@@ -34,7 +34,7 @@ public class BuilderBenchmarks
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 500; i++)
             AddRule(builder, i);
-        await builder.Build();
+        await builder.GetCurrentRules();
     }
 
     [Benchmark]
@@ -43,7 +43,7 @@ public class BuilderBenchmarks
         var builder = new TeePeeBuilder();
         for (int i = 0; i < 5000; i++)
             AddRule(builder, i);
-        await builder.Build();
+        await builder.GetCurrentRules();
     }
 
     private readonly TeePeeBuilder m_FiveRulesBuilder = new();
@@ -69,18 +69,18 @@ public class BuilderBenchmarks
     [Benchmark]
     public async Task FiveRulesBuild()
     {
-        await m_FiveRulesBuilder.Build();
+        await m_FiveRulesBuilder.GetCurrentRules();
     }
 
     [Benchmark]
     public async Task FiveHundredRulesBuild()
     {
-        await m_FiveHundredRulesBuilder.Build();
+        await m_FiveHundredRulesBuilder.GetCurrentRules();
     }
 
     [Benchmark]
     public async Task FiveThousandRulesBuild()
     {
-        await m_FiveThousandRulesBuilder.Build();
+        await m_FiveThousandRulesBuilder.GetCurrentRules();
     }
 }

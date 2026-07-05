@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Http.Json;
 
-namespace TeePee.Internal
+namespace TeePee.Built
 {
     internal class Response
     {
@@ -58,7 +58,7 @@ namespace TeePee.Internal
             if (m_ResponseBodyMediaType != null)
             {
                 contentType = new(m_ResponseBodyMediaType);
-            
+
                 if (m_ResponseBodyEncoding != null)
                     contentType.CharSet = m_ResponseBodyEncoding;
             }

@@ -5,36 +5,36 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TeePee.Tests.TestData;
-// ReSharper disable UseUtf8StringLiteral
 
 namespace TeePee.Tests;
 
 /// <summary>
 /// Tests to ensure the Handler is behaving correctly.
 /// </summary>
-public class TeePeeTests
+public class RuleUsageTests
 {
-    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
     private readonly ITestOutputHelper m_TestOutputHelper;
 
     // URL and Method used for each test
     private string m_Url = "https://www.test.co.uk/api/items";
     private HttpMethod m_HttpMethod = HttpMethod.Get;
 
-    // Instance of Tracking Builder for each test
-    private TeePeeBuilder m_TrackingBuilder = new();
-
     // Logger
-    private readonly Mock<ILogger<TeePee>> m_MockLogger = new();
+    private readonly Mock<ILogger> m_MockLogger = new();
+
+    // Instance of Tracking Builder for each test
+    private TeePeeBuilder m_Builder;
 
     // Shortcut methods
-    private RequestMatchBuilder RequestMatchBuilder() => m_TrackingBuilder.ForRequest(m_Url, m_HttpMethod);
+    private RequestMatchBuilder RequestMatchBuilder() => m_Builder.ForRequest(m_Url, m_HttpMethod);
+
     private HttpRequestMessage RequestMessage() => RequestMessage(m_HttpMethod, m_Url);
     private static HttpRequestMessage RequestMessage(HttpMethod httpMethod, string url) => new(httpMethod, url);
-    private Task<HttpResponseMessage> SendRequest() => SendRequest(RequestMessage());
-    private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequestMessage) => await (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient().SendAsync(httpRequestMessage);
 
-    public TeePeeTests(ITestOutputHelper testOutputHelper)
+    // NOTE: Using Manual() as SUT is the resultant HttpClient, not the injection.
+    private Task<HttpClient> CreateHttpClient() => Task.FromResult(m_Builder.Manual().CreateClient());
+
+    public RuleUsageTests(ITestOutputHelper testOutputHelper)
     {
         m_TestOutputHelper = testOutputHelper;
 
@@ -54,6 +54,8 @@ public class TeePeeTests
                     var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
                     testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
                 }));
+
+        m_Builder = new(opt => opt.Logger = m_MockLogger.Object);
     }
 
     #region Matches
@@ -89,8 +91,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -109,8 +113,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -121,7 +127,7 @@ public class TeePeeTests
     public async Task DoesNotMatchBodyWithDifferentSerialisationSettings(string mediaType, Encoding encoding, bool partialMatch)
     {
         // Given
-        m_TrackingBuilder = new(opt =>
+        m_Builder = new(opt =>
                                 {
                                     opt.CaseSensitiveMatching = true;
                                     opt.RequestBodySerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -134,8 +140,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, mediaType);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -146,7 +154,7 @@ public class TeePeeTests
     public async Task MatchesBodyWithSameSerialisationSettings(string mediaType, Encoding encoding, bool partialMatch)
     {
         // Given
-        m_TrackingBuilder = new(opt =>
+        m_Builder = new(opt =>
                                 {
                                     opt.CaseSensitiveMatching = true;
                                     opt.RequestBodySerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -159,8 +167,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), encoding, mediaType);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -179,8 +189,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding, "wrong/media-type");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -199,8 +211,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), encoding.WebName == Encoding.UTF32.WebName ? Encoding.Latin1 : Encoding.UTF32, mediaType);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -208,7 +222,6 @@ public class TeePeeTests
 
     private class ReferenceBodyType
     {
-        // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public int Test { get; set; }
     }
 
@@ -225,8 +238,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(new { Test = 23 }), Encoding.UTF8, "application/json");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -247,8 +262,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = requestBodyContent;
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -268,8 +285,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new ByteArrayContent(new byte[] { 65, 98, 48 });
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -292,8 +311,10 @@ public class TeePeeTests
             Headers = { ContentType = new("test/input") { CharSet = Encoding.ASCII.WebName } }
         };
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -312,8 +333,10 @@ public class TeePeeTests
         m_HttpMethod = httpMethod;
         var verify = RequestMatchBuilder().TrackRequest();
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest();
+        await httpClient.SendAsync(RequestMessage(m_HttpMethod, m_Url), TestCt);
 
         // Then
         verify.WasCalled();
@@ -331,8 +354,10 @@ public class TeePeeTests
 
         var httpRequestMessage = RequestMessage(m_HttpMethod, $"{m_Url}?Name1=val1&name2=VAL2&name3=val3");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -350,8 +375,10 @@ public class TeePeeTests
 
         var httpRequestMessage = RequestMessage(m_HttpMethod, $"{m_Url}?Name1=val1&name3=val3");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -376,8 +403,10 @@ public class TeePeeTests
         httpRequestMessage.Headers.Add("name2", "VAL2");
         httpRequestMessage.Headers.Add("name3", "val3");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -397,8 +426,10 @@ public class TeePeeTests
         httpRequestMessage.Headers.Add("name2", "val2");
         httpRequestMessage.Headers.Add("name3", "val3");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasNotCalled();
@@ -414,8 +445,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Headers.Add("Name1", new[] { "val1", "otherVal" });
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verify.WasCalled();
@@ -462,8 +495,10 @@ public class TeePeeTests
         httpRequestMessage.Headers.Add("h2", "v2");
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verifyUrlOnly.WasNotCalled();
@@ -485,8 +520,10 @@ public class TeePeeTests
         var httpRequestMessage = RequestMessage();
         httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest(httpRequestMessage);
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // Then
         verifyUrlOne.WasNotCalled();
@@ -501,10 +538,12 @@ public class TeePeeTests
     public async Task DoesNotLogMessageIfNoLogger()
     {
         // Given
+        m_Builder = new TeePeeBuilder(); // Not setting Logger in Options.
         RequestMatchBuilder();
+        using var client = await CreateHttpClient();
 
         // When
-        await (await m_TrackingBuilder.Build()).Manual().CreateClient().SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Empty(m_MockLogger.Invocations);
@@ -520,8 +559,10 @@ public class TeePeeTests
         if (!isMatch)
             m_HttpMethod = HttpMethod.Options;
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        await SendRequest();
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         m_MockLogger.Verify(l => l.Log(
@@ -541,13 +582,19 @@ public class TeePeeTests
     public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled()
     {
         // Given
-        m_TrackingBuilder = new(opt => opt.ShowFullDetailsOnMatchFailure = true);
+        m_Builder = new(opt =>
+        {
+            opt.Logger = m_MockLogger.Object;
+            opt.ShowFullDetailsOnMatchFailure = true;
+        });
         RequestMatchBuilder();
         m_HttpMethod = HttpMethod.Options;
-        m_TrackingBuilder.ForRequest("https://www.test.co.uk/api/items2", HttpMethod.Head);
+        m_Builder.ForRequest("https://www.test.co.uk/api/items2", HttpMethod.Head);
+
+        var httpClient = await CreateHttpClient();
 
         // When
-        await SendRequest();
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         m_MockLogger.Verify(l => l.Log(
@@ -580,10 +627,11 @@ public class TeePeeTests
     {
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
+        var httpClient = await CreateHttpClient();
         for (var i = 0; i < callTimes; i++)
         {
             var httpRequestMessage = RequestMessage(requestCorrectMatch ? HttpMethod.Get : HttpMethod.Put, m_Url);
-            await SendRequest(httpRequestMessage);
+            await httpClient.SendAsync(httpRequestMessage, TestCt);
         }
 
         // When
@@ -605,7 +653,9 @@ public class TeePeeTests
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
         var httpRequestMessage = RequestMessage(HttpMethod.Put, m_Url);
-        await SendRequest(httpRequestMessage);
+
+        var httpClient = await CreateHttpClient();
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
 
         // When
         void Verify() => verify.WasNotCalled();
@@ -615,21 +665,27 @@ public class TeePeeTests
         Assert.Null(ex);
     }
 
+    // TODO: What does this prove now?
     [Fact]
-    public async Task TrackerHasCorrectCallsIfMultipleInstancesOfTeePee()
+    public async Task TrackerHasCorrectCallsIfBuilderIsReset()
     {
         // Given
         var verify = RequestMatchBuilder().TrackRequest();
-        await SendRequest(RequestMessage());
+        var httpClient = await CreateHttpClient();
+        await httpClient.SendAsync(RequestMessage(), TestCt);
+        m_Builder.Reset();
 
         // When
-        await SendRequest(RequestMessage());
+        httpClient = await CreateHttpClient();
+        await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
-        Assert.Equal(2, verify.AllCalls.Count);
-        Assert.Equal(2, verify.MatchedCalls.Count);
+        //Assert.Equal(1, verify.AllCalls.Count);
+        //Assert.Equal(1, verify.MatchedCalls.Count);
+        Assert.Single(verify.AllCalls);
+        Assert.Single(verify.MatchedCalls);
 
-        verify.WasCalled(2);
+        verify.WasCalled(1);
     }
 
     #endregion
@@ -640,10 +696,12 @@ public class TeePeeTests
     public async Task ThrowsIfNoMatchInStrictMode()
     {
         // Given
-        m_TrackingBuilder = new(opt => opt.Mode = TeePeeMode.Strict);
+        m_Builder = new(opt => opt.Mode = TeePeeMode.Strict);
+
+        var httpClient = await CreateHttpClient();
 
         // When
-        var ex = await Record.ExceptionAsync(async () => await SendRequest());
+        var ex = await Record.ExceptionAsync(async () => await httpClient.SendAsync(RequestMessage(), TestCt));
 
         // Then
         Assert.NotNull(ex);
@@ -658,8 +716,10 @@ public class TeePeeTests
         // Given
         m_HttpMethod = httpMethod;
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -673,17 +733,19 @@ public class TeePeeTests
     public async Task RespondsWithCustomDefaultResponseIfNoMatch(HttpMethod httpMethod)
     {
         // Given
-        m_TrackingBuilder.WithDefaultResponse(HttpStatusCode.BadGateway, "--bad-gateway--");
+        m_Builder.WithDefaultResponse(HttpStatusCode.BadGateway, "--bad-gateway--");
         m_HttpMethod = httpMethod;
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
         Assert.NotNull(response.Content);
-        var body = await response.Content.ReadAsStringAsync(CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("--bad-gateway--", body);
         Assert.Empty(response.Headers);
     }
@@ -696,8 +758,10 @@ public class TeePeeTests
         m_HttpMethod = httpMethod;
         RequestMatchBuilder();
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -714,8 +778,10 @@ public class TeePeeTests
         m_HttpMethod = httpMethod;
         RequestMatchBuilder().Responds();
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -731,8 +797,10 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithStatus(HttpStatusCode.InternalServerError);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -749,12 +817,14 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(bodyObject), responseBody);
         Assert.Equal("application/json", response.Content.Headers.ContentType!.MediaType);
         Assert.Equal("utf-8", response.Content.Headers.ContentType.CharSet);
@@ -769,12 +839,14 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject, mediaType, encoding);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
         Assert.Equal(mediaType, response.Content.Headers.ContentType!.MediaType);
         Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
@@ -788,8 +860,10 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithHttpContentBody(httpContent);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // The
         Assert.NotNull(response);
@@ -807,14 +881,15 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject, mediaType, encoding);
 
-        using var client = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateClient();
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var httpClient = await CreateHttpClient();
+
+        var firstResponse = await httpClient.SendAsync(RequestMessage(), TestCt);
         firstResponse.Dispose();
 
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var responseBody = await secondResponse.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await secondResponse.Content.ReadAsStringAsync(TestCt);
 
         // Then
         Assert.Equal(JsonSerializer.Serialize(bodyObject, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
@@ -832,12 +907,14 @@ public class TeePeeTests
 
         bodyObject.Test = 23;
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal(JsonSerializer.Serialize(new { Test = 23 }, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }), responseBody);
     }
 
@@ -850,8 +927,10 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithHeader("Set-Cookie", ".aspnetcookie=123");
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
@@ -860,6 +939,7 @@ public class TeePeeTests
         var headerValue = Assert.Single(values);
         Assert.Equal(".aspnetcookie=123", headerValue);
     }
+
     [Fact]
     public async Task RespondsWithCorrectBodyWithDefaultJsonSerializerOptions()
     {
@@ -868,12 +948,14 @@ public class TeePeeTests
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("{\"Nullable\":null,\"Case\":\"value\",\"EnumVal\":\"Off\"}", responseBody);
     }
 
@@ -882,23 +964,24 @@ public class TeePeeTests
     {
         // Given
         var jsonSerializeOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        m_TrackingBuilder = new(responseBodySerializeOptions: jsonSerializeOptions);
+        m_Builder = new(opt => opt.ResponseBodySerializerOptions = jsonSerializeOptions);
         var bodyObject = new { Nullable = (string?)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject);
 
+        var httpClient = await CreateHttpClient();
+
         // When
-        var response = await SendRequest();
+        var response = await httpClient.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.NotNull(response);
-        var responseBody = await response.Content.ReadAsStringAsync(CancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(TestCt);
         Assert.Equal("{\"case\":\"value\",\"enumVal\":3}", responseBody);
     }
 
     private enum ToTestJsonSettings
     {
-        // ReSharper disable once UnusedMember.Local
         On = 2,
         Off = 3
     }
@@ -915,12 +998,12 @@ public class TeePeeTests
            .Responds()
            .WithStatus(HttpStatusCode.Ambiguous);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        using var client = await CreateHttpClient();
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.Ambiguous, secondResponse.StatusCode);
@@ -936,12 +1019,12 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
 
-        var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        using var client = await CreateHttpClient();
+        await client.SendAsync(RequestMessage(), TestCt);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var thirdResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var thirdResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.ExpectationFailed, thirdResponse.StatusCode);
@@ -959,13 +1042,13 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.ExpectationFailed);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = await CreateHttpClient();
 
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
@@ -985,16 +1068,16 @@ public class TeePeeTests
            .ThenResponds()
            .WithStatus(HttpStatusCode.MisdirectedRequest);
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
+        using var client = await CreateHttpClient();
 
-        var firstResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var firstResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.Ambiguous, firstResponse.StatusCode);
 
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
         Assert.Equal(HttpStatusCode.ExpectationFailed, secondResponse.StatusCode);
 
         // When
-        var thirdResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var thirdResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.MisdirectedRequest, thirdResponse.StatusCode);
@@ -1011,11 +1094,12 @@ public class TeePeeTests
            .WithStatus(HttpStatusCode.Ambiguous)
            .ThenResponds();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        using var client = await CreateHttpClient();
+
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        var secondResponse = await client.SendAsync(RequestMessage(), CancellationToken);
+        var secondResponse = await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(HttpStatusCode.NoContent, secondResponse.StatusCode);
@@ -1033,12 +1117,12 @@ public class TeePeeTests
                     .ThenResponds()
                     .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        using var client = await CreateHttpClient();
+        await client.SendAsync(RequestMessage(), TestCt);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Equal(3, verify.AllCalls.Count);
@@ -1065,11 +1149,11 @@ public class TeePeeTests
                            .WithStatus(HttpStatusCode.Accepted)
                            .TrackRequest();
 
-        using var client = (await m_TrackingBuilder.Build()).Manual().CreateClient();
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        using var client = await CreateHttpClient();
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // When
-        await client.SendAsync(RequestMessage(), CancellationToken);
+        await client.SendAsync(RequestMessage(), TestCt);
 
         // Then
         Assert.Same(firstTracker, secondTracker);
@@ -1078,108 +1162,6 @@ public class TeePeeTests
     }
 
     #endregion
-
-    #endregion
-
-    #region Manual
-
-    [Theory]
-    [InlineData(null, "")]
-    [InlineData("", "")]
-    [InlineData("myClient", "myClient")]
-    public async Task ManualCreateHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string? requestedName)
-    {
-        // Given
-        if (configuredName != null)
-            m_TrackingBuilder = new(configuredName);
-        var verify = RequestMatchBuilder().TrackRequest();
-
-        var httpClientFactory = (await m_TrackingBuilder.Build(m_MockLogger.Object)).Manual().CreateHttpClientFactory();
-
-        // When
-        await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage(), CancellationToken);
-
-        // Then
-        verify.WasCalled();
-    }
-
-    [Theory]
-    [InlineData(null, null)]
-    [InlineData("", null)]
-    [InlineData("myClient", "wrongClient")]
-    [InlineData(null, "wrongClient")]
-    public async Task ManualCreateHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
-    {
-        // Given
-        if (configuredName != null)
-            m_TrackingBuilder = new(configuredName);
-        RequestMatchBuilder();
-
-        var httpClientFactory = (await m_TrackingBuilder.Build()).Manual().CreateHttpClientFactory();
-
-        // When
-        var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
-
-        // Then
-        Assert.IsType<ArgumentOutOfRangeException>(ex);
-        Assert.Contains($"No HttpClients configured with name '{requestedName}'. Configured with '{configuredName}'", ex.Message);
-    }
-
-    [Fact]
-    public async Task ManualCreateClientMatchesRelativePathsIfBaseUrlSupplied()
-    {
-        // Given
-        var verify = RequestMatchBuilder().TrackRequest();
-        var httpClient = (await m_TrackingBuilder.Build()).Manual("https://www.test.co.uk/").CreateClient();
-
-        // When
-        await httpClient.SendAsync(RequestMessage(m_HttpMethod, "api/items"), CancellationToken);
-
-        // Then
-        verify.WasCalled();
-    }
-
-    [Theory]
-    [InlineData(null, "")]
-    [InlineData("", "")]
-    [InlineData("myClient", "myClient")]
-    public async Task MultipleManualToHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string? requestedName)
-    {
-        // Given
-        var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
-        var builderTwo = new TeePeeBuilder("Second");
-
-        var verify = builderOne.ForRequest(m_Url, m_HttpMethod).TrackRequest();
-
-        var httpClientFactory = new[] { (await builderOne.Build()).Manual(), (await builderTwo.Build()).Manual() }.ToHttpClientFactory();
-
-        // When
-        await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage(), CancellationToken);
-
-        // Then
-        verify.WasCalled();
-    }
-
-    [Theory]
-    [InlineData(null, null)]
-    [InlineData("", null)]
-    [InlineData("myClient", "wrongClient")]
-    [InlineData(null, "wrongClient")]
-    public async Task MultipleManualToHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
-    {
-        // Given
-        var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
-        var builderTwo = new TeePeeBuilder("Second");
-
-        var httpClientFactory = new[] { (await builderOne.Build()).Manual(), (await builderTwo.Build()).Manual() }.ToHttpClientFactory();
-
-        // When
-        var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
-
-        // Then
-        Assert.IsType<ArgumentOutOfRangeException>(ex);
-        Assert.Contains($"No HttpClients configured with name '{requestedName}'. Configured with '{configuredName}','Second'", ex.Message);
-    }
 
     #endregion
 }

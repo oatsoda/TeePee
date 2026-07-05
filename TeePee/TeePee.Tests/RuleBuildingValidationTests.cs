@@ -1,10 +1,12 @@
+using TeePee.UsageExtensions;
+
 namespace TeePee.Tests;
 
 /// <summary>
 /// Tests to ensure validation and state of the Builder are correct.
-/// Actual usage of this data is done in the TeePee tests where Http requests are made and assertions concluded.
+/// Actual usage of this data is done in the Rule Usage tests where Http requests are made and assertions concluded.
 /// </summary>
-public class TeePeeBuilderTests
+public class RuleBuildingValidationTests
 {
     private TeePeeBuilder m_Builder = new();
 
@@ -168,10 +170,10 @@ public class TeePeeBuilderTests
     }
 
     [Fact]
-    public async Task ForRequestThrowsIfBuildAlreadyCalled()
+    public async Task ForRequestThrowsIfBuilderAlreadyUsed()
     {
         // Given
-        await m_Builder.Build();
+        await m_Builder.Manual().CreateClient().GetAsync("https://site.net/arbitrary", TestCt);
 
         // When 
         var ex = Record.Exception(() => m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get));
@@ -500,7 +502,7 @@ public class TeePeeBuilderTests
     #region TrackRequest
 
     [Fact]
-    public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsBuild()
+    public void TrackRequestThrowsIfAssertionMadeBeforeBuilderIsUsed()
     {
         // Given
         var tracker = m_Builder.ForRequest("http://test", HttpMethod.Get).TrackRequest();
@@ -511,42 +513,6 @@ public class TeePeeBuilderTests
         // Then
         Assert.IsType<InvalidOperationException>(ex);
         Assert.Contains("Ensure that you built the TeePeeBuilder", ex.Message);
-    }
-
-    #endregion
-
-    #region Build
-
-    [Fact]
-    public async Task BuildDoesNotThrowOnMultipleCalls()
-    {
-        // Given
-        m_Builder.ForRequest("http://test", HttpMethod.Get);
-        await m_Builder.Build();
-
-        // When 
-        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-
-        // Then
-        Assert.Null(ex);
-    }
-
-    [Theory]
-    [MemberData(nameof(UrlAndMethodData))]
-    public async Task BuildDoesNotThrowOnMultipleCallsWithDuplicateUrlsAndTrackersAttached(string url, HttpMethod method)
-    {
-        // Given
-        m_Builder.ForRequest(url, method)
-                 .TrackRequest();
-        m_Builder.ForRequest(url, method);
-
-        await m_Builder.Build();
-
-        // When 
-        var ex = await Record.ExceptionAsync(() => m_Builder.Build());
-
-        // Then
-        Assert.Null(ex);
     }
 
     #endregion
