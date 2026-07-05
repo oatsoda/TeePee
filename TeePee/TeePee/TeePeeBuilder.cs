@@ -6,11 +6,12 @@ namespace TeePee
 {
     public class TeePeeBuilder
     {
-        internal TeePeeOptions Options { get; set; } = new();
+        internal TeePeeOptions Options { get; } = new();
 
         private readonly List<RequestMatchBuilder> m_Requests = new();
+        private static readonly HttpStatusCode m_DefaultDefaultResponseStatusCode = HttpStatusCode.NotFound;
 
-        private HttpStatusCode m_DefaultResponseStatusCode = HttpStatusCode.NotFound;
+        private HttpStatusCode m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
         private string? m_DefaultResponseBody;
 
         private bool m_IsBuilt;
@@ -50,6 +51,21 @@ namespace TeePee
             return builder;
         }
 
+        internal bool HasMatchUrlWithQuery()
+        {
+            return m_Requests.Any(r => r.MatchUrlWithQuery);
+        }
+
+        internal bool HasMatchUrlWithQueryParams()
+        {
+            return m_Requests.Any(r => r.HasQueryParams);
+        }
+
+        internal bool HasMatchUrlAndMethod(string url, HttpMethod httpMethod)
+        {
+            return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
+        }
+
         private async Task<TeePeeSeeded> Build()
         {
             m_IsBuilt = true;
@@ -81,23 +97,10 @@ namespace TeePee
 
         public void Reset()
         {
+            m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
+            m_DefaultResponseBody = null;
             m_Requests.Clear();
             m_IsBuilt = false;
-        }
-
-        internal bool HasMatchUrlWithQuery()
-        {
-            return m_Requests.Any(r => r.MatchUrlWithQuery);
-        }
-
-        internal bool HasMatchUrlWithQueryParams()
-        {
-            return m_Requests.Any(r => r.HasQueryParams);
-        }
-
-        internal bool HasMatchUrlAndMethod(string url, HttpMethod httpMethod)
-        {
-            return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
         }
     }
 }

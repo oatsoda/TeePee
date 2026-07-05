@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
+using System.Net;
 using TeePee.UsageExtensions;
 
 namespace TeePee.Tests;
@@ -34,6 +35,33 @@ public class StateAndResetTests
         m_Services.AddHttpClient<AbsolutePathTypedHttpClient>();
     }
 
+    #region General
+
+    [Fact]
+    public async Task Reset_ClearsDefaults()
+    {
+        // Given
+        var defaultStatusCode = HttpStatusCode.UnprocessableEntity;
+        const string defaultResponseBody = "Default response body";
+
+        m_Builder.WithDefaultResponse(defaultStatusCode, defaultResponseBody);
+        var client = m_Builder.Manual().CreateClient();
+
+        var responseOne = await client.GetAsync("http://not-matching", TestCt);
+        Assert.Equal(defaultStatusCode, responseOne.StatusCode);
+        Assert.Equal(defaultResponseBody, await responseOne.Content.ReadAsStringAsync(TestCt));
+
+        // When
+        m_Builder.Reset();
+
+        // Then
+        var responseTwo = await client.GetAsync("http://not-matching", TestCt);
+        Assert.Equal(HttpStatusCode.NotFound, responseTwo.StatusCode);
+        Assert.Equal(0, responseTwo.Content.Headers.ContentLength);
+    }
+
+    #endregion
+
     #region Manual
 
     [Fact]
@@ -54,12 +82,12 @@ public class StateAndResetTests
     {
         // Given
         await m_Builder.Manual().CreateClient().SendAsync(m_MatchingHttpRequest, TestCt);
-        m_Builder.Reset();
 
         // When
-        await m_Builder.Manual().CreateClient().SendAsync(m_MatchingHttpRequestTwo, TestCt);
+        m_Builder.Reset();
 
         // Then
+        await m_Builder.Manual().CreateClient().SendAsync(m_MatchingHttpRequestTwo, TestCt);
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -69,12 +97,12 @@ public class StateAndResetTests
         // Given
         var client = m_Builder.Manual().CreateClient();
         await client.SendAsync(m_MatchingHttpRequest, TestCt);
-        m_Builder.Reset();
 
         // When
-        await client.SendAsync(m_MatchingHttpRequestTwo, TestCt);
+        m_Builder.Reset();
 
         // Then
+        await client.SendAsync(m_MatchingHttpRequestTwo, TestCt);
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -131,12 +159,11 @@ public class StateAndResetTests
         var httpClientFactory = m_Services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
         await createClient(httpClientFactory).SendAsync(m_MatchingHttpRequest, TestCt);
 
+        // When
         m_Builder.Reset();
 
-        // When
-        await createClient(httpClientFactory).SendAsync(m_MatchingHttpRequestTwo, TestCt);
-
         // Then
+        await createClient(httpClientFactory).SendAsync(m_MatchingHttpRequestTwo, TestCt);
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -162,12 +189,12 @@ public class StateAndResetTests
         var client = createClient(httpClientFactory);
 
         await client.SendAsync(m_MatchingHttpRequest, TestCt);
-        m_Builder.Reset();
 
         // When
-        await client.SendAsync(m_MatchingHttpRequestTwo, TestCt);
+        m_Builder.Reset();
 
         // Then
+        await client.SendAsync(m_MatchingHttpRequestTwo, TestCt);
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -197,12 +224,12 @@ public class StateAndResetTests
         m_Services.AttachToTypedClient<AbsolutePathTypedHttpClient>(m_Builder);
         var serviceProvider = m_Services.BuildServiceProvider();
         await serviceProvider.GetRequiredService<AbsolutePathTypedHttpClient>().Get();
-        m_Builder.Reset();
 
         // When
-        await serviceProvider.GetRequiredService<AbsolutePathTypedHttpClient>().Get();
+        m_Builder.Reset();
 
         // Then
+        await serviceProvider.GetRequiredService<AbsolutePathTypedHttpClient>().Get();
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -215,12 +242,12 @@ public class StateAndResetTests
         var typedClient = serviceProvider.GetRequiredService<AbsolutePathTypedHttpClient>();
 
         await typedClient.Get();
-        m_Builder.Reset();
 
         // When
-        await typedClient.Get();
+        m_Builder.Reset();
 
         // Then
+        await typedClient.Get();
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -264,12 +291,12 @@ public class StateAndResetTests
         var serviceProvider = m_Services.BuildServiceProvider();
 
         await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
-        m_Builder.Reset();
 
         // When
-        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
+        m_Builder.Reset();
 
         // Then
+        await serviceProvider.GetRequiredService<RefitUsage.IApiService>().Call();
         m_MatchingTracker.WasCalled(1);
     }
 
@@ -283,12 +310,12 @@ public class StateAndResetTests
         var apiService = serviceProvider.GetRequiredService<RefitUsage.IApiService>();
 
         await apiService.Call();
-        m_Builder.Reset();
 
         // When
-        await apiService.Call();
+        m_Builder.Reset();
 
         // Then
+        await apiService.Call();
         m_MatchingTracker.WasCalled(1);
     }
 
