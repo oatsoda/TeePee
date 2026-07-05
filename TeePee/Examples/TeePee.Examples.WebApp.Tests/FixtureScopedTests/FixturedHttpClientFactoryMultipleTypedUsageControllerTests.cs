@@ -6,22 +6,22 @@ using TeePee.Examples.WebApp.Controllers;
 
 namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 {
-    public class FixturedHttpClientFactoryMultipleNamedUsageControllerTests : IClassFixture<HttpClientFactoryMultipleNamedUsageControllerFixture>
+    public class FixturedHttpClientFactoryMultipleTypedUsageControllerTests : IClassFixture<HttpClientFactoryMultipleTypedUsageControllerFixture>
     {
-        private readonly HttpClientFactoryMultipleNamedUsageControllerFixture m_Fixture;
+        private readonly HttpClientFactoryMultipleTypedUsageControllerFixture m_Fixture;
 
-        public FixturedHttpClientFactoryMultipleNamedUsageControllerTests(HttpClientFactoryMultipleNamedUsageControllerFixture fixture)
+        public FixturedHttpClientFactoryMultipleTypedUsageControllerTests(HttpClientFactoryMultipleTypedUsageControllerFixture fixture)
         {
             m_Fixture = fixture;
             m_Fixture.SetTestScope();
         }
 
         [Fact]
-        public async Task FixturedServiceResolution_RecommendedPassiveMocking()
+        public async Task AutoInjection_RecommendedPassiveMocking()
         {
             // Given
             m_Fixture.TeePeeBuilderOne
-                .ForRequest("https://unittest.multipleone.named/path-one/resource-one", HttpMethod.Get)
+                .ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Get)
                 .ThatContainsQueryParam("filter", "those")
                 .Responds()
                 .WithStatus(HttpStatusCode.OK)
@@ -37,7 +37,7 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
                 });
 
             m_Fixture.TeePeeBuilderTwo
-                .ForRequest("https://unittest.multipletwo.named/path-two/resource-two", HttpMethod.Get)
+                .ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Get)
                 .ThatContainsQueryParam("filter", "those")
                 .Responds()
                 .WithStatus(HttpStatusCode.OK)
@@ -65,11 +65,11 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
         }
 
         [Fact]
-        public async Task FixturedServiceResolution_MockAndVerify()
+        public async Task AutoInjection_MockAndVerify()
         {
             // Given
             var requestTrackerOne = m_Fixture.TeePeeBuilderOne
-                .ForRequest("https://unittest.multipleone.named/path-one/resource-one", HttpMethod.Put)
+                .ForRequest("https://unittest.example.typed/path/resource", HttpMethod.Put)
                 .ThatContainsQueryParam("filter", "other")
                 .ThatHasBody(new { Caller = "ThisCaller" })
                 .Responds()
@@ -77,7 +77,7 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
                 .TrackRequest();
 
             var requestTrackerTwo = m_Fixture.TeePeeBuilderTwo
-                .ForRequest("https://unittest.multipletwo.named/path-two/resource-two", HttpMethod.Put)
+                .ForRequest("https://unittest.anotherexample.typed/path/other-resource", HttpMethod.Put)
                 .ThatContainsQueryParam("filter", "other")
                 .ThatHasBody(new { Caller = "ThisCaller" })
                 .Responds()
@@ -98,22 +98,25 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
         }
     }
 
-    public class HttpClientFactoryMultipleNamedUsageControllerFixture : BaseFixture<HttpClientFactoryMultipleNamedUsageController>
+    public class HttpClientFactoryMultipleTypedUsageControllerFixture : BaseFixture<HttpClientFactoryMultipleTypedUsageController>
     {
-        private const string _EXPECTED_NAMED_HTTP_CLIENT_ONE = "OneApi";
-        private const string _EXPECTED_NAMED_HTTP_CLIENT_TWO = "TwoApi";
-
         public TeePeeBuilder TeePeeBuilderOne { get; } = new();
         public TeePeeBuilder TeePeeBuilderTwo { get; } = new();
 
         protected override IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
+            /*
+             * Normally, a benefit of using an IoC Container / Auto Injection from within your tests is that you can test without needing to
+             * know about the internal implementation details. However, in the case of Typed Http Clients, your tests will need to know
+             * the Type of those Typed Http Clients so that it can attach and intercept.
+             */
+
             return services
                 // This is actual production code registrations.
-                .AddNamedHttpClients(configuration)
+                .AddTypedHttpClients(configuration)
                 // Test code
-                .AttachToNamedClient(TeePeeBuilderOne, _EXPECTED_NAMED_HTTP_CLIENT_ONE)
-                .AttachToNamedClient(TeePeeBuilderTwo, _EXPECTED_NAMED_HTTP_CLIENT_TWO);
+                .AttachToTypedClient<ExampleTypedHttpClient>(TeePeeBuilderOne)
+                .AttachToTypedClient<AnotherExampleTypedHttpClient>(TeePeeBuilderTwo);
         }
 
         protected override void Reset()
