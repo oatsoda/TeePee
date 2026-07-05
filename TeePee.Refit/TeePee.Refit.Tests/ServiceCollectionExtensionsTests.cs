@@ -14,7 +14,7 @@ namespace TeePee.Refit.Tests
 
         public record User(string Name);
 
-        [Fact]
+        [Fact(Skip = "Waiting for core package release")]
         public async Task AttachToRefitInterfaceInjectsTeePeeMocksIntoRefitInterface()
         {
             // Given
@@ -44,7 +44,7 @@ namespace TeePee.Refit.Tests
             Assert.Equal("User's Name", user.Name);
 
             // And When
-            builder.Reset();
+            //builder.Reset();
             var ex = await Record.ExceptionAsync(async () => await client.GetUser("abc-123"));
 
             // Then

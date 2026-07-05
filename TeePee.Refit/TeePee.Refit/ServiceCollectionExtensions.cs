@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using TeePee.UsageExtensions;
+//using TeePee.UsageExtensions;
 
 namespace TeePee.Refit
 {
@@ -11,7 +11,7 @@ namespace TeePee.Refit
         {
             serviceCollection
                 .AddRefitClient<TRefitInterface>() // This should continue configuring the same Refit client
-                .AddSingletonTeePeeMessageHandler(teePeeBuilder);
+                //.AddSingletonTeePeeMessageHandler(teePeeBuilder);
 
             return serviceCollection;
         }
