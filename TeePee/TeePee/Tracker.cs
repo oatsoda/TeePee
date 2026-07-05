@@ -25,13 +25,9 @@ namespace TeePee
             Options = options;
         }
 
-        internal void SetRequestMatchRule(RequestMatchRule requestMatchRule)
+        internal void SetStateForExecution(RequestMatchRule requestMatchRule, HttpTrackingState trackingState)
         {
             m_RequestMatchRule = requestMatchRule;
-        }
-
-        internal void SetTrackingState(HttpTrackingState trackingState)
-        {
             m_TrackingState = trackingState;
         }
 

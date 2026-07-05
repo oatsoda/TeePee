@@ -59,9 +59,7 @@ namespace TeePee.Built
 
             m_Responses = responses;
             Tracker = tracker;
-            Tracker?.SetRequestMatchRule(this);
-            // TEMP: Where should this go? It is duplicated in Handler Reset()
-            Tracker?.SetTrackingState(new HttpTrackingState());
+            Tracker?.SetStateForExecution(this, new HttpTrackingState());
         }
 
         internal bool IsMatchingRequest(TeePeeMessageHandler.IncomingHttpCall recordedHttpCall)
