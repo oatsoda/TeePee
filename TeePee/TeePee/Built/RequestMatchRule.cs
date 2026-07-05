@@ -166,7 +166,7 @@ namespace TeePee.Built
 
     public static class RequestMatchRuleListExtensions
     {
-        internal static string Log(this IEnumerable<RequestMatchRule> matchRules, TeePeeOptions options)
+        internal static string Log(this IEnumerable<RequestMatchRule> matchRules, ITeePeeOptions options)
         {
             return string.Join("\r\n", matchRules.Select(c => $"\t{c.Log(options.TruncateBodyOutputLength)}"));
         }

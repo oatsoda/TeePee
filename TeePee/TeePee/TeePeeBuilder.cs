@@ -1,15 +1,14 @@
 ﻿using System.Net;
-using System.Text.Json;
 using TeePee.Built;
 
 namespace TeePee
 {
     public class TeePeeBuilder
     {
-        internal TeePeeOptions Options { get; } = new();
-
-        private readonly List<RequestMatchBuilder> m_Requests = new();
         private static readonly HttpStatusCode m_DefaultDefaultResponseStatusCode = HttpStatusCode.NotFound;
+
+        private readonly TeePeeOptions m_Options = new();
+        private readonly List<RequestMatchBuilder> m_Requests = [];
 
         private HttpStatusCode m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
         private string? m_DefaultResponseBody;
@@ -17,13 +16,9 @@ namespace TeePee
         private bool m_IsBuilt;
         private TeePeeSeeded? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
 
-        public TeePeeBuilder() : this(null, null) { }
-
-        public TeePeeBuilder(JsonSerializerOptions responseBodySerializeOptions) : this(opt => opt.ResponseBodySerializerOptions = responseBodySerializeOptions) { }
-
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
-            setOptions?.Invoke(Options);
+            setOptions?.Invoke(m_Options);
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -46,7 +41,7 @@ namespace TeePee
             if (m_IsBuilt)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
 
-            var builder = new RequestMatchBuilder(this, Options, url, httpMethod);
+            var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
             m_Requests.Add(builder); // Note: This assumes valid before adding
             return builder;
         }
@@ -81,7 +76,7 @@ namespace TeePee
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
 
-            m_AttachedTeePee = new(requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            m_AttachedTeePee = new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
             return m_AttachedTeePee;
         }
 

@@ -965,7 +965,7 @@ public class RuleUsageTests
     {
         // Given
         var jsonSerializeOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        m_Builder = new(responseBodySerializeOptions: jsonSerializeOptions);
+        m_Builder = new(opt => opt.ResponseBodySerializerOptions = jsonSerializeOptions);
         var bodyObject = new { Nullable = (string?)null, Case = "value", EnumVal = ToTestJsonSettings.Off };
         RequestMatchBuilder().Responds()
                              .WithBody(bodyObject);

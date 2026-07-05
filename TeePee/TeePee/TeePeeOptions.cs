@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace TeePee
 {
-    public class TeePeeOptions
+    public class TeePeeOptions : ITeePeeOptions
     {
         public static JsonSerializerOptions DefaultSerializeOptions { get; } = new()
         {
@@ -54,5 +54,17 @@ namespace TeePee
         /// Optional logger to capture details of matches and failures
         /// </summary>
         public ILogger? Logger { get; set; }
+    }
+
+    public interface ITeePeeOptions
+    {
+        TeePeeBuilderMode BuilderMode { get; }
+        bool CaseSensitiveMatching { get; }
+        ILogger? Logger { get; }
+        TeePeeMode Mode { get; }
+        JsonSerializerOptions RequestBodySerializerOptions { get; }
+        JsonSerializerOptions ResponseBodySerializerOptions { get; }
+        bool ShowFullDetailsOnMatchFailure { get; }
+        int? TruncateBodyOutputLength { get; }
     }
 }
