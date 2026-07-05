@@ -50,19 +50,19 @@ steps:
       projects: "$(solution)"
       arguments: "-c $(buildConfiguration) --no-restore"
 
-  # - task: DotNetCoreCLI@2
-  #   displayName: "Restore netstandard"
-  #   inputs:
-  #     command: "restore"
-  #     projects: "$(projectToPack)"
-  #     arguments: "-c $(buildConfiguration) -f $(netstandardFramework)"
+  - task: DotNetCoreCLI@2
+    displayName: "Restore netstandard"
+    inputs:
+      command: "restore"
+      projects: "$(projectToPack)"
+      arguments: "-c $(buildConfiguration) -f $(netstandardFramework)"
 
-  # - task: DotNetCoreCLI@2
-  #   displayName: "Build netstandard"
-  #   inputs:
-  #     command: "build"
-  #     projects: "$(projectToPack)"
-  #     arguments: "-c $(buildConfiguration) -f $(netstandardFramework) --no-restore"
+  - task: DotNetCoreCLI@2
+    displayName: "Build netstandard"
+    inputs:
+      command: "build"
+      projects: "$(projectToPack)"
+      arguments: "-c $(buildConfiguration) -f $(netstandardFramework) --no-restore"
 
   - task: DotNetCoreCLI@2
     displayName: "Unit Tests"
