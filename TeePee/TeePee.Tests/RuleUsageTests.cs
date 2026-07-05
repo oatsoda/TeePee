@@ -223,7 +223,6 @@ public class RuleUsageTests
 
     private class ReferenceBodyType
     {
-        // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public int Test { get; set; }
     }
 
@@ -984,7 +983,6 @@ public class RuleUsageTests
 
     private enum ToTestJsonSettings
     {
-        // ReSharper disable once UnusedMember.Local
         On = 2,
         Off = 3
     }

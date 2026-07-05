@@ -63,8 +63,6 @@ namespace TeePee
 
     public class MismatchedTrackerExpectedCalls : Exception
     {
-        // ReSharper disable once MemberCanBePrivate.Global
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public Tracker Tracker { get; }
 
         internal MismatchedTrackerExpectedCalls(Tracker tracker, RequestMatchRule matchRule, int? expectedTimes, int actualTimes, IReadOnlyList<TeePeeMessageHandler.RecordedHttpCall> allRecordedHttpCalls)

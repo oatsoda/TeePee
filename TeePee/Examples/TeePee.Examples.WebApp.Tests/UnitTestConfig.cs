@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-// ReSharper disable StringLiteralTypo
 
 namespace TeePee.Examples.WebApp.Tests
 {

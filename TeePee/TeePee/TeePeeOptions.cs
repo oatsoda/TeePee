@@ -6,7 +6,6 @@ namespace TeePee
 {
     public class TeePeeOptions
     {
-        // ReSharper disable once MemberCanBePrivate.Global
         public static JsonSerializerOptions DefaultSerializeOptions { get; } = new()
         {
             PropertyNamingPolicy = null,
