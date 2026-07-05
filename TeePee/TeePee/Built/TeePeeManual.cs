@@ -53,7 +53,7 @@
             // Force callers to specify correct named instance
             return m_HttpClients.TryGetValue(name, out var httpClient)
                 ? httpClient
-                : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with '{string.Join(", ", m_HttpClients.Keys)}'.");
+                : throw new ArgumentOutOfRangeException(nameof(name), $"No HttpClients configured with name '{name}'. Configured with {string.Join(", ", m_HttpClients.Keys.Select(c => $"'{c}'"))}");
         }
     }
 }

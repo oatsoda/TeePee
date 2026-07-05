@@ -19,6 +19,10 @@ namespace TeePee
             return new(teePeeBuilder, baseAddressForHttpClient);
         }
 
+        /// <summary>
+        /// For situations where you want to manually inject a HttpClientFactory into your test subjects, where multiple
+        /// named HttpClients are used.
+        /// </summary>
         public static TeePeeFakeHttpClientFactory ToHttpClientFactory(this (string ClientName, TeePeeManual TeePeeManual)[] teePeeManuals)
         {
             var clients = teePeeManuals.Select(m => (m.ClientName, m.TeePeeManual.CreateClient())).ToArray();

@@ -72,7 +72,6 @@ public class ManualUsageTests
         m_MatchingTracker.WasCalled();
     }
 
-
     [Theory]
     [InlineData("https://testing.com", "api/items")]
     [InlineData("https://testing.com/", "api/items")]
@@ -91,47 +90,41 @@ public class ManualUsageTests
         m_MatchingTracker.WasCalled();
     }
 
-    // TODO: Fix up multiple named clients stuff
-    //[Theory]
-    //[InlineData(null, "")]
-    //[InlineData("", "")]
-    //[InlineData("myClient", "myClient")]
-    //public async Task MultipleManualToHttpClientFactoryMatchesIfNamedClientMatches(string? configuredName, string? requestedName)
-    //{
-    //    // Given
-    //    var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
-    //    var builderTwo = new TeePeeBuilder("Second");
+    [Theory]
+    [InlineData("", "")]
+    [InlineData(" ", " ")]
+    [InlineData("myClient", "myClient")]
+    public async Task MultipleManualToHttpClientFactoryMatchesIfNamedClientMatches(string configuredName, string requestedName)
+    {
+        // Given
+        var builderTwo = new TeePeeBuilder();
 
-    //    var verify = builderOne.ForRequest(m_Url, m_HttpMethod).TrackRequest();
+        var httpClientFactory = new[] { (configuredName, m_Builder.Manual()), ("Second", builderTwo.Manual()) }.ToHttpClientFactory();
 
-    //    var httpClientFactory = new[] { (await builderOne.Build()).Manual(), (await builderTwo.Build()).Manual() }.ToHttpClientFactory();
+        // When
+        await httpClientFactory.CreateClient(requestedName).SendAsync(m_MatchingHttpRequest, TestCt);
 
-    //    // When
-    //    await httpClientFactory.CreateClient(requestedName!).SendAsync(RequestMessage(), CancellationToken);
+        // Then
+        m_MatchingTracker.WasCalled();
+    }
 
-    //    // Then
-    //    verify.WasCalled();
-    //}
+    [Theory]
+    [InlineData("", " ")]
+    [InlineData("myClient", "wrongClient")]
+    [InlineData("", "wrongClient")]
+    public async Task MultipleManualToHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string configuredName, string requestedName)
+    {
+        // Given
+        var builderTwo = new TeePeeBuilder();
 
-    // TODO: Probably not needed - will instead leave it to just fail the test because the mocking won't be hooked up to what's expected?
-    //[Theory]
-    //[InlineData(null, null)]
-    //[InlineData("", null)]
-    //[InlineData("myClient", "wrongClient")]
-    //[InlineData(null, "wrongClient")]
-    //public async Task MultipleManualToHttpClientFactoryCreateClientThrowsIfNamedClientDoesNotMatch(string? configuredName, string? requestedName)
-    //{
-    //    // Given
-    //    var builderOne = configuredName == null ? new() : new TeePeeBuilder(configuredName);
-    //    var builderTwo = new TeePeeBuilder("Second");
+        var httpClientFactory = new[] { (configuredName, m_Builder.Manual()), ("Second", builderTwo.Manual()) }.ToHttpClientFactory();
 
-    //    var httpClientFactory = new[] { (await builderOne.Build()).Manual(), (await builderTwo.Build()).Manual() }.ToHttpClientFactory();
+        // When
+        var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName));
 
-    //    // When
-    //    var ex = Record.Exception(() => httpClientFactory.CreateClient(requestedName!));
-
-    //    // Then
-    //    Assert.IsType<ArgumentOutOfRangeException>(ex);
-    //    Assert.Contains($"No HttpClients configured with name '{requestedName}'. Configured with '{configuredName}','Second'", ex.Message);
-    //}
+        // Then
+        Assert.IsType<ArgumentOutOfRangeException>(ex);
+        Assert.Contains($"No HttpClients configured with name '{requestedName}'", ex.Message);
+        Assert.Contains($"Configured with '{configuredName}', 'Second'", ex.Message);
+    }
 }
