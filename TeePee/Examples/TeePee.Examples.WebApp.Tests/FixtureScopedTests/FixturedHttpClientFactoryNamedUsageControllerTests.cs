@@ -3,15 +3,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using TeePee.Examples.WebApp.Controllers;
-using TeePee.UsageExtensions;
 
 namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
 {
-    public class HttpClientFactoryNamedUsageControllerTests : IClassFixture<HttpClientFactoryNamedUsageControllerFixture>
+    public class FixturedHttpClientFactoryNamedUsageControllerTests : IClassFixture<HttpClientFactoryNamedUsageControllerFixture>
     {
         private readonly HttpClientFactoryNamedUsageControllerFixture m_Fixture;
 
-        public HttpClientFactoryNamedUsageControllerTests(HttpClientFactoryNamedUsageControllerFixture fixture)
+        public FixturedHttpClientFactoryNamedUsageControllerTests(HttpClientFactoryNamedUsageControllerFixture fixture)
         {
             m_Fixture = fixture;
             m_Fixture.SetTestScope();
@@ -92,53 +91,6 @@ namespace TeePee.Examples.WebApp.Tests.FixtureScopedTests
         protected override void Reset()
         {
             TeePeeBuilder.Reset();
-        }
-    }
-
-    public abstract class BaseFixture<T> : IDisposable where T : class
-    {
-        private readonly IServiceCollection m_Services;
-
-        private IServiceProvider? m_ServiceProvider;
-
-        private IServiceScope? m_Scope;
-
-        public BaseFixture()
-        {
-            var config = UnitTestConfig.LoadUnitTestConfig();
-
-            m_Services = new ServiceCollection()
-                .AddScoped<T>();
-
-            ConfigureServices(m_Services, config);
-        }
-
-        public void SetTestScope()
-        {
-            if (m_Scope == null)
-            {
-                // First test execution
-                m_ServiceProvider = m_Services.BuildServiceProvider();
-            }
-            else
-            {
-                m_Scope.Dispose();
-                Reset();
-            }
-
-            m_Scope = m_ServiceProvider!.CreateScope();
-        }
-
-        protected abstract IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration);
-        protected abstract void Reset();
-
-        public T GetSUT() => m_Scope == null
-            ? throw new InvalidOperationException("Test scope is not set.")
-            : m_Scope.ServiceProvider.GetRequiredService<T>();
-
-        public void Dispose()
-        {
-            m_Scope?.Dispose();
         }
     }
 }
