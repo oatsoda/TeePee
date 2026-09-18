@@ -53,14 +53,14 @@ namespace TeePee
         /// <summary>
         /// Optional logger to capture details of matches and failures
         /// </summary>
-        public ILogger? Logger { get; set; }
+        public Func<ILogger>? LoggerFactory { get; set; }
     }
 
     public interface ITeePeeOptions
     {
         TeePeeBuilderMode BuilderMode { get; }
         bool CaseSensitiveMatching { get; }
-        ILogger? Logger { get; }
+        Func<ILogger>? LoggerFactory { get; }
         TeePeeMode Mode { get; }
         JsonSerializerOptions RequestBodySerializerOptions { get; }
         JsonSerializerOptions ResponseBodySerializerOptions { get; }

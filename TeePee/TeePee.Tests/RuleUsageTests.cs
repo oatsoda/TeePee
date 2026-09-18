@@ -55,7 +55,7 @@ public class RuleUsageTests
                     testOutputHelper.WriteLine($"[{logLevel}] {logMessage}");
                 }));
 
-        m_Builder = new(opt => opt.Logger = m_MockLogger.Object);
+        m_Builder = new(opt => opt.LoggerFactory = () => m_MockLogger.Object);
     }
 
     #region Matches
@@ -584,7 +584,7 @@ public class RuleUsageTests
         // Given
         m_Builder = new(opt =>
         {
-            opt.Logger = m_MockLogger.Object;
+            opt.LoggerFactory = () => m_MockLogger.Object;
             opt.ShowFullDetailsOnMatchFailure = true;
         });
         RequestMatchBuilder();
