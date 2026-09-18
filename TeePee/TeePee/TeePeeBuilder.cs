@@ -96,6 +96,7 @@ namespace TeePee
             m_DefaultResponseBody = null;
             m_Requests.Clear();
             m_IsBuilt = false;
+            m_AttachedTeePee = null;
         }
     }
 }
