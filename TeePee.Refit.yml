@@ -1,4 +1,4 @@
-name: 5.1.1 #$(rev:.r)
+name: 5.1.2 #$(rev:.r)
 
 trigger:
   batch: true

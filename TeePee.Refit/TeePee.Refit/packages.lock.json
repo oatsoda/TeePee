@@ -14,9 +14,9 @@
       },
       "TeePee": {
         "type": "Direct",
-        "requested": "[5.1.1, )",
-        "resolved": "5.1.1",
-        "contentHash": "HXqa6qob9kazQsWTllQoucOCwEAuemW4d+D81eobd2g+e0Osho/Xo1J83BwszyoOOAeb0Ckc5LZscEpguUDtTA==",
+        "requested": "[5.1.2, )",
+        "resolved": "5.1.2",
+        "contentHash": "XW6YLPgZTKWKjAMAVLN2ucs4kZXmPMw9zrZs+uGJyXMu9nZtoWqYJQjJH8JnEMHSu6K1UbmxzKyunyWc0NaehA==",
         "dependencies": {
           "Microsoft.Extensions.Http": "10.0.7",
           "System.Net.Http.Json": "10.0.7",
@@ -172,9 +172,9 @@
       },
       "TeePee": {
         "type": "Direct",
-        "requested": "[5.1.1, )",
-        "resolved": "5.1.1",
-        "contentHash": "HXqa6qob9kazQsWTllQoucOCwEAuemW4d+D81eobd2g+e0Osho/Xo1J83BwszyoOOAeb0Ckc5LZscEpguUDtTA==",
+        "requested": "[5.1.2, )",
+        "resolved": "5.1.2",
+        "contentHash": "XW6YLPgZTKWKjAMAVLN2ucs4kZXmPMw9zrZs+uGJyXMu9nZtoWqYJQjJH8JnEMHSu6K1UbmxzKyunyWc0NaehA==",
         "dependencies": {
           "Microsoft.Extensions.Http": "10.0.7"
         }
