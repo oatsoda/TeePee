@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Net;
 using TeePee.Built;
 
 namespace TeePee
@@ -14,10 +16,17 @@ namespace TeePee
         private string? m_DefaultResponseBody;
 
         private TeePeeSeeded? m_SeededTeePee;
+        internal bool IsBuilt => m_SeededTeePee != null;
 
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
             setOptions?.Invoke(m_Options);
+        }
+
+        public TeePeeBuilder WithLoggingFactory(Func<ILogger> loggingFactory)
+        {
+            m_Options.LoggerFactory = loggingFactory;
+            return this;
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -37,8 +46,7 @@ namespace TeePee
         /// <param name="httpMethod">The HTTP Method to match on.</param> 
         public RequestMatchBuilder ForRequest(string url, HttpMethod httpMethod)
         {
-            if (m_SeededTeePee != null)
-                throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
+            ThrowIfBuilt();
 
             var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
             m_Requests.Add(builder); // Note: This assumes valid before adding
@@ -58,6 +66,13 @@ namespace TeePee
         internal bool HasMatchUrlAndMethod(string url, HttpMethod httpMethod)
         {
             return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
+        }
+
+        [DebuggerStepThrough]
+        private void ThrowIfBuilt()
+        {
+            if (m_SeededTeePee != null)
+                throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
         }
 
         private async Task<TeePeeSeeded> Build()

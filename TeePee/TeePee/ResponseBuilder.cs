@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Text;
 using TeePee.Built;
 
@@ -8,6 +9,8 @@ namespace TeePee
     {
         private readonly RequestMatchBuilder m_RequestMatchBuilder;
         private readonly TeePeeOptions m_Options;
+
+        internal bool IsBuilt => m_RequestMatchBuilder.IsBuilt;
 
         private HttpStatusCode m_ResponseStatusCode = HttpStatusCode.NoContent;
 
@@ -38,6 +41,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder WithStatus(HttpStatusCode statusCode)
         {
+            ThrowIfBuilt();
+
             m_ResponseStatusCode = statusCode;
             return this;
         }
@@ -47,6 +52,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder WithBody<T>(T body, string mediaType = "application/json", Encoding? encoding = null)
         {
+            ThrowIfBuilt();
+
             if (m_ResponseBodyContent != null)
                 throw new InvalidOperationException("The response Body has already been set from HttpContent.");
 
@@ -61,6 +68,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder WithHttpContentBody(HttpContent body)
         {
+            ThrowIfBuilt();
+
             if (m_ResponseBody != null)
                 throw new InvalidOperationException("The response Body has already been set from Json Body.");
 
@@ -74,6 +83,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder WithHeader(string name, string value)
         {
+            ThrowIfBuilt();
+
             m_ResponseHeaders.Add(name, value);
             return this;
         }
@@ -83,6 +94,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder ThenResponds()
         {
+            ThrowIfBuilt();
+
             NextResponse = new(m_RequestMatchBuilder, m_Options);
             return NextResponse;
         }
@@ -109,5 +122,12 @@ namespace TeePee
         }
 
         #endregion
+
+        [DebuggerStepThrough]
+        private void ThrowIfBuilt()
+        {
+            if (IsBuilt)
+                throw new InvalidOperationException("Cannot configure response after builder has been used.");
+        }
     }
 }
