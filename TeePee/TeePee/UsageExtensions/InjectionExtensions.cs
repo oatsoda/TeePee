@@ -12,20 +12,22 @@ namespace TeePee
     {
         public static IServiceCollection AttachToDefaultClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
         {
+            if (teePeeBuilder == null) throw new ArgumentNullException(nameof(teePeeBuilder));
+
             return AttachToNamedClientInternal(services, teePeeBuilder, AttachToClientType.Default, Options.DefaultName);
         }
 
         public static IServiceCollection AttachToTypedClient<TClient>(this IServiceCollection services, TeePeeBuilder teePeeBuilder)
         {
+            if (teePeeBuilder == null) throw new ArgumentNullException(nameof(teePeeBuilder));
+
             return AttachToNamedClientInternal(services, teePeeBuilder, AttachToClientType.Typed, typeof(TClient).Name!);
         }
 
         public static IServiceCollection AttachToNamedClient(this IServiceCollection services, TeePeeBuilder teePeeBuilder, string clientName)
         {
-            if (string.IsNullOrWhiteSpace(clientName))
-            {
-                throw new ArgumentException("Cannot attached to a Named client without a Name.");
-            }
+            if (teePeeBuilder == null) throw new ArgumentNullException(nameof(teePeeBuilder));
+            if (string.IsNullOrWhiteSpace(clientName)) throw new ArgumentException("Cannot attached to a Named client without a Name.");
 
             return AttachToNamedClientInternal(services, teePeeBuilder, AttachToClientType.Named, clientName);
         }
