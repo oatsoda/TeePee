@@ -51,7 +51,7 @@ namespace TeePee
         public TeePeeBuilderMode BuilderMode { get; set; } = TeePeeBuilderMode.AllowMultipleUrlRules;
 
         /// <summary>
-        /// Optional logger to capture details of matches and failures
+        /// Optional logger to capture details of matches and failures. Can also be set later on the <see cref="TeePeeBuilder"/>.
         /// </summary>
         public Func<ILogger>? LoggerFactory { get; set; }
     }

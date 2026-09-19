@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Net;
 using TeePee.Built;
 
 namespace TeePee
@@ -13,12 +15,18 @@ namespace TeePee
         private HttpStatusCode m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
         private string? m_DefaultResponseBody;
 
-        private bool m_IsBuilt;
-        private TeePeeSeeded? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
+        private TeePeeSeeded? m_SeededTeePee;
+        internal bool IsBuilt => m_SeededTeePee != null;
 
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
             setOptions?.Invoke(m_Options);
+        }
+
+        public TeePeeBuilder WithLoggingFactory(Func<ILogger> loggingFactory)
+        {
+            m_Options.LoggerFactory = loggingFactory;
+            return this;
         }
 
         public TeePeeBuilder WithDefaultResponse(HttpStatusCode responseStatusCode, string? responseBody = null)
@@ -38,8 +46,7 @@ namespace TeePee
         /// <param name="httpMethod">The HTTP Method to match on.</param> 
         public RequestMatchBuilder ForRequest(string url, HttpMethod httpMethod)
         {
-            if (m_IsBuilt)
-                throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
+            ThrowIfBuilt();
 
             var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
             m_Requests.Add(builder); // Note: This assumes valid before adding
@@ -61,9 +68,15 @@ namespace TeePee
             return m_Requests.Any(r => r.IsSameMatchUrl(url, httpMethod));
         }
 
+        [DebuggerStepThrough]
+        private void ThrowIfBuilt()
+        {
+            if (m_SeededTeePee != null)
+                throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
+        }
+
         private async Task<TeePeeSeeded> Build()
         {
-            m_IsBuilt = true;
             var requestMatchRules = new List<RequestMatchRule>(m_Requests.Count);
             foreach (var request in m_Requests)
             {
@@ -76,15 +89,15 @@ namespace TeePee
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
 
-            m_AttachedTeePee = new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
-            return m_AttachedTeePee;
+            m_SeededTeePee = new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            return m_SeededTeePee;
         }
 
         internal async Task<TeePeeSeeded> GetCurrentRules()
         {
-            if (m_IsBuilt)
+            if (m_SeededTeePee != null)
             {
-                return m_AttachedTeePee!;
+                return m_SeededTeePee;
             }
 
             return await Build();
@@ -95,8 +108,7 @@ namespace TeePee
             m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
             m_DefaultResponseBody = null;
             m_Requests.Clear();
-            m_IsBuilt = false;
-            m_AttachedTeePee = null;
+            m_SeededTeePee = null;
         }
     }
 }

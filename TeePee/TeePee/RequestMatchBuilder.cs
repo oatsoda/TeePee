@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using TeePee.Built;
 using TeePee.Extensions;
@@ -38,6 +39,8 @@ namespace TeePee
         internal bool IsSameMatchUrl(string url, HttpMethod httpMethod) => Method == httpMethod &&
                                                                            Url.IsSameUrl(url);
 
+        internal bool IsBuilt => m_ParentTrackingBuilder.IsBuilt;
+
         internal RequestMatchBuilder(TeePeeBuilder parentTrackingBuilder, TeePeeOptions options, string url, HttpMethod httpMethod)
         {
             m_ParentTrackingBuilder = parentTrackingBuilder;
@@ -65,6 +68,8 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatHasBody<T>(T body, string? mediaType = "application/json", Encoding? encoding = null) where T : notnull
         {
+            ThrowIfBuilt();
+
             if (body == null)
                 throw new ArgumentNullException();
 
@@ -82,6 +87,8 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatHasHttpContentBody(HttpContent body)
         {
+            ThrowIfBuilt();
+
             if (body == null) // Force check for null even though nullable not allowing.
                 throw new ArgumentNullException();
 
@@ -101,6 +108,8 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatHasBodyContaining<T>(Func<T, bool> bodyMatchRule, string? mediaType = "application/json", Encoding? encoding = null) where T : class
         {
+            ThrowIfBuilt();
+
             if (bodyMatchRule == null)
                 throw new ArgumentNullException();
 
@@ -118,6 +127,8 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatContainsQueryParam(string name, string value)
         {
+            ThrowIfBuilt();
+
             if (MatchUrlWithQuery)
                 throw new InvalidOperationException($"You cannot use ContainingQueryParam as Url has already been configured to match with a QueryString. '{Url}'");
 
@@ -133,6 +144,8 @@ namespace TeePee
         /// </summary>
         public RequestMatchBuilder ThatContainsHeader(string name, string value)
         {
+            ThrowIfBuilt();
+
             m_Headers.Add(name, value);
             return this;
         }
@@ -142,6 +155,8 @@ namespace TeePee
         /// </summary>
         public ResponseBuilder Responds()
         {
+            ThrowIfBuilt();
+
             if (m_ResponseBuilder != null)
                 throw new InvalidOperationException("You can only call Responds once per rule.");
 
@@ -153,6 +168,8 @@ namespace TeePee
 
         public Tracker TrackRequest()
         {
+            ThrowIfBuilt();
+
             return m_Tracker ??= new(m_Options);
         }
 
@@ -201,5 +218,12 @@ namespace TeePee
         }
 
         #endregion
+
+        [DebuggerStepThrough]
+        private void ThrowIfBuilt()
+        {
+            if (IsBuilt)
+                throw new InvalidOperationException("Cannot configure request after builder has been used.");
+        }
     }
 }
