@@ -23,14 +23,14 @@ namespace TeePee.Built
 
             var match = teePee.MatchRules.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
 
-            Func<HttpResponseMessage> defaultResponse = () => new(teePee.UnmatchedStatusCode)
+            HttpResponseMessage DefaultResponse() => new(teePee.UnmatchedStatusCode)
             {
                 Content = teePee.UnmatchedBody == null
                     ? null
                     : new StringContent(teePee.UnmatchedBody)
             };
 
-            var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, match, defaultResponse);
+            var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, match, DefaultResponse);
             RecordRequest(teePee, recordedHttpCall);
 
             return recordedHttpCall.HttpResponseMessage;
