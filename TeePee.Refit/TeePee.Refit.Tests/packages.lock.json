@@ -198,8 +198,8 @@
       },
       "TeePee": {
         "type": "Transitive",
-        "resolved": "5.0.1",
-        "contentHash": "4U5p26FNjUTMg9NdkK8ykHztflGEoxdkvCT2onSASoaJ7wNzhnZzYK2DaTstASwgeQCjcQzq2hLcSIU41vKErQ==",
+        "resolved": "5.1.1",
+        "contentHash": "HXqa6qob9kazQsWTllQoucOCwEAuemW4d+D81eobd2g+e0Osho/Xo1J83BwszyoOOAeb0Ckc5LZscEpguUDtTA==",
         "dependencies": {
           "Microsoft.Extensions.Http": "10.0.7"
         }
@@ -275,7 +275,7 @@
         "type": "Project",
         "dependencies": {
           "Refit.HttpClientFactory": "[10.1.6, )",
-          "TeePee": "[5.0.1, )"
+          "TeePee": "[5.1.1, )"
         }
       }
     }
