@@ -36,7 +36,7 @@ namespace TeePee.Built
             return recordedHttpCall.HttpResponseMessage;
         }
 
-        private void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
+        private static void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
         {
             foreach (var ruleWithTracker in teePee.MatchRules.Where(r => r.Tracker != null))
                 ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
@@ -44,12 +44,14 @@ namespace TeePee.Built
             if (!recordedHttpCall.IsMatch && teePee.Options.Mode == TeePeeMode.Strict)
                 throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(teePee.Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{teePee.MatchRules.Count} rules configured]");
 
-            if (teePee.Options.Logger == null)
+            if (teePee.Options.LoggerFactory == null)
                 return;
+
+            var logger = teePee.Options.LoggerFactory();
 
             if (recordedHttpCall.IsMatch)
             {
-                teePee.Options.Logger.LogMatchedRequest(
+                logger.LogMatchedRequest(
                     recordedHttpCall.Log(teePee.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                     recordedHttpCall.HttpResponseMessage.StatusCode);
@@ -58,7 +60,7 @@ namespace TeePee.Built
 
             if (teePee.Options.ShowFullDetailsOnMatchFailure)
             {
-                teePee.Options.Logger.LogUnmatchedRequestWithFullDetails(
+                logger.LogUnmatchedRequestWithFullDetails(
                     recordedHttpCall.Log(teePee.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                     recordedHttpCall.HttpResponseMessage.StatusCode,
@@ -66,7 +68,7 @@ namespace TeePee.Built
                 return;
             }
 
-            teePee.Options.Logger.LogUnmatchedRequest(
+            logger.LogUnmatchedRequest(
                 recordedHttpCall.Log(teePee.Options),
                 (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                 recordedHttpCall.HttpResponseMessage.StatusCode,
