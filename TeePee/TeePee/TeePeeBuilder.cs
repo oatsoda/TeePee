@@ -13,8 +13,7 @@ namespace TeePee
         private HttpStatusCode m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
         private string? m_DefaultResponseBody;
 
-        private bool m_IsBuilt;
-        private TeePeeSeeded? m_AttachedTeePee; // TeePee is attached once on first build, but Builder can be reset and built many times.
+        private TeePeeSeeded? m_SeededTeePee;
 
         public TeePeeBuilder(Action<TeePeeOptions>? setOptions = null, string? httpClientNamedInstance = null)
         {
@@ -38,7 +37,7 @@ namespace TeePee
         /// <param name="httpMethod">The HTTP Method to match on.</param> 
         public RequestMatchBuilder ForRequest(string url, HttpMethod httpMethod)
         {
-            if (m_IsBuilt)
+            if (m_SeededTeePee != null)
                 throw new InvalidOperationException("Cannot add more request tracking after builder has been used.");
 
             var builder = new RequestMatchBuilder(this, m_Options, url, httpMethod);
@@ -63,7 +62,6 @@ namespace TeePee
 
         private async Task<TeePeeSeeded> Build()
         {
-            m_IsBuilt = true;
             var requestMatchRules = new List<RequestMatchRule>(m_Requests.Count);
             foreach (var request in m_Requests)
             {
@@ -76,15 +74,15 @@ namespace TeePee
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
 
-            m_AttachedTeePee = new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
-            return m_AttachedTeePee;
+            m_SeededTeePee = new(m_Options, requestMatchRulesOrdered, m_DefaultResponseStatusCode, m_DefaultResponseBody);
+            return m_SeededTeePee;
         }
 
         internal async Task<TeePeeSeeded> GetCurrentRules()
         {
-            if (m_IsBuilt)
+            if (m_SeededTeePee != null)
             {
-                return m_AttachedTeePee!;
+                return m_SeededTeePee;
             }
 
             return await Build();
@@ -95,8 +93,7 @@ namespace TeePee
             m_DefaultResponseStatusCode = m_DefaultDefaultResponseStatusCode;
             m_DefaultResponseBody = null;
             m_Requests.Clear();
-            m_IsBuilt = false;
-            m_AttachedTeePee = null;
+            m_SeededTeePee = null;
         }
     }
 }
