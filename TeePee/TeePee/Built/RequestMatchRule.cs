@@ -97,13 +97,33 @@ namespace TeePee.Built
             if (requestBody == null)
                 return false;
 
+            // Check Content-Type first to avoid comparing or deserialising bodies of the wrong type
+            if (!IsMatchingContentType(httpRequestMessage))
+                return false;
+
             if (RequestBody != null && !RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
                 return false;
 
-            if (RequestBodyContainingRule != null && !RequestBodyContainingRule.Rule(JsonSerializer.Deserialize(requestBody, RequestBodyContainingRule.RuleType, m_Options.RequestBodySerializerOptions)!))
+            if (RequestBodyContainingRule != null && !IsMatchingBodyContainingRule(RequestBodyContainingRule, requestBody))
                 return false;
 
-            return IsMatchingContentType(httpRequestMessage);
+            return true;
+        }
+
+        private bool IsMatchingBodyContainingRule(RequestBodyContainingRule bodyContainingRule, string requestBody)
+        {
+            object? body;
+            try
+            {
+                body = JsonSerializer.Deserialize(requestBody, bodyContainingRule.RuleType, m_Options.RequestBodySerializerOptions);
+            }
+            catch (JsonException ex) // Body cannot be deserialised to the rule's type, so cannot match
+            {
+                m_Options.LoggerFactory?.Invoke().LogBodyContainingRuleDeserialisationFailure(bodyContainingRule.RuleType.Name, Log(m_Options.TruncateBodyOutputLength), ex);
+                return false;
+            }
+
+            return body != null && bodyContainingRule.Rule(body);
         }
 
         private bool IsMatchingContentType(HttpRequestMessage httpRequestMessage)

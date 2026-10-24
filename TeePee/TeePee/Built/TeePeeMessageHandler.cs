@@ -179,6 +179,15 @@ namespace TeePee.Built
             string matchingRules);
 
         [LoggerMessage(
+            Message = "Request body could not be deserialised to {ruleType} for partial body match rule, so rule not matched: {rule}",
+            Level = LogLevel.Information)]
+        internal static partial void LogBodyContainingRuleDeserialisationFailure(
+            this ILogger logger,
+            string ruleType,
+            string rule,
+            Exception exception);
+
+        [LoggerMessage(
             Message = "Unmatched Http request: {request} [Response: {responseCode} {responseCodeDescription}] [{numberOfRulesConfigured} rules configured]",
             Level = LogLevel.Warning)]
         internal static partial void LogUnmatchedRequest(

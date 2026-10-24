@@ -247,6 +247,91 @@ public class RuleUsageTests
         verify.WasCalled();
     }
 
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("")]
+    [InlineData("{\"Test\":\"abc\"}")]
+    [InlineData("[1,2]")]
+    public async Task DoesNotMatchBodyContainingIfBodyCannotBeDeserialised(string body)
+    {
+        // Given
+        var verify = RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1).TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        var response = await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        verify.WasNotCalled();
+    }
+
+    [Fact]
+    public async Task DoesNotMatchBodyContainingIfBodyIsJsonNull()
+    {
+        // Given
+        var verify = RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(_ => throw new InvalidOperationException("Rule should not be invoked")).TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        var response = await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        verify.WasNotCalled();
+    }
+
+    [Fact]
+    public async Task MatchesNextRuleIfBodyContainingRuleCannotDeserialise()
+    {
+        // Given
+        var verifyBodyContainingAndHeader = RequestMatchBuilder()
+                                           .ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1)
+                                           .ThatContainsHeader("h1", "v1")
+                                           .TrackRequest();
+        var verifyUrlOnly = RequestMatchBuilder().TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Headers.Add("h1", "v1");
+        httpRequestMessage.Content = new StringContent("not json", Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        verifyBodyContainingAndHeader.WasNotCalled();
+        verifyUrlOnly.WasCalled();
+    }
+
+    [Fact]
+    public async Task ThrowsIfBodyContainingRuleDelegateThrows()
+    {
+        // Given
+        RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(_ => throw new InvalidOperationException("Rule failed"));
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(new { Test = 1 }), Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        var ex = await Record.ExceptionAsync(async () => await httpClient.SendAsync(httpRequestMessage, TestCt));
+
+        // Then
+        var iex = Assert.IsType<InvalidOperationException>(ex);
+        Assert.Equal("Rule failed", iex.Message);
+    }
+
     #endregion
 
     #region Non-JSON Body
@@ -810,6 +895,34 @@ public class RuleUsageTests
                                     !(o.ToString() ?? "").Contains("Multiple Matching Rules")
                                 ),
             It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
+    }
+
+    [Fact]
+    public async Task LogsIfBodyContainingRuleCannotDeserialise()
+    {
+        // Given
+        RequestMatchBuilder().ThatHasBodyContaining<BodyTypeForPartialMatch>(b => b.Test == 1);
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent("not json", Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        m_MockLogger.Verify(l => l.Log(
+            It.Is<LogLevel>(level => level == LogLevel.Information),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) =>
+                                    o != null &&
+                                    (o.ToString() ?? "").Contains("Request body could not be deserialised to BodyTypeForPartialMatch for partial body match rule, so rule not matched") &&
+                                    (o.ToString() ?? "").Contains("GET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: utf-8] [CT: application/json] [B: <Partial Containing Rule>]")
+                                ),
+            It.Is<Exception>(e => e is JsonException),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>())
         , Times.Once);
     }
