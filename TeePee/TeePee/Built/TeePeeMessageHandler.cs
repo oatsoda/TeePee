@@ -21,19 +21,7 @@ namespace TeePee.Built
             var requestBody = await request.ReadContentAsync();
             var incomingHttpCall = new IncomingHttpCall(request, requestBody);
 
-            var checkAllMatches = teePeeSeeded.Options.ShowAllMatchesOnMatch && teePeeSeeded.Options.LoggerFactory != null;
-
-            List<RequestMatchRule> matches = [];
-            foreach (var matchRule in teePeeSeeded.MatchRulesOrdered)
-            {
-                if (!matchRule.IsMatchingRequest(incomingHttpCall))
-                    continue;
-
-                matches.Add(matchRule);
-
-                if (!checkAllMatches)
-                    break;
-            }
+            var matches = FindMatches(teePeeSeeded, incomingHttpCall);
 
             // This will also trigger Tracker tracking of matched call
             var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, matches.FirstOrDefault(), teePeeSeeded.DefaultResponse);
@@ -48,6 +36,25 @@ namespace TeePee.Built
             LogRequest(teePeeSeeded, recordedHttpCall, matches);
 
             return recordedHttpCall.HttpResponseMessage;
+        }
+
+        private static List<RequestMatchRule> FindMatches(TeePeeSeeded teePeeSeeded, IncomingHttpCall incomingHttpCall)
+        {
+            var checkAllMatches = teePeeSeeded.Options.ShowAllMatchesOnMatch && teePeeSeeded.Options.LoggerFactory != null;
+
+            List<RequestMatchRule> matches = [];
+            foreach (var matchRule in teePeeSeeded.MatchRulesOrdered)
+            {
+                if (!matchRule.IsMatchingRequest(incomingHttpCall))
+                    continue;
+
+                matches.Add(matchRule);
+
+                if (!checkAllMatches)
+                    break;
+            }
+
+            return matches;
         }
 
         private static void LogRequest(TeePeeSeeded teePeeSeeded, RecordedHttpCall recordedHttpCall, IReadOnlyList<RequestMatchRule> allMatches)
