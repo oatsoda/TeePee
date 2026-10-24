@@ -5,18 +5,18 @@ namespace TeePee.Built
     public class TeePeeSeeded
     {
         internal ITeePeeOptions Options { get; }
-        internal IReadOnlyList<RequestMatchRule> MatchRules { get; }
+        internal IReadOnlyList<RequestMatchRule> MatchRulesOrdered { get; }
         internal HttpStatusCode UnmatchedStatusCode { get; }
         internal string? UnmatchedBody { get; }
 
         internal TeePeeSeeded(
             ITeePeeOptions options,
-            IReadOnlyList<RequestMatchRule> matchRules,
+            IReadOnlyList<RequestMatchRule> matchRulesOrdered,
             HttpStatusCode unmatchedStatusCode,
             string? unmatchedBody)
         {
             Options = options;
-            MatchRules = matchRules;
+            MatchRulesOrdered = matchRulesOrdered;
             UnmatchedStatusCode = unmatchedStatusCode;
             UnmatchedBody = unmatchedBody;
         }

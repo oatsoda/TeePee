@@ -21,7 +21,7 @@ namespace TeePee.Built
             var requestBody = await request.ReadContentAsync();
             var incomingHttpCall = new IncomingHttpCall(request, requestBody);
 
-            var match = teePee.MatchRules.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
+            var match = teePee.MatchRulesOrdered.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
 
             HttpResponseMessage DefaultResponse() => new(teePee.UnmatchedStatusCode)
             {
@@ -38,11 +38,11 @@ namespace TeePee.Built
 
         private static void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
         {
-            foreach (var ruleWithTracker in teePee.MatchRules.Where(r => r.Tracker != null))
+            foreach (var ruleWithTracker in teePee.MatchRulesOrdered.Where(r => r.Tracker != null))
                 ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
 
             if (!recordedHttpCall.IsMatch && teePee.Options.Mode == TeePeeMode.Strict)
-                throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(teePee.Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{teePee.MatchRules.Count} rules configured]");
+                throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(teePee.Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{teePee.MatchRulesOrdered.Count} rules configured]");
 
             if (teePee.Options.LoggerFactory == null)
                 return;
@@ -64,7 +64,7 @@ namespace TeePee.Built
                     recordedHttpCall.Log(teePee.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                     recordedHttpCall.HttpResponseMessage.StatusCode,
-                    teePee.MatchRules.Log(teePee.Options));
+                    teePee.MatchRulesOrdered.Log(teePee.Options));
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace TeePee.Built
                 recordedHttpCall.Log(teePee.Options),
                 (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                 recordedHttpCall.HttpResponseMessage.StatusCode,
-                teePee.MatchRules.Count);
+                teePee.MatchRulesOrdered.Count);
         }
 
         internal record IncomingHttpCall(HttpRequestMessage HttpRequestMessage, string? RequestBody);
