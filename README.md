@@ -52,6 +52,20 @@ teePeeBuilder
 
 You _cannot combine both_. Once you specify `ContainingQueryParam` then incoming requests at execution-time will have their query string removed when attempting to match a rule which is using `ContainingQueryParam`.
 
+#### Matching order
+
+If more than one rule matches a request, the most specific rule wins (the one matching on the most of Body, Query params and Headers). If they are equally specific, the most recently added rule wins.
+
+To override this, use `TakesPriority()` to make a rule match ahead of all non-prioritised rules, regardless of specificity:
+
+```csharp
+teePeeBuilder
+    .ForRequest("https://some.api/path/resource", HttpMethod.Post)
+    .TakesPriority();
+```
+
+If multiple matching rules take priority, the usual ordering (most specific, then most recent) applies between them.
+
 ### Returning responses
 
 The response to a matching request is set using the `Responds()` fluent method:

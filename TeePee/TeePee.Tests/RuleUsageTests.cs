@@ -530,6 +530,117 @@ public class RuleUsageTests
         verifyUrlTwo.WasCalled();
     }
 
+    [Fact]
+    public async Task MatchesPrioritisedRuleOverMoreSpecificRule()
+    {
+        // Given
+        var bodyObject = new { Test = 1 };
+        var verifyUrlOnly = RequestMatchBuilder().TakesPriority().TrackRequest();
+        var verifyUrlAndBodyAndHeader = RequestMatchBuilder()
+                                       .ThatHasBody(bodyObject)
+                                       .ThatContainsHeader("h1", "v1")
+                                       .TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Headers.Add("h1", "v1");
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        verifyUrlOnly.WasCalled();
+        verifyUrlAndBodyAndHeader.WasNotCalled();
+    }
+
+    [Fact]
+    public async Task MatchesPrioritisedRuleOverMoreRecentRule()
+    {
+        // Given
+        var bodyObject = new { Test = 1 };
+        var verifyUrlOne = RequestMatchBuilder().ThatHasBody(bodyObject).TakesPriority().TrackRequest();
+        var verifyUrlTwo = RequestMatchBuilder().ThatHasBody(bodyObject).TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        verifyUrlOne.WasCalled();
+        verifyUrlTwo.WasNotCalled();
+    }
+
+    [Fact]
+    public async Task MatchesMoreSpecificPrioritisedRuleIfMultiplePrioritised()
+    {
+        // Given
+        var bodyObject = new { Test = 1 };
+        var verifyPrioritisedUrlOnly = RequestMatchBuilder().TakesPriority().TrackRequest();
+        var verifyPrioritisedUrlAndBody = RequestMatchBuilder().ThatHasBody(bodyObject).TakesPriority().TrackRequest();
+        var verifyUrlAndBodyAndHeader = RequestMatchBuilder()
+                                       .ThatHasBody(bodyObject)
+                                       .ThatContainsHeader("h1", "v1")
+                                       .TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Headers.Add("h1", "v1");
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        verifyPrioritisedUrlOnly.WasNotCalled();
+        verifyPrioritisedUrlAndBody.WasCalled();
+        verifyUrlAndBodyAndHeader.WasNotCalled();
+    }
+
+    [Fact]
+    public async Task MatchesMostRecentPrioritisedRuleIfMultipleSamePrioritised()
+    {
+        // Given
+        var bodyObject = new { Test = 1 };
+        var verifyUrlOne = RequestMatchBuilder().ThatHasBody(bodyObject).TakesPriority().TrackRequest();
+        var verifyUrlTwo = RequestMatchBuilder().ThatHasBody(bodyObject).TakesPriority().TrackRequest();
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Content = new StringContent(JsonSerializer.Serialize(bodyObject), Encoding.UTF8, "application/json");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        verifyUrlOne.WasNotCalled();
+        verifyUrlTwo.WasCalled();
+    }
+
+    [Fact]
+    public async Task DoesNotMatchPrioritisedRuleIfRequestDoesNotMatch()
+    {
+        // Given
+        var verifyPrioritisedWithHeader = RequestMatchBuilder().ThatContainsHeader("h1", "v1").TakesPriority().TrackRequest();
+        var verifyUrlOnly = RequestMatchBuilder().TrackRequest();
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(RequestMessage(), TestCt);
+
+        // Then
+        verifyPrioritisedWithHeader.WasNotCalled();
+        verifyUrlOnly.WasCalled();
+    }
+
     #endregion
 
     #region Match Logging
@@ -577,8 +688,11 @@ public class RuleUsageTests
             It.IsAny<Func<It.IsAnyType, Exception?, string>>())
         , Times.Once);
     }
-    [Fact]
-    public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled()
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled(bool takesPriority)
     {
         // Given
         m_Builder = new(opt =>
@@ -586,11 +700,19 @@ public class RuleUsageTests
             opt.LoggerFactory = () => m_MockLogger.Object;
             opt.ShowFullDetailsOnMatchFailure = true;
         });
-        RequestMatchBuilder();
+        var requestMatchBuilder = RequestMatchBuilder();
+        if (takesPriority)
+            requestMatchBuilder.TakesPriority();
         m_HttpMethod = HttpMethod.Options;
         m_Builder.ForRequest("https://www.test.co.uk/api/items2", HttpMethod.Head);
 
         var httpClient = await CreateHttpClient();
+
+        const string getRuleLog = "\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]";
+        const string headRuleLog = "\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]";
+        var expectedRulesLog = takesPriority
+            ? $"{getRuleLog} [P]\r\n{headRuleLog}" // Prioritised rule first
+            : $"{headRuleLog}\r\n{getRuleLog}";    // Most recent rule first
 
         // When
         await httpClient.SendAsync(RequestMessage(), TestCt);
@@ -603,7 +725,7 @@ public class RuleUsageTests
                                     o != null &&
                                     (o.ToString() ?? "").Contains("Unmatched Http request") &&
                                     (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
-                                    (o.ToString() ?? "").Contains("\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
+                                    (o.ToString() ?? "").Contains(expectedRulesLog)
                                 ),
             It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>())

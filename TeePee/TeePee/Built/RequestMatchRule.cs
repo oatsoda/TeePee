@@ -13,6 +13,7 @@ namespace TeePee.Built
 
         internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
+        internal bool TakesPriority { get; }
 
         public string Url { get; }
         public HttpMethod Method { get; }
@@ -28,7 +29,7 @@ namespace TeePee.Built
         private bool BodyMatchIsSpecified => RequestBody != null || RequestBodyContainingRule != null;
         internal int SpecificityLevel => (BodyMatchIsSpecified ? 1 : 0) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt,
+        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, bool takesPriority,
                                   string url, HttpMethod method,
                                   bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding,
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers,
@@ -36,6 +37,7 @@ namespace TeePee.Built
         {
             m_Options = options;
             CreatedAt = createdAt;
+            TakesPriority = takesPriority;
 
             Url = url;
             Method = method;
@@ -150,7 +152,8 @@ namespace TeePee.Built
         public string Log(int? truncateBodyLength)
         {
             var body = RequestBodyContainingRule != null ? "<Partial Containing Rule>" : RequestBody?.Trunc(truncateBodyLength);
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {body}]";
+            var priority = TakesPriority ? " [P]" : "";
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {body}]{priority}";
         }
 
         internal HttpResponseMessage ToHttpResponseMessage()
