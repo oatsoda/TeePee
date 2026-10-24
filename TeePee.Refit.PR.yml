@@ -15,7 +15,7 @@ pool:
   vmImage: "windows-latest"
 
 variables:
-  solution: "**/TeePee.Refit.sln"
+  solution: "**/TeePee.Refit.slnx"
   projectToPack: "TeePee.Refit/TeePee.Refit/TeePee.Refit.csproj"
   netstandardFramework: "netstandard2.1"
   buildConfiguration: "Release"
