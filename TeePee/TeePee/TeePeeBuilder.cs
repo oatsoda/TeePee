@@ -85,7 +85,8 @@ namespace TeePee
             }
 
             var requestMatchRulesOrdered = requestMatchRules
-                                          .OrderByDescending(m => m.SpecificityLevel)
+                                          .OrderByDescending(m => m.TakesPriority)
+                                          .ThenByDescending(m => m.SpecificityLevel)
                                           .ThenByDescending(m => m.CreatedAt)
                                           .ToList();
 

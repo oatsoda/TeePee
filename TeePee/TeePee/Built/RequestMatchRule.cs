@@ -13,6 +13,7 @@ namespace TeePee.Built
 
         internal Tracker? Tracker { get; }
         internal DateTimeOffset CreatedAt { get; }
+        internal bool TakesPriority { get; }
 
         public string Url { get; }
         public HttpMethod Method { get; }
@@ -28,7 +29,7 @@ namespace TeePee.Built
         private bool BodyMatchIsSpecified => RequestBody != null || RequestBodyContainingRule != null;
         internal int SpecificityLevel => (BodyMatchIsSpecified ? 1 : 0) + QueryParams.Count + Headers.Count;
 
-        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt,
+        internal RequestMatchRule(TeePeeOptions options, DateTimeOffset createdAt, bool takesPriority,
                                   string url, HttpMethod method,
                                   bool isHttpContentBodyMatch, string? requestBody, RequestBodyContainingRule? requestBodyContainingRule, string? requestBodyMediaType, string? requestBodyEncoding,
                                   IDictionary<string, string> queryParams, IDictionary<string, string> headers,
@@ -36,6 +37,7 @@ namespace TeePee.Built
         {
             m_Options = options;
             CreatedAt = createdAt;
+            TakesPriority = takesPriority;
 
             Url = url;
             Method = method;
@@ -95,13 +97,33 @@ namespace TeePee.Built
             if (requestBody == null)
                 return false;
 
+            // Check Content-Type first to avoid comparing or deserialising bodies of the wrong type
+            if (!IsMatchingContentType(httpRequestMessage))
+                return false;
+
             if (RequestBody != null && !RequestBody.IsSameString(requestBody, m_Options.CaseSensitiveMatching))
                 return false;
 
-            if (RequestBodyContainingRule != null && !RequestBodyContainingRule.Rule(JsonSerializer.Deserialize(requestBody, RequestBodyContainingRule.RuleType, m_Options.RequestBodySerializerOptions)!))
+            if (RequestBodyContainingRule != null && !IsMatchingBodyContainingRule(RequestBodyContainingRule, requestBody))
                 return false;
 
-            return IsMatchingContentType(httpRequestMessage);
+            return true;
+        }
+
+        private bool IsMatchingBodyContainingRule(RequestBodyContainingRule bodyContainingRule, string requestBody)
+        {
+            object? body;
+            try
+            {
+                body = JsonSerializer.Deserialize(requestBody, bodyContainingRule.RuleType, m_Options.RequestBodySerializerOptions);
+            }
+            catch (JsonException ex) // Body cannot be deserialised to the rule's type, so cannot match
+            {
+                m_Options.LoggerFactory?.Invoke().LogBodyContainingRuleDeserialisationFailure(bodyContainingRule.RuleType.Name, Log(m_Options.TruncateBodyOutputLength), ex);
+                return false;
+            }
+
+            return body != null && bodyContainingRule.Rule(body);
         }
 
         private bool IsMatchingContentType(HttpRequestMessage httpRequestMessage)
@@ -150,7 +172,8 @@ namespace TeePee.Built
         public string Log(int? truncateBodyLength)
         {
             var body = RequestBodyContainingRule != null ? "<Partial Containing Rule>" : RequestBody?.Trunc(truncateBodyLength);
-            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {body}]";
+            var priority = TakesPriority ? " [P]" : "";
+            return $"{Method} {Url} [Q: {QueryParams.Flat()}] [H: {Headers.Flat()}] [CE: {RequestBodyEncoding}] [CT: {RequestBodyMediaType}] [B: {body}]{priority}";
         }
 
         internal HttpResponseMessage ToHttpResponseMessage()

@@ -16,6 +16,11 @@ namespace TeePee
         };
 
         /// <summary>
+        /// The Mode for TeePee. See <see cref="TeePeeMode"/>. Default is Lenient.
+        /// </summary>
+        public TeePeeMode Mode { get; set; } = TeePeeMode.Lenient;
+
+        /// <summary>
         /// The <see cref="JsonSerializerOptions"/> to use when creating the Response JSON Body from the defined response body object.
         /// </summary>
         public JsonSerializerOptions ResponseBodySerializerOptions { get; set; } = DefaultSerializeOptions;
@@ -31,29 +36,30 @@ namespace TeePee
         public bool CaseSensitiveMatching { get; set; }
 
         /// <summary>
-        /// The max characters of the JSON body to write to Exception messages or log outputs. Default is 500.
-        /// </summary>
-        public int? TruncateBodyOutputLength { get; set; } = 500;
-
-        /// <summary>
-        /// Whether to output full verbose details of match failures.
-        /// </summary>
-        public bool ShowFullDetailsOnMatchFailure { get; set; }
-
-        /// <summary>
-        /// The Mode for TeePee. See <see cref="TeePeeMode"/>. Default is Lenient.
-        /// </summary>
-        public TeePeeMode Mode { get; set; } = TeePeeMode.Lenient;
-
-        /// <summary>
         /// The BuilderMode for TeePee. See <see cref="TeePeeBuilderMode"/>. Default is AllowMultipleUrlRules.
         /// </summary>
         public TeePeeBuilderMode BuilderMode { get; set; } = TeePeeBuilderMode.AllowMultipleUrlRules;
 
         /// <summary>
+        /// The max characters of the JSON body to write to Exception messages or log outputs. Default is 500.
+        /// </summary>
+        public int? TruncateBodyOutputLength { get; set; } = 500;
+
+        /// <summary>
         /// Optional logger to capture details of matches and failures. Can also be set later on the <see cref="TeePeeBuilder"/>.
         /// </summary>
         public Func<ILogger>? LoggerFactory { get; set; }
+
+        /// <summary>
+        /// Whether to output full verbose details of match failures. Requires a <see cref="LoggerFactory"/>.
+        /// </summary>
+        public bool ShowFullDetailsOnMatchFailure { get; set; }
+
+        /// <summary>
+        /// Whether to evaluate all rules on a successful match and, if more than one rule matches, log all matching rules in priority order.
+        /// Has a performance overhead as all rules are evaluated for each matched request. Requires a <see cref="LoggerFactory"/>.
+        /// </summary>
+        public bool ShowAllMatchesOnMatch { get; set; }
     }
 
     public interface ITeePeeOptions
@@ -65,6 +71,7 @@ namespace TeePee
         JsonSerializerOptions RequestBodySerializerOptions { get; }
         JsonSerializerOptions ResponseBodySerializerOptions { get; }
         bool ShowFullDetailsOnMatchFailure { get; }
+        bool ShowAllMatchesOnMatch { get; }
         int? TruncateBodyOutputLength { get; }
     }
 }

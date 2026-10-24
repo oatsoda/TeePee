@@ -16,63 +16,88 @@ namespace TeePee.Built
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var teePee = await GetCongfiguration();
+            var teePeeSeeded = await GetCongfiguration();
 
             var requestBody = await request.ReadContentAsync();
             var incomingHttpCall = new IncomingHttpCall(request, requestBody);
 
-            var match = teePee.MatchRules.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
+            var matches = FindMatches(teePeeSeeded, incomingHttpCall);
 
-            HttpResponseMessage DefaultResponse() => new(teePee.UnmatchedStatusCode)
-            {
-                Content = teePee.UnmatchedBody == null
-                    ? null
-                    : new StringContent(teePee.UnmatchedBody)
-            };
+            // This will also trigger Tracker tracking of matched call
+            var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, matches.FirstOrDefault(), teePeeSeeded.DefaultResponse);
 
-            var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, match, DefaultResponse);
-            RecordRequest(teePee, recordedHttpCall);
+            // All Trackers record all calls
+            foreach (var tracker in teePeeSeeded.Trackers)
+                tracker.TrackingState.AddHttpCall(recordedHttpCall);
+
+            if (!recordedHttpCall.IsMatch && teePeeSeeded.Options.Mode == TeePeeMode.Strict)
+                throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(teePeeSeeded.Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{teePeeSeeded.MatchRulesOrdered.Count} rules configured]");
+
+            LogRequest(teePeeSeeded, recordedHttpCall, matches);
 
             return recordedHttpCall.HttpResponseMessage;
         }
 
-        private static void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
+        private static List<RequestMatchRule> FindMatches(TeePeeSeeded teePeeSeeded, IncomingHttpCall incomingHttpCall)
         {
-            foreach (var ruleWithTracker in teePee.MatchRules.Where(r => r.Tracker != null))
-                ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
+            var checkAllMatches = teePeeSeeded.Options.ShowAllMatchesOnMatch && teePeeSeeded.Options.LoggerFactory != null;
 
-            if (!recordedHttpCall.IsMatch && teePee.Options.Mode == TeePeeMode.Strict)
-                throw new NotSupportedException($"Unmatched Http request: {recordedHttpCall.Log(teePee.Options)} [Response: {(int)recordedHttpCall.HttpResponseMessage.StatusCode} {recordedHttpCall.HttpResponseMessage.StatusCode}] [{teePee.MatchRules.Count} rules configured]");
+            List<RequestMatchRule> matches = [];
+            foreach (var matchRule in teePeeSeeded.MatchRulesOrdered)
+            {
+                if (!matchRule.IsMatchingRequest(incomingHttpCall))
+                    continue;
 
-            if (teePee.Options.LoggerFactory == null)
+                matches.Add(matchRule);
+
+                if (!checkAllMatches)
+                    break;
+            }
+
+            return matches;
+        }
+
+        private static void LogRequest(TeePeeSeeded teePeeSeeded, RecordedHttpCall recordedHttpCall, IReadOnlyList<RequestMatchRule> allMatches)
+        {
+            if (teePeeSeeded.Options.LoggerFactory == null)
                 return;
 
-            var logger = teePee.Options.LoggerFactory();
+            var logger = teePeeSeeded.Options.LoggerFactory();
 
             if (recordedHttpCall.IsMatch)
             {
+                if (allMatches.Count > 1)
+                {
+                    logger.LogMatchedRequestWithMultipleMatches(
+                        recordedHttpCall.Log(teePeeSeeded.Options),
+                        (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                        recordedHttpCall.HttpResponseMessage.StatusCode,
+                        allMatches.Log(teePeeSeeded.Options));
+                    return;
+                }
+
                 logger.LogMatchedRequest(
-                    recordedHttpCall.Log(teePee.Options),
+                    recordedHttpCall.Log(teePeeSeeded.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                     recordedHttpCall.HttpResponseMessage.StatusCode);
                 return;
             }
 
-            if (teePee.Options.ShowFullDetailsOnMatchFailure)
+            if (teePeeSeeded.Options.ShowFullDetailsOnMatchFailure)
             {
                 logger.LogUnmatchedRequestWithFullDetails(
-                    recordedHttpCall.Log(teePee.Options),
+                    recordedHttpCall.Log(teePeeSeeded.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                     recordedHttpCall.HttpResponseMessage.StatusCode,
-                    teePee.MatchRules.Log(teePee.Options));
+                    teePeeSeeded.MatchRulesOrdered.Log(teePeeSeeded.Options));
                 return;
             }
 
             logger.LogUnmatchedRequest(
-                recordedHttpCall.Log(teePee.Options),
+                recordedHttpCall.Log(teePeeSeeded.Options),
                 (int)recordedHttpCall.HttpResponseMessage.StatusCode,
                 recordedHttpCall.HttpResponseMessage.StatusCode,
-                teePee.MatchRules.Count);
+                teePeeSeeded.MatchRulesOrdered.Count);
         }
 
         internal record IncomingHttpCall(HttpRequestMessage HttpRequestMessage, string? RequestBody);
@@ -87,14 +112,14 @@ namespace TeePee.Built
 
             public bool IsMatch => MatchRule != null;
 
-            internal RecordedHttpCall(IncomingHttpCall incomingHttpCall, RequestMatchRule? matchedRule, Func<HttpResponseMessage> nonMatchedDefaultResponse)
+            internal RecordedHttpCall(IncomingHttpCall incomingHttpCall, RequestMatchRule? matchedRule, Func<HttpResponseMessage> nonMatchedDefaultResponseFactory)
             {
                 HttpRequestMessage = incomingHttpCall.HttpRequestMessage;
                 RequestBody = incomingHttpCall.RequestBody;
 
                 if (matchedRule == null)
                 {
-                    HttpResponseMessage = nonMatchedDefaultResponse();
+                    HttpResponseMessage = nonMatchedDefaultResponseFactory();
                     HttpResponseMessage.RequestMessage = HttpRequestMessage;
                 }
                 else
@@ -143,6 +168,25 @@ namespace TeePee.Built
             string request,
             int responseCode,
             System.Net.HttpStatusCode responseCodeDescription);
+
+        [LoggerMessage(
+            Message = "Matched Http request: {request} [Response: {responseCode} {responseCodeDescription}]\r\n\r\nMultiple Matching Rules (in priority order, first was used):\r\n\r\n{matchingRules}",
+            Level = LogLevel.Information)]
+        internal static partial void LogMatchedRequestWithMultipleMatches(
+            this ILogger logger,
+            string request,
+            int responseCode,
+            System.Net.HttpStatusCode responseCodeDescription,
+            string matchingRules);
+
+        [LoggerMessage(
+            Message = "Request body could not be deserialised to {ruleType} for partial body match rule, so rule not matched: {rule}",
+            Level = LogLevel.Information)]
+        internal static partial void LogBodyContainingRuleDeserialisationFailure(
+            this ILogger logger,
+            string ruleType,
+            string rule,
+            Exception exception);
 
         [LoggerMessage(
             Message = "Unmatched Http request: {request} [Response: {responseCode} {responseCodeDescription}] [{numberOfRulesConfigured} rules configured]",

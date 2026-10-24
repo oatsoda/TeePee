@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Examples/">
+    <Project Path="Examples/TeePee.Examples.WebApp.Tests/TeePee.Examples.WebApp.Tests.csproj" />
+    <Project Path="Examples/TeePee.Examples.WebApp/TeePee.Examples.WebApp.csproj" />
+  </Folder>
+  <Project Path="TeePee.Benchmarks/TeePee.Benchmarks.csproj" />
+  <Project Path="TeePee.Tests/TeePee.Tests.csproj" />
+  <Project Path="TeePee/TeePee.csproj" />
+</Solution>

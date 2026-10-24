@@ -33,6 +33,8 @@ namespace TeePee
         private readonly Dictionary<string, string> m_QueryParams = new(4);
         private readonly Dictionary<string, string> m_Headers = new(4);
 
+        private bool m_TakesPriority;
+
         internal bool MatchUrlWithQuery { get; }
         internal bool HasQueryParams => m_QueryParams.Count > 0;
 
@@ -151,6 +153,21 @@ namespace TeePee
         }
 
         /// <summary>
+        /// REQUEST Match this request ahead of all non-prioritised request matches, regardless of their specificity.
+        /// If multiple request matches take priority, the usual ordering (most specific, then most recent) applies between them.
+        /// </summary>
+        public RequestMatchBuilder TakesPriority()
+        {
+            ThrowIfBuilt();
+
+            if (m_TakesPriority)
+                throw new InvalidOperationException("You can only call TakesPriority once per rule.");
+
+            m_TakesPriority = true;
+            return this;
+        }
+
+        /// <summary>
         /// Define that the Request will respond.
         /// </summary>
         public ResponseBuilder Responds()
@@ -181,7 +198,7 @@ namespace TeePee
         {
             var serialisedRequestBody = await SerialiseExpectedRequestMatchBody();
             var responses = CreateResponses();
-            return new(m_Options, m_CreatedAt,
+            return new(m_Options, m_CreatedAt, m_TakesPriority,
                        Url, Method,
                        m_RequestBodyContent != null, serialisedRequestBody, m_RequestBodyContainingRule, m_RequestBodyMediaType, m_RequestBodyEncoding,
                        m_QueryParams, m_Headers,

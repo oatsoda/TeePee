@@ -440,6 +440,25 @@ public class RuleBuildingValidationTests
 
     #endregion
 
+    #region TakesPriority
+
+    [Fact]
+    public void TakesPriorityThrowsIfCalledTwice()
+    {
+        // Given
+        var requestBuilder = m_Builder.ForRequest("https://site.net/api/items", HttpMethod.Get);
+        requestBuilder.TakesPriority();
+
+        // When
+        var ex = Record.Exception(() => requestBuilder.TakesPriority());
+
+        // Then
+        Assert.IsType<InvalidOperationException>(ex);
+        Assert.Contains("You can only call TakesPriority once per rule", ex.Message);
+    }
+
+    #endregion
+
     #region Responds
 
     [Fact]
