@@ -577,7 +577,6 @@ public class RuleUsageTests
             It.IsAny<Func<It.IsAnyType, Exception?, string>>())
         , Times.Once);
     }
-
     [Fact]
     public async Task LogsFullDetailsMessageIfNotMatchAndSettingEnabled()
     {
@@ -606,6 +605,51 @@ public class RuleUsageTests
                                     (o.ToString() ?? "").Contains("OPTIONS https://www.test.co.uk/api/items [H: ] [CE: ] [CT: ] [B: ] [Matched: False]") &&
                                     (o.ToString() ?? "").Contains("\tHEAD https://www.test.co.uk/api/items2 [Q: ] [H: ] [CE: ] [CT: ] [B: ]\r\n\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]")
                                 ),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
+    }
+
+    [Fact]
+    public async Task LogsMessageIfLoggerSetWithLoggingFactory()
+    {
+        // Given
+        m_Builder = new TeePeeBuilder().WithLoggingFactory(() => m_MockLogger.Object); // Not setting Logger in Options.
+        RequestMatchBuilder();
+        using var client = await CreateHttpClient();
+
+        // When
+        await client.SendAsync(RequestMessage(), TestCt);
+
+        // Then
+        m_MockLogger.Verify(l => l.Log(
+            It.Is<LogLevel>(level => level == LogLevel.Information),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) => o != null && (o.ToString() ?? "").Contains("Matched Http request")),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
+    }
+
+    [Fact]
+    public async Task WithLoggingFactoryOverridesLoggerSetInOptions()
+    {
+        // Given
+        var optionsLogger = new Mock<ILogger>();
+        m_Builder = new TeePeeBuilder(opt => opt.LoggerFactory = () => optionsLogger.Object)
+                   .WithLoggingFactory(() => m_MockLogger.Object);
+        RequestMatchBuilder();
+        using var client = await CreateHttpClient();
+
+        // When
+        await client.SendAsync(RequestMessage(), TestCt);
+
+        // Then
+        Assert.Empty(optionsLogger.Invocations);
+        m_MockLogger.Verify(l => l.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
             It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>())
         , Times.Once);
