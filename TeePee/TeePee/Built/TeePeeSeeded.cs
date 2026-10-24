@@ -6,6 +6,7 @@ namespace TeePee.Built
     {
         internal ITeePeeOptions Options { get; }
         internal IReadOnlyList<RequestMatchRule> MatchRulesOrdered { get; }
+        internal IReadOnlyList<Tracker> Trackers { get; }
         internal HttpStatusCode UnmatchedStatusCode { get; }
         internal string? UnmatchedBody { get; }
 
@@ -17,6 +18,7 @@ namespace TeePee.Built
         {
             Options = options;
             MatchRulesOrdered = matchRulesOrdered;
+            Trackers = matchRulesOrdered.Where(r => r.Tracker != null).Select(r => r.Tracker!).ToList();
             UnmatchedStatusCode = unmatchedStatusCode;
             UnmatchedBody = unmatchedBody;
         }
