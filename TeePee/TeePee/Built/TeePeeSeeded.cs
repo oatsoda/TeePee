@@ -20,5 +20,13 @@ namespace TeePee.Built
             UnmatchedStatusCode = unmatchedStatusCode;
             UnmatchedBody = unmatchedBody;
         }
+
+        internal HttpResponseMessage DefaultResponse()
+            => new(UnmatchedStatusCode)
+            {
+                Content = UnmatchedBody == null
+                    ? null
+                    : new StringContent(UnmatchedBody)
+            };
     }
 }
