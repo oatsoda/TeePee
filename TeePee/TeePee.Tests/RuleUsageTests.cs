@@ -732,6 +732,88 @@ public class RuleUsageTests
         , Times.Once);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LogsAllMatchingRulesIfMultipleMatchesAndSettingEnabled(bool takesPriority)
+    {
+        // Given
+        m_Builder = new(opt =>
+        {
+            opt.LoggerFactory = () => m_MockLogger.Object;
+            opt.ShowAllMatchesOnMatch = true;
+        });
+        var urlOnlyRequestMatchBuilder = RequestMatchBuilder();
+        if (takesPriority)
+            urlOnlyRequestMatchBuilder.TakesPriority();
+        RequestMatchBuilder().ThatContainsHeader("h1", "v1");
+
+        var httpRequestMessage = RequestMessage();
+        httpRequestMessage.Headers.Add("h1", "v1");
+
+        var httpClient = await CreateHttpClient();
+
+        const string urlOnlyRuleLog = "\tGET https://www.test.co.uk/api/items [Q: ] [H: ] [CE: ] [CT: ] [B: ]";
+        const string headerRuleLog = "\tGET https://www.test.co.uk/api/items [Q: ] [H: h1 = v1] [CE: ] [CT: ] [B: ]";
+        var expectedRulesLog = takesPriority
+            ? $"{urlOnlyRuleLog} [P]\r\n{headerRuleLog}" // Prioritised rule first
+            : $"{headerRuleLog}\r\n{urlOnlyRuleLog}";    // More specific rule first
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        m_MockLogger.Verify(l => l.Log(
+            It.Is<LogLevel>(level => level == LogLevel.Information),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) =>
+                                    o != null &&
+                                    (o.ToString() ?? "").Contains("Matched Http request") &&
+                                    (o.ToString() ?? "").Contains("Multiple Matching Rules (in priority order, first was used)") &&
+                                    (o.ToString() ?? "").Contains(expectedRulesLog)
+                                ),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false, true)] // Setting not enabled
+    [InlineData(true, false)] // Only one match
+    public async Task DoesNotLogAllMatchingRulesIfSettingNotEnabledOrSingleMatch(bool settingEnabled, bool multipleMatches)
+    {
+        // Given
+        m_Builder = new(opt =>
+        {
+            opt.LoggerFactory = () => m_MockLogger.Object;
+            opt.ShowAllMatchesOnMatch = settingEnabled;
+        });
+        RequestMatchBuilder();
+        RequestMatchBuilder().ThatContainsHeader("h1", "v1");
+
+        var httpRequestMessage = RequestMessage();
+        if (multipleMatches)
+            httpRequestMessage.Headers.Add("h1", "v1");
+
+        var httpClient = await CreateHttpClient();
+
+        // When
+        await httpClient.SendAsync(httpRequestMessage, TestCt);
+
+        // Then
+        m_MockLogger.Verify(l => l.Log(
+            It.Is<LogLevel>(level => level == LogLevel.Information),
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((o, t) =>
+                                    o != null &&
+                                    (o.ToString() ?? "").Contains("Matched Http request") &&
+                                    !(o.ToString() ?? "").Contains("Multiple Matching Rules")
+                                ),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>())
+        , Times.Once);
+    }
+
     [Fact]
     public async Task LogsMessageIfLoggerSetWithLoggingFactory()
     {

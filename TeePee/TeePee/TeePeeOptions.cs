@@ -36,9 +36,15 @@ namespace TeePee
         public int? TruncateBodyOutputLength { get; set; } = 500;
 
         /// <summary>
-        /// Whether to output full verbose details of match failures.
+        /// Whether to output full verbose details of match failures. Requires a <see cref="LoggerFactory"/>.
         /// </summary>
         public bool ShowFullDetailsOnMatchFailure { get; set; }
+
+        /// <summary>
+        /// Whether to evaluate all rules on a successful match and, if more than one rule matches, log all matching rules in priority order.
+        /// Has a performance overhead as all rules are evaluated for each matched request. Requires a <see cref="LoggerFactory"/>.
+        /// </summary>
+        public bool ShowAllMatchesOnMatch { get; set; }
 
         /// <summary>
         /// The Mode for TeePee. See <see cref="TeePeeMode"/>. Default is Lenient.
@@ -65,6 +71,7 @@ namespace TeePee
         JsonSerializerOptions RequestBodySerializerOptions { get; }
         JsonSerializerOptions ResponseBodySerializerOptions { get; }
         bool ShowFullDetailsOnMatchFailure { get; }
+        bool ShowAllMatchesOnMatch { get; }
         int? TruncateBodyOutputLength { get; }
     }
 }

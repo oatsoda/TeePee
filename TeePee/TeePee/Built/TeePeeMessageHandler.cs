@@ -22,6 +22,9 @@ namespace TeePee.Built
             var incomingHttpCall = new IncomingHttpCall(request, requestBody);
 
             var match = teePee.MatchRulesOrdered.FirstOrDefault(m => m.IsMatchingRequest(incomingHttpCall));
+            var allMatches = match != null && teePee.Options.ShowAllMatchesOnMatch && teePee.Options.LoggerFactory != null
+                ? FindAllMatches(teePee, match, incomingHttpCall)
+                : null;
 
             HttpResponseMessage DefaultResponse() => new(teePee.UnmatchedStatusCode)
             {
@@ -31,12 +34,23 @@ namespace TeePee.Built
             };
 
             var recordedHttpCall = new RecordedHttpCall(incomingHttpCall, match, DefaultResponse);
-            RecordRequest(teePee, recordedHttpCall);
+            RecordRequest(teePee, recordedHttpCall, allMatches);
 
             return recordedHttpCall.HttpResponseMessage;
         }
 
-        private static void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall)
+        private static List<RequestMatchRule> FindAllMatches(TeePeeSeeded teePee, RequestMatchRule match, IncomingHttpCall incomingHttpCall)
+        {
+            // Rules before the first match are already known not to match, so only evaluate those after it.
+            return teePee.MatchRulesOrdered
+                         .SkipWhile(m => m != match)
+                         .Skip(1)
+                         .Where(m => m.IsMatchingRequest(incomingHttpCall))
+                         .Prepend(match)
+                         .ToList();
+        }
+
+        private static void RecordRequest(TeePeeSeeded teePee, RecordedHttpCall recordedHttpCall, IReadOnlyList<RequestMatchRule>? allMatches)
         {
             foreach (var ruleWithTracker in teePee.MatchRulesOrdered.Where(r => r.Tracker != null))
                 ruleWithTracker.Tracker!.TrackingState.AddHttpCall(recordedHttpCall);
@@ -51,6 +65,16 @@ namespace TeePee.Built
 
             if (recordedHttpCall.IsMatch)
             {
+                if (allMatches is { Count: > 1 })
+                {
+                    logger.LogMatchedRequestWithMultipleMatches(
+                        recordedHttpCall.Log(teePee.Options),
+                        (int)recordedHttpCall.HttpResponseMessage.StatusCode,
+                        recordedHttpCall.HttpResponseMessage.StatusCode,
+                        allMatches.Log(teePee.Options));
+                    return;
+                }
+
                 logger.LogMatchedRequest(
                     recordedHttpCall.Log(teePee.Options),
                     (int)recordedHttpCall.HttpResponseMessage.StatusCode,
@@ -143,6 +167,16 @@ namespace TeePee.Built
             string request,
             int responseCode,
             System.Net.HttpStatusCode responseCodeDescription);
+
+        [LoggerMessage(
+            Message = "Matched Http request: {request} [Response: {responseCode} {responseCodeDescription}]\r\n\r\nMultiple Matching Rules (in priority order, first was used):\r\n\r\n{matchingRules}",
+            Level = LogLevel.Information)]
+        internal static partial void LogMatchedRequestWithMultipleMatches(
+            this ILogger logger,
+            string request,
+            int responseCode,
+            System.Net.HttpStatusCode responseCodeDescription,
+            string matchingRules);
 
         [LoggerMessage(
             Message = "Unmatched Http request: {request} [Response: {responseCode} {responseCodeDescription}] [{numberOfRulesConfigured} rules configured]",

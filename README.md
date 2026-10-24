@@ -66,6 +66,8 @@ teePeeBuilder
 
 If multiple matching rules take priority, the usual ordering (most specific, then most recent) applies between them.
 
+To diagnose which rule was used when a request matches more than one, set `ShowAllMatchesOnMatch` in `TeePeeOptions` (requires a logger). All matching rules are then logged in priority order, with prioritised rules marked `[P]`. This evaluates every rule for each matched request, so it is off by default.
+
 ### Returning responses
 
 The response to a matching request is set using the `Responds()` fluent method:
