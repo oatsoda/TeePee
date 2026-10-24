@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TeePee.Refit.Tests/TeePee.Refit.Tests.csproj" />
+  <Project Path="TeePee.Refit/TeePee.Refit.csproj" />
+</Solution>
